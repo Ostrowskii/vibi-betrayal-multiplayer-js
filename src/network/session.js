@@ -3,18 +3,22 @@ import { gameConfig } from "../game/engine.js";
 import { packer } from "./packer.js";
 
 export class MatchSession {
-  constructor({ room, user }) {
+  constructor({ room, user, server }) {
     this.room = room;
     this.user = user;
+    this.server = server ?? null;
     this.synced = false;
     this.joinPosted = false;
+    this.createdAt = Date.now();
     this.placeholderState = structuredClone(gameConfig.initial);
     this.placeholderState.publicLog = [
       "Conectando ao servidor...",
       `Sala alvo: ${room}`,
+      `Servidor: ${this.server ?? "oficial do vibinet"}`,
     ];
 
     this.game = new VibiNet.game({
+      ...(this.server ? { server: this.server } : {}),
       room,
       initial: gameConfig.initial,
       on_tick: gameConfig.on_tick,
@@ -35,6 +39,14 @@ export class MatchSession {
 
   computeState() {
     if (!this.synced) {
+      const waitMs = Date.now() - this.createdAt;
+      if (waitMs >= 5000) {
+        this.placeholderState.publicLog = [
+          "Ainda sem sync inicial.",
+          `Servidor: ${this.server ?? "oficial do vibinet"}`,
+          "Se isso nao sair dessa tela, o servidor alvo nao respondeu ao on_sync.",
+        ];
+      }
       return this.placeholderState;
     }
     return this.game.compute_render_state();

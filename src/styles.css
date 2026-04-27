@@ -115,6 +115,12 @@ button {
   color: var(--text-muted);
 }
 
+.server-note {
+  margin-top: -0.35rem;
+  color: var(--gold);
+  font-size: 0.85rem;
+}
+
 .field {
   display: grid;
   gap: 0.45rem;
