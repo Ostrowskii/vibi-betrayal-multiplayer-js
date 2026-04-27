@@ -8,6 +8,11 @@ export class MatchSession {
     this.user = user;
     this.synced = false;
     this.joinPosted = false;
+    this.placeholderState = structuredClone(gameConfig.initial);
+    this.placeholderState.publicLog = [
+      "Conectando ao servidor...",
+      `Sala alvo: ${room}`,
+    ];
 
     this.game = new VibiNet.game({
       room,
@@ -29,27 +34,38 @@ export class MatchSession {
   }
 
   computeState() {
+    if (!this.synced) {
+      return this.placeholderState;
+    }
     return this.game.compute_render_state();
   }
 
   selectUC(card) {
+    if (!this.synced) return false;
     this.game.post({ $: "select_uc", user: this.user, card: { $: card } });
+    return true;
   }
 
   selectUE(card) {
+    if (!this.synced) return false;
     this.game.post({ $: "select_ue", user: this.user, card: { $: card } });
+    return true;
   }
 
   continueWinner() {
+    if (!this.synced) return false;
     this.game.post({ $: "continue", user: this.user });
+    return true;
   }
 
   reportAction(action) {
+    if (!this.synced) return false;
     this.game.post({
       $: "report_action",
       user: this.user,
       action: { $: action },
     });
+    return true;
   }
 
   close() {

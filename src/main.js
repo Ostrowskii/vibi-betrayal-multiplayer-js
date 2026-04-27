@@ -376,6 +376,7 @@ function renderBoardScreen(state) {
 }
 
 function renderLobby(state) {
+  const connecting = !app.session?.synced;
   const names = state.roster.length
     ? state.roster.map((name, index) => `<div class="lobby-name">${index + 1}. ${escapeHtml(name)}</div>`).join("")
     : `<div class="lobby-name">Nenhum jogador na sala ainda.</div>`;
@@ -387,7 +388,11 @@ function renderLobby(state) {
         <img class="menu-title" src="${ASSETS.title}" alt="Betrayal" />
         <div class="menu-card">
           <h2>Sala ${escapeHtml(app.form.room)}</h2>
-          <p>Esperando dois usuarios. O primeiro vira C1 e o segundo vira C2.</p>
+          <p>${
+            connecting
+              ? "Sincronizando com o servidor da sala."
+              : "Esperando dois usuarios. O primeiro vira C1 e o segundo vira C2."
+          }</p>
           <div class="lobby-list">${names}</div>
           <button class="menu-button" data-action="back-to-menu">Voltar ao menu local</button>
         </div>
@@ -555,24 +560,29 @@ root.addEventListener("click", (event) => {
       app.lastMarkup = "";
       return;
     case "select-uc":
-      app.session?.selectUC(card);
-      playSound("select", 0.45);
+      if (app.session?.selectUC(card)) {
+        playSound("select", 0.45);
+      }
       return;
     case "select-ue":
-      app.session?.selectUE(card);
-      playSound("select", 0.45);
+      if (app.session?.selectUE(card)) {
+        playSound("select", 0.45);
+      }
       return;
     case "continue-winner":
-      app.session?.continueWinner();
-      playSound("click", 0.4);
+      if (app.session?.continueWinner()) {
+        playSound("click", 0.4);
+      }
       return;
     case "report-menu":
-      app.session?.reportAction("menu");
-      playSound("click", 0.45);
+      if (app.session?.reportAction("menu")) {
+        playSound("click", 0.45);
+      }
       return;
     case "report-restart":
-      app.session?.reportAction("restart");
-      playSound("turnConfirm", 0.45);
+      if (app.session?.reportAction("restart")) {
+        playSound("turnConfirm", 0.45);
+      }
       return;
   }
 });
