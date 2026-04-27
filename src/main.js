@@ -27,6 +27,40 @@ const app = {
 
 const audioPool = new Map();
 
+function captureActiveField() {
+  const active = document.activeElement;
+  if (!active || active.tagName !== "INPUT") return null;
+  const field = active.dataset.field;
+  if (!field) return null;
+  return {
+    field,
+    start: active.selectionStart ?? null,
+    end: active.selectionEnd ?? null,
+  };
+}
+
+function restoreActiveField(snapshot) {
+  if (!snapshot) return;
+  const input = root.querySelector(`input[data-field="${snapshot.field}"]`);
+  if (!input) return;
+  input.focus();
+  if (snapshot.start !== null && snapshot.end !== null) {
+    input.setSelectionRange(snapshot.start, snapshot.end);
+  }
+}
+
+function syncFormInputs() {
+  const inputs = root.querySelectorAll("input[data-field]");
+  for (const input of inputs) {
+    const field = input.dataset.field;
+    if (!field) continue;
+    const wanted = app.form[field] ?? "";
+    if (input.value !== wanted) {
+      input.value = wanted;
+    }
+  }
+}
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replaceAll("&", "&amp;")
@@ -378,7 +412,6 @@ function renderMenu() {
             <span>Usuario</span>
             <input
               data-field="user"
-              value="${escapeHtml(app.form.user)}"
               placeholder="ex: Zorro"
               maxlength="24"
             />
@@ -387,7 +420,6 @@ function renderMenu() {
             <span>Sala</span>
             <input
               data-field="room"
-              value="${escapeHtml(app.form.room)}"
               placeholder="ex: betrayal-001"
               maxlength="36"
             />
@@ -488,8 +520,11 @@ function update() {
 
   const markup = renderApp();
   if (markup !== app.lastMarkup) {
+    const activeField = captureActiveField();
     root.innerHTML = markup;
     app.lastMarkup = markup;
+    syncFormInputs();
+    restoreActiveField(activeField);
   }
 
   requestAnimationFrame(update);
@@ -499,7 +534,6 @@ root.addEventListener("input", (event) => {
   const field = event.target.dataset.field;
   if (!field) return;
   app.form[field] = event.target.value;
-  app.lastMarkup = "";
 });
 
 root.addEventListener("click", (event) => {
