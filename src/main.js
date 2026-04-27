@@ -6,8 +6,6 @@ import { getVictoryLabel } from "./game/engine.js";
 import { MatchSession } from "./network/session.js";
 
 const root = document.querySelector("#app");
-const runtimeParams = new URLSearchParams(window.location.search);
-const runtimeServer = runtimeParams.get("server")?.trim() || "";
 
 const app = {
   form: {
@@ -25,7 +23,6 @@ const app = {
   lastPhase: null,
   lastScreen: null,
   hadLiveMatch: false,
-  runtimeServer,
 };
 
 const audioPool = new Map();
@@ -415,7 +412,7 @@ function renderMenu() {
             <span class="menu-kicker">vibinet room play</span>
             <h1>Usuario e sala.</h1>
             <p>Sem criar sala separado. Quem entrar primeiro vira C1.</p>
-            <p class="server-note">Servidor: ${escapeHtml(app.runtimeServer || "oficial do vibinet")}</p>
+            <p class="server-note">Servidor: oficial do vibinet</p>
           </div>
           <label class="field">
             <span>Usuario</span>
@@ -474,11 +471,7 @@ function joinRoom() {
   app.lastPhase = null;
   app.lastScreen = null;
   app.state = null;
-  app.session = new MatchSession({
-    room,
-    user,
-    server: app.runtimeServer || undefined,
-  });
+  app.session = new MatchSession({ room, user });
   playSound("click", 0.45);
 }
 
