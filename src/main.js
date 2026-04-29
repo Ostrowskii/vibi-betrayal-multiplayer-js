@@ -340,21 +340,21 @@ function getViewerCards(state, seat) {
 
   return [
     {
-      key: `turn-${turnLabel}-public-header`,
-      card: null,
-      title: `Turno ${turnLabel}`,
-      text: "Ações públicas",
-      mode: "banner",
-    },
-    ...publicCards,
-    {
       key: `turn-${turnLabel}-private-header`,
       card: null,
-      title: "Informações confidenciais",
-      text: "",
+      title: `Turno ${turnLabel}`,
+      text: "Ações confidenciais",
       mode: "banner",
     },
     ...privateCards,
+    {
+      key: `turn-${turnLabel}-public-header`,
+      card: null,
+      title: "Ações públicas",
+      text: "",
+      mode: "banner",
+    },
+    ...publicCards,
   ];
 }
 

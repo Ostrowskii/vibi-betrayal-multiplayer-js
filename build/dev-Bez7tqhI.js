@@ -50,7 +50,7 @@
     >
       ${X(i)}
     </button>
-  `}function Et(e,t){let n=e.turnView?.[t]?.publicCards??[],r=e.turnView?.[t]?.privateCards??[],i=e.lastResolvedTurn||e.turnNumber;return[{key:`turn-${i}-public-header`,card:null,title:`Turno ${i}`,text:`Ações públicas`,mode:`banner`},...n,{key:`turn-${i}-private-header`,card:null,title:`Informações confidenciais`,text:``,mode:`banner`},...r]}function Dt(e){if(e.mode===`banner`)return`
+  `}function Et(e,t){let n=e.turnView?.[t]?.publicCards??[],r=e.turnView?.[t]?.privateCards??[],i=e.lastResolvedTurn||e.turnNumber;return[{key:`turn-${i}-private-header`,card:null,title:`Turno ${i}`,text:`Ações confidenciais`,mode:`banner`},...r,{key:`turn-${i}-public-header`,card:null,title:`Ações públicas`,text:``,mode:`banner`},...n]}function Dt(e){if(e.mode===`banner`)return`
       <article class="turn-card is-banner">
         <div class="turn-card-copy is-banner">
           <strong>${X(e.title)}</strong>
