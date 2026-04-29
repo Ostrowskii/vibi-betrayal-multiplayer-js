@@ -14,7 +14,7 @@
     <section class="selection-group ${c}">
       <div class="selection-head">
         <span class="selection-kicker">${Z(e)}</span>
-        <strong>${Z(t)}</strong>
+        ${t?`<strong>${Z(t)}</strong>`:``}
       </div>
       <div class="selection-strip ${c} ${s}">
         ${n.map(e=>xt({card:e,handType:r,player:i,seat:a,interactive:o})).join(``)}
@@ -22,8 +22,8 @@
     </section>
   `}function Ct(e,t){let n=e.players[t],a=e.screen===`game`&&e.phase===`phase_1_selection`&&!n.confirmed;return`
     <div class="selection-stack">
-      ${St({title:`Descanso`,hint:`Escolha quem descansa neste turno.`,cards:r,handType:`uc`,player:n,seat:t,interactive:a,tone:`tone-rest`})}
-      ${St({title:`Ataque`,hint:`Escolha qual estrategia enviar ao inimigo.`,cards:i,handType:`ue`,player:n,seat:t,interactive:a,tone:`tone-attack`})}
+      ${St({title:`Descanso`,hint:``,cards:r,handType:`uc`,player:n,seat:t,interactive:a,tone:`tone-rest`})}
+      ${St({title:`Ataque`,hint:``,cards:i,handType:`ue`,player:n,seat:t,interactive:a,tone:`tone-attack`})}
     </div>
   `}function wt(e,t){let n=e.players[t];if(e.phase===`phase_2_results`)return`
       <button
@@ -147,8 +147,8 @@
     <div class="screen board-screen">
       <div class="board-backdrop"></div>
       <div class="board-shell">
-        ${Ot(e,n,`enemy`)}
         ${kt(e)}
+        ${Ot(e,n,`enemy`)}
         ${Ot(e,t,`self`)}
       </div>
       ${r.join(``)}

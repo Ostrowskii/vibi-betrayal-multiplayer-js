@@ -209,7 +209,7 @@ function renderSelectionGroup({
     <section class="selection-group ${kindClass}">
       <div class="selection-head">
         <span class="selection-kicker">${escapeHtml(title)}</span>
-        <strong>${escapeHtml(hint)}</strong>
+        ${hint ? `<strong>${escapeHtml(hint)}</strong>` : ""}
       </div>
       <div class="selection-strip ${kindClass} ${tone}">
         ${cards
@@ -239,7 +239,7 @@ function renderOwnChoices(state, seat) {
     <div class="selection-stack">
       ${renderSelectionGroup({
         title: "Descanso",
-        hint: "Escolha quem descansa neste turno.",
+        hint: "",
         cards: UC_TYPES,
         handType: "uc",
         player,
@@ -249,7 +249,7 @@ function renderOwnChoices(state, seat) {
       })}
       ${renderSelectionGroup({
         title: "Ataque",
-        hint: "Escolha qual estrategia enviar ao inimigo.",
+        hint: "",
         cards: UE_TYPES,
         handType: "ue",
         player,
@@ -495,8 +495,8 @@ function renderBoardScreen(state) {
     <div class="screen board-screen">
       <div class="board-backdrop"></div>
       <div class="board-shell">
-        ${renderPlayerPanel(state, enemy, "enemy")}
         ${renderCenterStage(state)}
+        ${renderPlayerPanel(state, enemy, "enemy")}
         ${renderPlayerPanel(state, self, "self")}
       </div>
       ${overlays.join("")}
