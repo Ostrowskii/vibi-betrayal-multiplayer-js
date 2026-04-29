@@ -36,6 +36,12 @@ export const packer = {
         user: { $: "String" },
       },
     },
+    leave: {
+      $: "Struct",
+      fields: {
+        user: { $: "String" },
+      },
+    },
     continue: {
       $: "Struct",
       fields: {

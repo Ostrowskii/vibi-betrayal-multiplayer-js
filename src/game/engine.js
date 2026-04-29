@@ -12,6 +12,7 @@ import {
   createBoardState,
   createFreshMatchState,
   createInitialState,
+  createLobbyState,
 } from "./initial-state.js";
 
 function pushLog(state, text) {
@@ -402,6 +403,22 @@ function handleSelection(state, user, card, kind) {
   return next;
 }
 
+function handleLeave(state, user) {
+  if (!user || !state.roster.includes(user)) {
+    return state;
+  }
+
+  const remaining = state.roster.filter((name) => name !== user);
+  const next = createLobbyState(remaining, state.matchNumber, [
+    `${user} saiu da sala.`,
+    remaining.length
+      ? "Aguardando outro jogador para completar a sala."
+      : "A sala ficou vazia.",
+  ]);
+
+  return next;
+}
+
 function handleContinue(state, user) {
   if (!user || state.screen !== "winner_transition") return state;
   const next = cloneState(state);
@@ -438,6 +455,8 @@ export function onPost(post, state) {
   switch (post.$) {
     case "join":
       return handleJoin(state, post.user.trim());
+    case "leave":
+      return handleLeave(state, post.user.trim());
     case "select_uc":
       return handleSelection(state, post.user.trim(), post.card, "uc");
     case "select_ue":

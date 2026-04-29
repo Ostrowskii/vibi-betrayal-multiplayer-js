@@ -9,6 +9,8 @@ export class MatchSession {
     this.user = user;
     this.synced = false;
     this.joinPosted = false;
+    this.leavePosted = false;
+    this.closeTimer = null;
     this.createdAt = Date.now();
     this.placeholderState = structuredClone(gameConfig.initial);
     this.placeholderState.publicLog = [
@@ -52,6 +54,13 @@ export class MatchSession {
     return this.game.compute_render_state();
   }
 
+  leave() {
+    if (!this.synced || this.leavePosted) return false;
+    this.game.post({ $: "leave", user: this.user });
+    this.leavePosted = true;
+    return true;
+  }
+
   selectUC(card) {
     if (!this.synced) return false;
     this.game.post({ $: "select_uc", user: this.user, card: { $: card } });
@@ -81,6 +90,14 @@ export class MatchSession {
   }
 
   close() {
-    this.game.close();
+    if (this.closeTimer !== null) {
+      clearTimeout(this.closeTimer);
+      this.closeTimer = null;
+    }
+    this.leave();
+    this.closeTimer = window.setTimeout(() => {
+      this.game.close();
+      this.closeTimer = null;
+    }, 40);
   }
 }

@@ -552,7 +552,7 @@ function renderMenu() {
           <div class="menu-copy">
             <span class="menu-kicker">vibinet room play</span>
             <h1>Usuario e sala.</h1>
-            <p>Sem criar sala separado. Quem entrar primeiro vira C1.</p>
+            <p>Entre direto na sala compartilhada.</p>
             <p class="server-note is-${status.kind}">${escapeHtml(status.text)}</p>
           </div>
           <div class="server-banner is-${status.kind}">${escapeHtml(status.detail)}</div>
@@ -734,6 +734,7 @@ root.addEventListener("click", (event) => {
 });
 
 window.addEventListener("beforeunload", () => {
+  app.session?.leave();
   app.serverProbe?.close();
 });
 
