@@ -110,9 +110,7 @@
           ${c?Tt(e,t):``}
         </div>
       </div>
-      <div class="player-body">
-        ${i?wt(e,t):``}
-      </div>
+      ${i?`<div class="player-body">${wt(e,t)}</div>`:``}
     </section>
   `}function At(e){let{self:t}=vt(e);return`
     <section class="center-stage">

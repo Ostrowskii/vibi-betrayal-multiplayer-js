@@ -234,6 +234,10 @@ button {
   padding: 0.55rem;
 }
 
+.player-enemy {
+  padding: 0.32rem 0.42rem;
+}
+
 .player-header {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -299,6 +303,47 @@ button {
   display: grid;
   gap: 0.5rem;
   margin-top: 0.4rem;
+}
+
+.player-enemy .player-header {
+  gap: 0.38rem;
+}
+
+.player-enemy .player-crest {
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 0.65rem;
+}
+
+.player-enemy .player-crest img {
+  width: 1.35rem;
+  height: 1.35rem;
+}
+
+.player-enemy .player-heading {
+  line-height: 1;
+}
+
+.player-enemy .player-seat {
+  font-size: 0.8rem;
+}
+
+.player-enemy .player-name {
+  font-size: 0.96rem;
+}
+
+.player-enemy .player-subhead {
+  margin-top: 0.08rem;
+  font-size: 0.72rem;
+}
+
+.player-enemy .player-meta {
+  gap: 0.24rem;
+}
+
+.player-enemy .meta-pill {
+  padding: 0.2rem 0.42rem;
+  font-size: 0.74rem;
 }
 
 .turn-viewer,

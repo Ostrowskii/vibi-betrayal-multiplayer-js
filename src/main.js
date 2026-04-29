@@ -455,9 +455,7 @@ function renderPlayerPanel(state, seat, perspective) {
           ${showHeaderAction ? renderHeaderAction(state, seat) : ""}
         </div>
       </div>
-      <div class="player-body">
-        ${isLocal ? renderOwnChoices(state, seat) : ""}
-      </div>
+      ${isLocal ? `<div class="player-body">${renderOwnChoices(state, seat)}</div>` : ""}
     </section>
   `;
 }
