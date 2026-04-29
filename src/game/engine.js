@@ -66,19 +66,6 @@ function pushPrivateCard(state, seat, card, title, text) {
   });
 }
 
-function seedTurnView(state) {
-  for (const seat of PLAYER_IDS) {
-    pushTurnCard(state, seat, "publicCards", {
-      title: "Ações públicas",
-      text: "Resumo público do turno resolvido.",
-    });
-    pushTurnCard(state, seat, "privateCards", {
-      title: "Informações privadas",
-      text: "Resumo privado do seu lado neste turno.",
-    });
-  }
-}
-
 function addRestPrivateCards(state) {
   for (const seat of PLAYER_IDS) {
     const player = state.players[seat];
@@ -108,7 +95,6 @@ function addRestPrivateCards(state) {
 
 function prepareTurnView(state) {
   clearTurnView(state);
-  seedTurnView(state);
   addRestPrivateCards(state);
 }
 
