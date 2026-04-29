@@ -588,7 +588,7 @@ function renderApp() {
   if (!app.session || !app.state) {
     return renderMenu();
   }
-  if (app.session.synced && !localSeat(app.state)) {
+  if (app.session.synced && app.state.roster.length >= 2 && !localSeat(app.state)) {
     return renderRoomBlocked(app.state);
   }
   if (app.state.screen === "lobby") {
