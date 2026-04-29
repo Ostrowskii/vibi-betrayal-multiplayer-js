@@ -12,6 +12,8 @@
   --wine: #8f2f2d;
   --pine: #21443c;
   --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+  --card-art-size: 3rem;
+  --decision-art-size: 2.6rem;
   font-family: Baskerville, "Palatino Linotype", "Book Antiqua", serif;
 }
 
@@ -210,10 +212,11 @@ button {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-rows: auto 1fr auto;
-  gap: 0.8rem;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 0.5rem;
+  height: 100dvh;
   min-height: 100dvh;
-  padding: 0.85rem;
+  padding: 0.55rem;
 }
 
 .player-panel,
@@ -228,28 +231,28 @@ button {
 }
 
 .player-panel {
-  padding: 0.85rem;
+  padding: 0.55rem;
 }
 
 .player-header {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 0.9rem;
+  gap: 0.55rem;
   align-items: center;
 }
 
 .player-crest {
-  width: 3.4rem;
-  height: 3.4rem;
-  border-radius: 1rem;
+  width: 2.35rem;
+  height: 2.35rem;
+  border-radius: 0.8rem;
   background: rgba(255, 255, 255, 0.04);
   display: grid;
   place-items: center;
 }
 
 .player-crest img {
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 1.7rem;
+  height: 1.7rem;
   object-fit: contain;
 }
 
@@ -261,13 +264,13 @@ button {
 }
 
 .player-name {
-  font-size: 1.18rem;
+  font-size: 0.98rem;
 }
 
 .player-subhead {
   margin-top: 0.15rem;
   color: var(--text-muted);
-  font-size: 0.8rem;
+  font-size: 0.68rem;
 }
 
 .player-meta {
@@ -278,12 +281,12 @@ button {
 }
 
 .meta-pill {
-  padding: 0.38rem 0.65rem;
+  padding: 0.26rem 0.48rem;
   border-radius: 999px;
   border: 1px solid var(--line-soft);
   color: var(--text-muted);
   background: rgba(255, 255, 255, 0.03);
-  font-size: 0.8rem;
+  font-size: 0.66rem;
 }
 
 .meta-pill.is-maxed {
@@ -293,15 +296,15 @@ button {
 
 .player-body {
   display: grid;
-  gap: 0.8rem;
-  margin-top: 0.8rem;
+  gap: 0.5rem;
+  margin-top: 0.55rem;
 }
 
 .decision-panel,
 .event-feed,
 .spotlight-card {
-  padding: 0.8rem;
-  border-radius: 1rem;
+  padding: 0.55rem;
+  border-radius: 0.85rem;
   background: rgba(255, 255, 255, 0.035);
   border: 1px solid var(--line-soft);
 }
@@ -313,8 +316,8 @@ button {
 }
 
 .selection-group {
-  padding: 0.8rem;
-  border-radius: 1rem;
+  padding: 0.55rem;
+  border-radius: 0.85rem;
   border: 1px solid var(--line-soft);
   background: rgba(255, 255, 255, 0.035);
 }
@@ -326,13 +329,13 @@ button {
 
 .selection-kicker {
   color: var(--gold);
-  font-size: 0.76rem;
+  font-size: 0.62rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
 
 .selection-head strong {
-  font-size: 0.94rem;
+  font-size: 0.76rem;
   color: var(--text-main);
 }
 
@@ -346,20 +349,20 @@ button {
 }
 
 .selection-strip.is-attack {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 .card-button {
   position: relative;
-  min-height: 8.75rem;
-  padding: 0.45rem;
-  border-radius: 1rem;
+  min-height: auto;
+  padding: 0.3rem;
+  border-radius: 0.8rem;
   border: 1px solid var(--line-soft);
   background:
     linear-gradient(180deg, rgba(72, 39, 22, 0.9), rgba(24, 15, 10, 0.95));
   color: var(--text-main);
   display: grid;
-  gap: 0.45rem;
+  gap: 0.18rem;
   align-content: start;
   text-align: left;
 }
@@ -367,10 +370,11 @@ button {
 .card-button img,
 .slot-card img,
 .spotlight-card img {
-  width: 100%;
-  aspect-ratio: 1 / 1;
+  width: min(100%, var(--card-art-size));
+  height: var(--card-art-size);
   object-fit: cover;
-  border-radius: 0.8rem;
+  border-radius: 0.55rem;
+  justify-self: center;
 }
 
 .card-button.is-selected {
@@ -384,26 +388,28 @@ button {
 }
 
 .card-title {
-  font-size: 0.72rem;
-  line-height: 1.15;
+  min-height: 2.1em;
+  font-size: 0.56rem;
+  line-height: 1.05;
 }
 
 .card-badge {
   position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  min-width: 2rem;
-  padding: 0.18rem 0.45rem;
+  top: 0.26rem;
+  right: 0.26rem;
+  min-width: 1.25rem;
+  padding: 0.12rem 0.28rem;
   border-radius: 999px;
   color: #1b120c;
   background: var(--gold);
-  font-size: 0.72rem;
+  font-size: 0.54rem;
   font-weight: 700;
+  text-align: center;
 }
 
 .card-status {
   color: var(--text-muted);
-  font-size: 0.7rem;
+  font-size: 0.5rem;
   letter-spacing: 0.02em;
 }
 
@@ -414,11 +420,12 @@ button {
 .enemy-note {
   display: grid;
   gap: 0.35rem;
-  padding: 0.8rem;
-  border-radius: 1rem;
+  padding: 0.55rem;
+  border-radius: 0.85rem;
   border: 1px dashed var(--line-soft);
   color: var(--text-muted);
   background: rgba(255, 255, 255, 0.02);
+  font-size: 0.66rem;
 }
 
 .enemy-note strong {
@@ -427,16 +434,16 @@ button {
 
 .center-stage {
   min-height: 0;
-  padding: 0.85rem;
+  padding: 0.55rem;
   display: grid;
-  gap: 0.8rem;
+  gap: 0.5rem;
 }
 
 .phase-panel {
   display: grid;
   gap: 0.25rem;
-  padding: 0.9rem;
-  border-radius: 1rem;
+  padding: 0.6rem;
+  border-radius: 0.85rem;
   background:
     radial-gradient(circle at right top, rgba(240, 200, 122, 0.16), transparent 45%),
     rgba(0, 0, 0, 0.18);
@@ -445,22 +452,22 @@ button {
 
 .phase-kicker {
   color: var(--gold);
-  font-size: 0.76rem;
+  font-size: 0.62rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
 
 .phase-panel h1 {
   margin: 0;
-  font-size: clamp(1.3rem, 4vw, 1.8rem);
+  font-size: clamp(1rem, 3.4vw, 1.35rem);
 }
 
 .phase-subline {
   display: flex;
-  gap: 0.8rem;
+  gap: 0.45rem;
   flex-wrap: wrap;
   color: var(--text-muted);
-  font-size: 0.92rem;
+  font-size: 0.7rem;
 }
 
 .decision-stage {
@@ -470,7 +477,7 @@ button {
 
 .decision-panel {
   display: grid;
-  gap: 0.8rem;
+  gap: 0.45rem;
 }
 
 .decision-panel-head {
@@ -480,13 +487,13 @@ button {
 
 .decision-kicker {
   color: var(--gold);
-  font-size: 0.76rem;
+  font-size: 0.62rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
 
 .decision-panel-head strong {
-  font-size: 0.96rem;
+  font-size: 0.76rem;
   color: var(--text-main);
 }
 
@@ -498,9 +505,9 @@ button {
 
 .decision-card {
   display: grid;
-  gap: 0.45rem;
-  padding: 0.7rem;
-  border-radius: 1rem;
+  gap: 0.22rem;
+  padding: 0.42rem;
+  border-radius: 0.8rem;
   border: 1px solid var(--line-soft);
   background: rgba(255, 255, 255, 0.03);
 }
@@ -517,7 +524,7 @@ button {
 
 .decision-title {
   color: var(--text-main);
-  font-size: 0.86rem;
+  font-size: 0.7rem;
   font-weight: 700;
 }
 
@@ -525,36 +532,39 @@ button {
 .decision-foot,
 .decision-caption {
   color: var(--text-muted);
-  font-size: 0.78rem;
+  font-size: 0.58rem;
 }
 
 .decision-caption {
   color: var(--gold-strong);
-  min-height: 2.1em;
+  min-height: 1.4em;
 }
 
 .decision-art {
-  border-radius: 0.9rem;
+  display: grid;
+  justify-items: center;
+  border-radius: 0.7rem;
   overflow: hidden;
 }
 
 .decision-art img {
-  width: 100%;
-  aspect-ratio: 1 / 1;
+  width: min(100%, var(--decision-art-size));
+  height: var(--decision-art-size);
   object-fit: cover;
-  border-radius: 0.8rem;
+  border-radius: 0.55rem;
 }
 
 .center-lower {
   display: grid;
-  gap: 0.8rem;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 0.5rem;
   min-height: 0;
 }
 
 .spotlight-card {
   display: grid;
-  grid-template-columns: 4.2rem 1fr;
-  gap: 0.8rem;
+  grid-template-columns: 2.9rem 1fr;
+  gap: 0.45rem;
   align-items: center;
 }
 
@@ -567,36 +577,36 @@ button {
 .spotlight-tag {
   grid-column: 1 / -1;
   color: var(--gold);
-  font-size: 0.78rem;
+  font-size: 0.62rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
 .event-feed {
   display: grid;
-  gap: 0.65rem;
+  gap: 0.45rem;
   min-height: 0;
 }
 
 .event-feed-title {
   color: var(--gold);
-  font-size: 0.86rem;
+  font-size: 0.68rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
 .event-feed-list {
   display: grid;
-  gap: 0.45rem;
-  max-height: 9.5rem;
+  gap: 0.25rem;
+  max-height: 4.8rem;
   overflow: auto;
   padding-right: 0.2rem;
 }
 
 .event-line {
   color: var(--text-muted);
-  font-size: 0.92rem;
-  line-height: 1.25;
+  font-size: 0.64rem;
+  line-height: 1.12;
 }
 
 .overlay {
@@ -683,6 +693,11 @@ button {
 }
 
 @media (min-width: 900px) {
+  :root {
+    --card-art-size: 4.1rem;
+    --decision-art-size: 3.4rem;
+  }
+
   .board-shell {
     gap: 1rem;
     padding: 1rem;
@@ -714,11 +729,47 @@ button {
     align-items: start;
   }
 
+  .selection-strip.is-rest {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .selection-strip.is-attack {
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 
   .decision-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-height: 760px) {
+  :root {
+    --card-art-size: 2.45rem;
+    --decision-art-size: 2.1rem;
+  }
+
+  .board-shell {
+    gap: 0.35rem;
+    padding: 0.4rem;
+  }
+
+  .player-panel,
+  .center-stage {
+    padding: 0.45rem;
+  }
+
+  .selection-group,
+  .decision-panel,
+  .event-feed,
+  .spotlight-card {
+    padding: 0.4rem;
+  }
+
+  .phase-panel h1 {
+    font-size: 0.92rem;
+  }
+
+  .event-feed-list {
+    max-height: 3.6rem;
   }
 }
