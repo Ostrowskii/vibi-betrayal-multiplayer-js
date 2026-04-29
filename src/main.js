@@ -28,13 +28,10 @@ const app = {
   lastPhase: null,
   lastScreen: null,
   hadLiveMatch: false,
-  viewerState: {
-    key: "",
-    turnCards: 0,
-  },
   reviewState: {
     key: "",
-    dismissed: true,
+    open: false,
+    cardIndex: 0,
   },
 };
 
@@ -112,32 +109,47 @@ function localSeat(state) {
   return null;
 }
 
-function syncViewerState(state) {
-  const key = state
-    ? `${state.screen}:${state.matchNumber}:${state.turnNumber}:${state.phase}:${localSeat(state) ?? "none"}`
-    : "";
+function syncReviewState(state) {
   const reviewKey =
     state && state.lastResolvedTurn
       ? `${state.matchNumber}:${state.lastResolvedTurn}`
       : "";
 
-  if (app.viewerState.key !== key) {
-    app.viewerState.key = key;
-    app.viewerState.turnCards = 0;
+  const keyChanged = app.reviewState.key !== reviewKey;
+  if (!keyChanged) {
+    return { keyChanged: false, autoOpened: false };
   }
 
-  if (app.reviewState.key !== reviewKey) {
-    app.reviewState.key = reviewKey;
-    app.reviewState.dismissed = !reviewKey;
-  }
+  app.reviewState.key = reviewKey;
+  app.reviewState.cardIndex = 0;
+  app.reviewState.open = Boolean(
+    reviewKey &&
+      state &&
+      state.screen === "game" &&
+      state.phase === "phase_1_selection",
+  );
+
+  return {
+    keyChanged: true,
+    autoOpened: app.reviewState.open,
+  };
 }
 
-function reviewPending(state) {
+function hasTurnReview(state) {
   return Boolean(
     state &&
       state.lastResolvedTurn > 0 &&
+      app.reviewState.key,
+  );
+}
+
+function shouldShowReviewModal(state) {
+  return Boolean(
+    state &&
+      state.screen === "game" &&
       state.phase === "phase_1_selection" &&
-      !app.reviewState.dismissed,
+      hasTurnReview(state) &&
+      app.reviewState.open,
   );
 }
 
@@ -255,7 +267,6 @@ function renderOwnChoices(state, seat) {
   const interactive =
     state.screen === "game" &&
     state.phase === "phase_1_selection" &&
-    !reviewPending(state) &&
     !player.confirmed;
 
   return `
@@ -286,20 +297,8 @@ function renderOwnChoices(state, seat) {
 
 function renderHeaderAction(state, seat) {
   const player = state.players[seat];
-  if (reviewPending(state)) {
-    return `
-      <button
-        class="confirm-button confirm-button-inline"
-        data-action="dismiss-turn-review"
-        data-seat="${seat}"
-      >
-        Proximo turno
-      </button>
-    `;
-  }
-
   if (state.phase === "phase_2_results") {
-    const buttonLabel = state.winner ? "Continuar" : "Próximo turno";
+    const buttonLabel = "Continuar";
 
     return `
       <button
@@ -329,6 +328,22 @@ function renderHeaderAction(state, seat) {
       ${player.confirmed ? "disabled" : disabledAttr}
     >
       ${escapeHtml(buttonLabel)}
+    </button>
+  `;
+}
+
+function renderReviewButton(state) {
+  if (state.screen !== "game" || state.phase !== "phase_1_selection") {
+    return "";
+  }
+
+  return `
+    <button
+      class="review-button"
+      data-action="open-review-modal"
+      ${hasTurnReview(state) ? "" : "disabled"}
+    >
+      Ver cartas do turno anterior
     </button>
   `;
 }
@@ -394,35 +409,55 @@ function renderViewerCard(card) {
 
 function renderViewerSection(state, seat) {
   const cards = getViewerCards(state, seat);
-  const index = Math.min(app.viewerState.turnCards, cards.length - 1);
-  app.viewerState.turnCards = index;
+  const index = Math.min(app.reviewState.cardIndex, cards.length - 1);
   const card = cards[index];
+
+  return `
+    <section class="turn-viewer">
+      <div class="turn-viewer-shell review-modal-viewer">
+        ${renderViewerCard(card)}
+      </div>
+      <div class="turn-viewer-meta">${index + 1} / ${cards.length}</div>
+    </section>
+  `;
+}
+
+function renderReviewModal(state) {
+  const seat = localSeat(state);
+  if (!seat || !shouldShowReviewModal(state)) return "";
+  const cards = getViewerCards(state, seat);
+  const index = Math.min(app.reviewState.cardIndex, cards.length - 1);
   const atStart = index <= 0;
   const atEnd = index >= cards.length - 1;
 
   return `
-    <section class="turn-viewer">
-      <div class="turn-viewer-shell">
+    <div class="review-modal">
+      <button class="review-modal-scrim review-modal-top" data-action="close-review-modal" aria-label="Fechar"></button>
+      <div class="review-modal-row">
+        <button class="review-modal-scrim review-modal-side" data-action="close-review-modal" aria-label="Fechar"></button>
         <button
-          class="turn-viewer-nav"
+          class="review-modal-nav"
           data-action="viewer-prev"
           ${atStart ? "disabled" : ""}
           aria-label="Carta anterior"
         >
           &#8592;
         </button>
-        ${renderViewerCard(card)}
+        <div class="review-modal-shell">
+          ${renderViewerSection(state, seat)}
+        </div>
         <button
-          class="turn-viewer-nav"
+          class="review-modal-nav"
           data-action="viewer-next"
           ${atEnd ? "disabled" : ""}
           aria-label="Próxima carta"
         >
           &#8594;
         </button>
+        <button class="review-modal-scrim review-modal-side" data-action="close-review-modal" aria-label="Fechar"></button>
       </div>
-      <div class="turn-viewer-meta">${index + 1} / ${cards.length}</div>
-    </section>
+      <button class="review-modal-scrim review-modal-bottom" data-action="close-review-modal" aria-label="Fechar"></button>
+    </div>
   `;
 }
 
@@ -436,6 +471,7 @@ function renderPlayerPanel(state, seat, perspective) {
     isLocal &&
     state.screen === "game" &&
     (state.phase === "phase_1_selection" || state.phase === "phase_2_results");
+  const showReviewButton = isLocal && state.screen === "game";
 
   return `
     <section class="player-panel ${isLocal ? "player-local" : "player-enemy"}">
@@ -452,6 +488,7 @@ function renderPlayerPanel(state, seat, perspective) {
           <span class="meta-pill ${trustClass}">Confianca ${player.castleTrust}/3</span>
           <span class="meta-pill">Guarda ${player.guardDamage}/6</span>
           <span class="meta-pill">Rota ${escapeHtml(blockText)}</span>
+          ${showReviewButton ? renderReviewButton(state) : ""}
           ${showHeaderAction ? renderHeaderAction(state, seat) : ""}
         </div>
       </div>
@@ -461,21 +498,14 @@ function renderPlayerPanel(state, seat, perspective) {
 }
 
 function renderCenterStage(state) {
-  const { self } = perspectiveSeats(state);
-
   return `
     <section class="center-stage">
-      <div class="viewer-stage">
-        ${renderViewerSection(state, self)}
-      </div>
-      <div class="center-lower center-lower-single">
-        <div class="event-feed">
-          <div class="event-feed-title">Registro da mesa</div>
-          <div class="event-feed-list">
-            ${state.publicLog
-              .map((line) => `<div class="event-line">${escapeHtml(line)}</div>`)
-              .join("")}
-          </div>
+      <div class="event-feed">
+        <div class="event-feed-title">Registro da mesa</div>
+        <div class="event-feed-list">
+          ${state.publicLog
+            .map((line) => `<div class="event-line">${escapeHtml(line)}</div>`)
+            .join("")}
         </div>
       </div>
     </section>
@@ -522,6 +552,7 @@ function renderBoardScreen(state) {
   const { self, enemy } = perspectiveSeats(state);
   const overlays = [];
 
+  if (shouldShowReviewModal(state)) overlays.push(renderReviewModal(state));
   if (state.screen === "winner_transition") overlays.push(renderWinnerOverlay(state));
   if (state.screen === "report") overlays.push(renderReportOverlay(state));
 
@@ -670,9 +701,9 @@ function joinRoom() {
   app.hadLiveMatch = false;
   app.lastPhase = null;
   app.lastScreen = null;
-  app.viewerState.key = "";
   app.reviewState.key = "";
-  app.reviewState.dismissed = true;
+  app.reviewState.open = false;
+  app.reviewState.cardIndex = 0;
   app.state = null;
   app.session = new MatchSession({ room, user });
   playSound("click", 0.45);
@@ -687,12 +718,12 @@ function backToMenu() {
   app.hadLiveMatch = false;
   app.lastPhase = null;
   app.lastScreen = null;
-  app.viewerState.key = "";
   app.reviewState.key = "";
-  app.reviewState.dismissed = true;
+  app.reviewState.open = false;
+  app.reviewState.cardIndex = 0;
 }
 
-function handleStateSideEffects(prev, next) {
+function handleStateSideEffects(prev, next, reviewSync) {
   if (!next) return;
 
   if (next.screen === "game" || next.screen === "winner_transition" || next.screen === "report") {
@@ -714,6 +745,13 @@ function handleStateSideEffects(prev, next) {
   }
 
   if (
+    reviewSync?.autoOpened &&
+    prev?.lastResolvedTurn !== next.lastResolvedTurn
+  ) {
+    playSound("place", 0.5);
+  }
+
+  if (
     app.hadLiveMatch &&
     next.screen === "lobby" &&
     next.roster.length === 0
@@ -726,11 +764,10 @@ function handleStateSideEffects(prev, next) {
 function update() {
   if (app.session) {
     const nextState = app.session.computeState();
-    handleStateSideEffects(app.state, nextState);
+    const reviewSync = syncReviewState(nextState);
+    handleStateSideEffects(app.state, nextState, reviewSync);
     app.state = nextState;
   }
-
-  syncViewerState(app.state);
 
   const markup = renderApp();
   if (markup !== app.lastMarkup) {
@@ -773,9 +810,14 @@ root.addEventListener("click", (event) => {
         playSound("turnConfirm", 0.42);
       }
       return;
-    case "dismiss-turn-review":
-      app.reviewState.dismissed = true;
+    case "open-review-modal":
+      if (!hasTurnReview(app.state)) return;
+      app.reviewState.open = true;
       playSound("click", 0.35);
+      return;
+    case "close-review-modal":
+      app.reviewState.open = false;
+      playSound("click", 0.3);
       return;
     case "select-uc":
       if (app.session?.selectUC(card)) {
@@ -803,14 +845,17 @@ root.addEventListener("click", (event) => {
       }
       return;
     case "viewer-prev":
-      app.viewerState.turnCards = Math.max(0, app.viewerState.turnCards - 1);
+      app.reviewState.cardIndex = Math.max(0, app.reviewState.cardIndex - 1);
       return;
     case "viewer-next": {
       if (!app.state) return;
       const seat = localSeat(app.state);
       if (!seat) return;
       const cards = getViewerCards(app.state, seat);
-      app.viewerState.turnCards = Math.min(cards.length - 1, app.viewerState.turnCards + 1);
+      app.reviewState.cardIndex = Math.min(
+        cards.length - 1,
+        app.reviewState.cardIndex + 1,
+      );
       return;
     }
   }
