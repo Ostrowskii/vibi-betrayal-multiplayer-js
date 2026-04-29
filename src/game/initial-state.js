@@ -53,6 +53,19 @@ export function createBoardState() {
   };
 }
 
+export function createTurnView() {
+  return {
+    C1: {
+      publicCards: [],
+      privateCards: [],
+    },
+    C2: {
+      publicCards: [],
+      privateCards: [],
+    },
+  };
+}
+
 export function createInitialState() {
   return {
     screen: "lobby",
@@ -66,6 +79,7 @@ export function createInitialState() {
       C2: createPlayerState("C2"),
     },
     board: createBoardState(),
+    turnView: createTurnView(),
     winner: null,
     victoryType: null,
     reportAction: null,

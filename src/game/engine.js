@@ -2,6 +2,7 @@ import {
   LOG_LIMIT,
   normalizeUCType,
   PHASE_DURATIONS,
+  PLAYER_IDS,
   TICK_RATE,
   TOLERANCE_MS,
   UC_LABELS,
@@ -14,14 +15,11 @@ import {
   createFreshMatchState,
   createInitialState,
   createLobbyState,
+  createTurnView,
 } from "./initial-state.js";
 
 function pushLog(state, text) {
   state.publicLog = [text, ...state.publicLog].slice(0, LOG_LIMIT);
-}
-
-function getOpponentId(playerId) {
-  return playerId === "C1" ? "C2" : "C1";
 }
 
 function cardTag(card) {
@@ -38,33 +36,80 @@ function clearBoard(state) {
   state.board = createBoardState();
 }
 
-function laneForSeat(state, seat) {
-  if (seat === "C1") {
-    return {
-      attack: state.board.c1Send,
-      restInfo: state.board.c1Rest,
-    };
+function clearTurnView(state) {
+  state.turnView = createTurnView();
+}
+
+function pushTurnCard(state, seat, bucket, { card = null, title, text }) {
+  const cards = state.turnView[seat][bucket];
+  cards.push({
+    key: `${seat}-${bucket}-${cards.length + 1}`,
+    card,
+    title,
+    text,
+  });
+}
+
+function pushPublicCard(state, seat, card, title, text) {
+  pushTurnCard(state, seat, "publicCards", {
+    card,
+    title,
+    text,
+  });
+}
+
+function pushPrivateCard(state, seat, card, title, text) {
+  pushTurnCard(state, seat, "privateCards", {
+    card,
+    title,
+    text,
+  });
+}
+
+function seedTurnView(state) {
+  for (const seat of PLAYER_IDS) {
+    pushTurnCard(state, seat, "publicCards", {
+      title: "Ações públicas",
+      text: "Resumo público do turno resolvido.",
+    });
+    pushTurnCard(state, seat, "privateCards", {
+      title: "Informações privadas",
+      text: "Resumo privado do seu lado neste turno.",
+    });
   }
-  return {
-    attack: state.board.c2Send,
-    restInfo: state.board.c2Rest,
-  };
 }
 
-function setPublicAttack(state, seat, card, detail = "") {
-  const slot = laneForSeat(state, seat).attack;
-  slot.card = card;
-  slot.revealed = true;
-  slot.hidden = false;
-  slot.detail = detail;
+function addRestPrivateCards(state) {
+  for (const seat of PLAYER_IDS) {
+    const player = state.players[seat];
+    const rested = normalizeUCType(player.selectedUC);
+    if (!rested) continue;
+
+    if (rested === "dummy") {
+      pushPrivateCard(
+        state,
+        seat,
+        "dummy",
+        "Seu descanso",
+        "Você escolheu Dummy. Ninguém descansou neste turno.",
+      );
+      continue;
+    }
+
+    pushPrivateCard(
+      state,
+      seat,
+      rested,
+      "Seu descanso",
+      `Você descansou com ${UC_LABELS[rested]}.`,
+    );
+  }
 }
 
-function setPublicRestInfo(state, seat, card, detail = "") {
-  const slot = laneForSeat(state, seat).restInfo;
-  slot.card = card;
-  slot.revealed = true;
-  slot.hidden = false;
-  slot.detail = detail;
+function prepareTurnView(state) {
+  clearTurnView(state);
+  seedTurnView(state);
+  addRestPrivateCards(state);
 }
 
 function updatePoisonAvailability(state) {
@@ -77,16 +122,24 @@ function updatePoisonAvailability(state) {
 }
 
 function startTurn(state) {
+  state.screen = "game";
   state.phase = "phase_0_start_effects";
   state.phaseTicksRemaining = PHASE_DURATIONS.phase_0_start_effects;
+  state.winner = null;
+  state.victoryType = null;
+  state.reportAction = null;
 
   for (const player of Object.values(state.players)) {
     player.tradeRouteBlockedThisTurn = player.tradeRouteBlockedNextTurn;
     player.tradeRouteBlockedNextTurn = false;
+    player.selectedUC = null;
+    player.selectedUE = null;
+    player.confirmed = false;
   }
 
   updatePoisonAvailability(state);
   clearBoard(state);
+  clearTurnView(state);
   pushLog(state, `Turno ${state.turnNumber} iniciado.`);
 }
 
@@ -94,7 +147,8 @@ function enterSelectionPhase(state) {
   state.phase = "phase_1_selection";
   state.phaseTicksRemaining = 0;
   clearBoard(state);
-  pushLog(state, "Selecao simultanea aberta.");
+  clearTurnView(state);
+  pushLog(state, "Seleção simultânea aberta.");
 }
 
 function bothPlayersReady(state) {
@@ -118,28 +172,46 @@ function applyTradeBlockFromInvader(state, defenderId) {
   state.players[defenderId].tradeRouteBlockedNextTurn = true;
 }
 
+function setPhaseResults(state) {
+  state.phase = "phase_2_results";
+  state.phaseTicksRemaining = 0;
+}
+
+function pushAssassinCards(state, attackerId, defenderId, killedKing) {
+  const attackerText = killedKing
+    ? "Você enviou um assassino e matou o rei inimigo."
+    : "Você enviou um assassino, mas ele foi pego.";
+  const defenderText = killedKing
+    ? "O inimigo enviou um assassino e o seu rei morreu enquanto descansava."
+    : "O inimigo enviou um assassino, mas ele foi pego.";
+
+  pushPublicCard(state, attackerId, "assassin", "Assassino", attackerText);
+  pushPublicCard(state, defenderId, "assassin", "Assassino", defenderText);
+}
+
 function applyAssassin(state, attackerId, defenderId) {
   const attacker = state.players[attackerId];
   const defender = state.players[defenderId];
   const defendingCard = normalizeUCType(defender.selectedUC);
+  const killedKing = defendingCard === "king";
 
-  if (defendingCard === "king") {
-    setPublicAttack(state, attackerId, "assassin", "Matou o Rei");
+  pushAssassinCards(state, attackerId, defenderId, killedKing);
+
+  if (killedKing) {
     defender.ucs.king.status = "dead";
     setWinner(
       state,
       attackerId,
       "assassination",
-      `${attacker.name} assassinou o Rei de ${defender.name}.`,
+      `${attacker.name} assassinou o rei de ${defender.name}.`,
     );
     return;
   }
 
-  setPublicAttack(state, attackerId, "assassin", "Foi pego");
   attacker.ues.assassin.status = "dead";
   pushLog(
     state,
-    `${attacker.name} perdeu o Assassino. O Rei de ${defender.name} foi exposto.`,
+    `${attacker.name} perdeu o Assassino. O rei de ${defender.name} foi exposto.`,
   );
 }
 
@@ -148,22 +220,111 @@ function applySpy(state, attackerId, defenderId) {
   const defender = state.players[defenderId];
   const defendingCard = normalizeUCType(defender.selectedUC);
 
+  pushPrivateCard(
+    state,
+    attackerId,
+    "spy",
+    "Você enviou Spy",
+    "Seu agente tentou descobrir quem descansou do outro lado.",
+  );
+
   if (defendingCard === "dummy") {
-    setPublicAttack(state, attackerId, "spy", "Foi pego");
+    pushPublicCard(
+      state,
+      attackerId,
+      "spy",
+      "Spy pego",
+      "Você enviou um Spy, mas ele foi pego porque ninguém descansou.",
+    );
+    pushPublicCard(
+      state,
+      defenderId,
+      "spy",
+      "Spy pego",
+      "O inimigo enviou um Spy, mas ninguém descansou e ele foi pego.",
+    );
+    pushPrivateCard(
+      state,
+      attackerId,
+      null,
+      "Relatório do Spy",
+      "Seu Spy foi pego porque ninguém descansou neste turno.",
+    );
     attacker.ues.spy.status = "imprisoned";
-    pushLog(state, `${attacker.name} perdeu o Spy porque ninguem descansou.`);
+    pushLog(state, `${attacker.name} perdeu o Spy porque ninguém descansou.`);
     return;
   }
 
-  setPublicRestInfo(
+  pushPrivateCard(
     state,
     attackerId,
-    defendingCard,
-    `Spy revelou ${UC_LABELS[defendingCard]}.`,
+    null,
+    "Relatório do Spy",
+    `Seu Spy descobriu que o inimigo descansou com ${UC_LABELS[defendingCard]}.`,
   );
   pushLog(
     state,
-    `${attacker.name} usou Scout e encontrou ${UC_LABELS[defendingCard]} em descanso.`,
+    `${attacker.name} usou Spy e encontrou ${UC_LABELS[defendingCard]} em descanso.`,
+  );
+}
+
+function pushInvaderCards(
+  state,
+  attackerId,
+  defenderId,
+  defendingCard,
+  guardBefore,
+  guardAfter,
+) {
+  if (defendingCard === "guard") {
+    pushPublicCard(
+      state,
+      attackerId,
+      "invader",
+      "Invasores",
+      "Você enviou invasores e o guarda do inimigo estava dormindo.",
+    );
+    pushPublicCard(
+      state,
+      defenderId,
+      "invader",
+      "Invasores",
+      "O inimigo enviou invasores e o seu guarda estava dormindo.",
+    );
+    return;
+  }
+
+  if (guardAfter !== null) {
+    pushPublicCard(
+      state,
+      attackerId,
+      "invader",
+      "Invasores",
+      `Você enviou invasores e o guarda do inimigo defendeu. A vida do guarda caiu de ${guardBefore} para ${guardAfter}.`,
+    );
+    pushPublicCard(
+      state,
+      defenderId,
+      "invader",
+      "Invasores",
+      `O inimigo enviou invasores e o seu guarda defendeu. A vida do guarda caiu de ${guardBefore} para ${guardAfter}.`,
+    );
+    return;
+  }
+
+  pushPublicCard(
+    state,
+    attackerId,
+    "invader",
+    "Invasores",
+    "Você enviou invasores e o guarda do inimigo não estava disponível. O rei foi capturado.",
+  );
+  pushPublicCard(
+    state,
+    defenderId,
+    "invader",
+    "Invasores",
+    "O inimigo enviou invasores e o seu guarda não estava disponível. O rei foi capturado.",
   );
 }
 
@@ -171,51 +332,71 @@ function applyInvader(state, attackerId, defenderId) {
   const attacker = state.players[attackerId];
   const defender = state.players[defenderId];
   const defendingCard = normalizeUCType(defender.selectedUC);
+  const guardBefore = defender.guardDamage;
 
   attacker.ues.invader.available = Math.max(0, attacker.ues.invader.available - 1);
   applyTradeBlockFromInvader(state, defenderId);
-  setPublicAttack(state, attackerId, "invader", "Ataque publico");
 
   if (defendingCard === "guard") {
     defender.ucs.guard.status = "dead";
-    pushLog(state, `${attacker.name} derrubou o Guarda de ${defender.name}.`);
+    pushInvaderCards(state, attackerId, defenderId, defendingCard, guardBefore, null);
+    pushLog(state, `${attacker.name} derrubou o guarda de ${defender.name}.`);
     return;
   }
 
   if (defender.ucs.guard.status !== "dead") {
     defender.guardDamage += 2;
-    pushLog(
+    pushInvaderCards(
       state,
-      `${attacker.name} acertou o Guarda de ${defender.name} com SHOWDOWN.`,
+      attackerId,
+      defenderId,
+      defendingCard,
+      guardBefore,
+      defender.guardDamage,
     );
     if (defender.guardDamage >= 6) {
       defender.ucs.guard.status = "dead";
-      pushLog(state, `O Guarda de ${defender.name} caiu por excesso de dano.`);
+      pushLog(state, `O guarda de ${defender.name} caiu por excesso de dano.`);
     }
     return;
   }
 
   defender.ucs.king.status = "dead";
+  pushInvaderCards(state, attackerId, defenderId, defendingCard, guardBefore, null);
   setWinner(
     state,
     attackerId,
     "capture",
-    `${attacker.name} capturou o Rei de ${defender.name}.`,
+    `${attacker.name} capturou o rei de ${defender.name}.`,
   );
 }
 
 function applyTribute(state, attackerId, defenderId) {
   const attacker = state.players[attackerId];
   const defender = state.players[defenderId];
+  const trustBefore = defender.castleTrust;
 
   attacker.ues.tribute.available = Math.max(0, attacker.ues.tribute.available - 1);
   defender.ues.tribute.available += 1;
   defender.castleTrust = Math.min(3, defender.castleTrust + 1);
 
-  setPublicAttack(state, attackerId, "tribute", "Confianca +1");
+  pushPublicCard(
+    state,
+    attackerId,
+    "tribute",
+    "Tributo",
+    `Você enviou um tributo. A confiança do inimigo subiu de ${trustBefore} para ${defender.castleTrust}.`,
+  );
+  pushPublicCard(
+    state,
+    defenderId,
+    "tribute",
+    "Tributo",
+    `Você recebeu um tributo. Sua confiança subiu de ${trustBefore} para ${defender.castleTrust}.`,
+  );
   pushLog(
     state,
-    `${attacker.name} enviou Tributo. A confianca de ${defender.name} subiu.`,
+    `${attacker.name} enviou Tributo. A confiança de ${defender.name} subiu.`,
   );
 }
 
@@ -223,9 +404,23 @@ function applyPoisonedTribute(state, attackerId, defenderId) {
   const attacker = state.players[attackerId];
   const defender = state.players[defenderId];
   const defendingCard = normalizeUCType(defender.selectedUC);
+  const trustBefore = defender.castleTrust;
 
   if (defendingCard === "chef") {
-    setPublicAttack(state, attackerId, "poisoned_tribute", "Matou o Rei");
+    pushPublicCard(
+      state,
+      attackerId,
+      "poisoned_tribute",
+      "Tributo envenenado",
+      "Você enviou um tributo envenenado enquanto o cozinheiro inimigo dormia. O rei foi envenenado.",
+    );
+    pushPublicCard(
+      state,
+      defenderId,
+      "poisoned_tribute",
+      "Tributo envenenado",
+      "O inimigo enviou um tributo envenenado enquanto o seu cozinheiro dormia. O rei foi envenenado.",
+    );
     setWinner(
       state,
       attackerId,
@@ -235,12 +430,26 @@ function applyPoisonedTribute(state, attackerId, defenderId) {
     return;
   }
 
-  setPublicAttack(state, attackerId, "poisoned_tribute", "Confianca -1");
   defender.castleTrust = Math.max(0, defender.castleTrust - 1);
   attacker.ues.poisoned_tribute.status = "disabled";
+
+  pushPublicCard(
+    state,
+    attackerId,
+    "poisoned_tribute",
+    "Tributo envenenado",
+    `Você enviou um tributo envenenado. A confiança do inimigo caiu de ${trustBefore} para ${defender.castleTrust}.`,
+  );
+  pushPublicCard(
+    state,
+    defenderId,
+    "poisoned_tribute",
+    "Tributo envenenado",
+    `O inimigo enviou um tributo envenenado. Sua confiança caiu de ${trustBefore} para ${defender.castleTrust}.`,
+  );
   pushLog(
     state,
-    `${attacker.name} derrubou a confianca de ${defender.name} com veneno.`,
+    `${attacker.name} derrubou a confiança de ${defender.name} com veneno.`,
   );
 }
 
@@ -269,34 +478,7 @@ function resolveInteraction(state, attackerId, defenderId) {
   }
 }
 
-function enterPhase2(state) {
-  state.phase = "phase_2_reveal_c1";
-  state.phaseTicksRemaining = PHASE_DURATIONS.phase_2_reveal_c1;
-  resolveInteraction(state, "C1", "C2");
-}
-
-function enterPhase3(state) {
-  state.phase = "phase_3_check_winner";
-  state.phaseTicksRemaining = PHASE_DURATIONS.phase_3_check_winner;
-  pushLog(state, state.winner ? "Vitoria detectada apos a jogada de C1." : "Sem vitoria apos C1.");
-}
-
-function enterPhase4(state) {
-  state.phase = "phase_4_reveal_c2";
-  state.phaseTicksRemaining = PHASE_DURATIONS.phase_4_reveal_c2;
-  resolveInteraction(state, "C2", "C1");
-}
-
-function enterPhase5(state) {
-  state.phase = "phase_5_check_winner";
-  state.phaseTicksRemaining = PHASE_DURATIONS.phase_5_check_winner;
-  pushLog(state, state.winner ? "Vitoria detectada apos a jogada de C2." : "Sem vitoria apos C2.");
-}
-
-function enterPhase6(state) {
-  state.phase = "phase_6_exhaustion";
-  state.phaseTicksRemaining = PHASE_DURATIONS.phase_6_exhaustion;
-
+function applyExhaustion(state) {
   for (const player of Object.values(state.players)) {
     for (const key of UC_TYPES) {
       if (key === "dummy") continue;
@@ -309,22 +491,27 @@ function enterPhase6(state) {
     }
   }
 
-  pushLog(state, "Contadores de exaustao atualizados.");
+  pushLog(state, "Contadores de exaustão atualizados.");
 }
 
-function enterPhase7(state) {
-  state.phase = "phase_7_maintenance";
-  state.phaseTicksRemaining = PHASE_DURATIONS.phase_7_maintenance;
+function resolveTurn(state) {
+  prepareTurnView(state);
   clearBoard(state);
+  setPhaseResults(state);
 
-  for (const player of Object.values(state.players)) {
-    player.selectedUC = null;
-    player.selectedUE = null;
-    player.confirmed = false;
+  resolveInteraction(state, "C1", "C2");
+
+  if (!state.winner) {
+    resolveInteraction(state, "C2", "C1");
   }
 
-  updatePoisonAvailability(state);
-  pushLog(state, "Manutencao concluida. Preparando a proxima rodada.");
+  if (!state.winner) {
+    applyExhaustion(state);
+    updatePoisonAvailability(state);
+    pushLog(state, "Resultados do turno prontos.");
+  } else {
+    pushLog(state, "O turno terminou com uma vitória.");
+  }
 }
 
 function enterWinnerTransition(state) {
@@ -405,7 +592,7 @@ function handleSelection(state, user, card, kind) {
   } else {
     if (!canSelectUE(player, selected)) return state;
     player.selectedUE = selected;
-      pushLog(next, `${seat} travou uma carta de estrategia.`);
+    pushLog(next, `${seat} travou uma carta de estratégia.`);
   }
 
   return next;
@@ -427,9 +614,27 @@ function handleConfirm(state, user) {
   pushLog(next, `${seat} confirmou suas escolhas.`);
 
   if (bothPlayersReady(next)) {
-    enterPhase2(next);
+    resolveTurn(next);
   }
 
+  return next;
+}
+
+function handleNextTurn(state, user) {
+  if (!user || state.screen !== "game" || state.phase !== "phase_2_results") {
+    return state;
+  }
+
+  const next = cloneState(state);
+
+  if (next.winner) {
+    enterWinnerTransition(next);
+    return next;
+  }
+
+  next.turnNumber += 1;
+  pushLog(next, `${user} abriu o próximo turno.`);
+  startTurn(next);
   return next;
 }
 
@@ -438,15 +643,16 @@ function handleLeave(state, user) {
     return state;
   }
 
-  const remaining = state.roster.filter((name) => name !== user);
-  const next = createLobbyState(remaining, state.matchNumber, [
-    `${user} saiu da sala.`,
-    remaining.length
-      ? "Aguardando outro jogador para completar a sala."
-      : "A sala ficou vazia.",
-  ]);
-
-  return next;
+  return createLobbyState(
+    state.roster.filter((name) => name !== user),
+    state.matchNumber,
+    [
+      `${user} saiu da sala.`,
+      state.roster.length > 1
+        ? "Aguardando outro jogador para completar a sala."
+        : "A sala ficou vazia.",
+    ],
+  );
 }
 
 function handleContinue(state, user) {
@@ -495,6 +701,8 @@ export function onPost(post, state) {
       return handleContinue(state, post.user.trim());
     case "confirm":
       return handleConfirm(state, post.user.trim());
+    case "next_turn":
+      return handleNextTurn(state, post.user.trim());
     case "report_action":
       return handleReportAction(state, post.user.trim(), post.action);
     default:
@@ -520,8 +728,12 @@ export function onTick(state) {
   if (state.phase === "phase_1_selection") {
     if (!bothPlayersReady(state)) return state;
     const next = cloneState(state);
-    enterPhase2(next);
+    resolveTurn(next);
     return next;
+  }
+
+  if (state.phase === "phase_2_results") {
+    return state;
   }
 
   const next = cloneState(state);
@@ -534,33 +746,6 @@ export function onTick(state) {
   switch (next.phase) {
     case "phase_0_start_effects":
       enterSelectionPhase(next);
-      return next;
-    case "phase_2_reveal_c1":
-      enterPhase3(next);
-      return next;
-    case "phase_3_check_winner":
-      if (next.winner) {
-        enterWinnerTransition(next);
-      } else {
-        enterPhase4(next);
-      }
-      return next;
-    case "phase_4_reveal_c2":
-      enterPhase5(next);
-      return next;
-    case "phase_5_check_winner":
-      if (next.winner) {
-        enterWinnerTransition(next);
-      } else {
-        enterPhase6(next);
-      }
-      return next;
-    case "phase_6_exhaustion":
-      enterPhase7(next);
-      return next;
-    case "phase_7_maintenance":
-      next.turnNumber += 1;
-      startTurn(next);
       return next;
     default:
       return next;
@@ -578,7 +763,7 @@ export const gameConfig = {
 export function getVictoryLabel(victoryType) {
   if (victoryType === "capture") return "Captura";
   if (victoryType === "assassination") return "Assassinato";
-  return "Sem vitoria";
+  return "Sem vitória";
 }
 
 export function getCardLabel(card) {

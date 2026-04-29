@@ -14,12 +14,7 @@ export const LOG_LIMIT = 14;
 
 export const PHASE_DURATIONS = {
   phase_0_start_effects: 10,
-  phase_2_reveal_c1: 18,
-  phase_3_check_winner: 8,
-  phase_4_reveal_c2: 18,
-  phase_5_check_winner: 8,
-  phase_6_exhaustion: 8,
-  phase_7_maintenance: 10,
+  phase_2_results: 0,
   winner_transition: 28,
 };
 
@@ -40,16 +35,11 @@ export const UE_LABELS = {
 
 export const PHASE_LABELS = {
   lobby: "Sala",
-  phase_0_start_effects: "Inicio do Turno",
-  phase_1_selection: "Selecao Simultanea",
-  phase_2_reveal_c1: "Revelacao de C1",
-  phase_3_check_winner: "Checagem de Vitoria",
-  phase_4_reveal_c2: "Revelacao de C2",
-  phase_5_check_winner: "Checagem de Vitoria",
-  phase_6_exhaustion: "Exaustao",
-  phase_7_maintenance: "Manutencao",
-  winner_transition: "Vitoria",
-  report: "Relatorio",
+  phase_0_start_effects: "Início do Turno",
+  phase_1_selection: "Decisões Simultâneas",
+  phase_2_results: "Resultados do Turno",
+  winner_transition: "Vitória",
+  report: "Relatório",
 };
 
 export function normalizeUCType(card) {

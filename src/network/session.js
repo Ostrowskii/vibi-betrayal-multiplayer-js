@@ -85,6 +85,12 @@ export class MatchSession {
     return true;
   }
 
+  advanceTurn() {
+    if (!this.synced) return false;
+    this.game.post({ $: "next_turn", user: this.user });
+    return true;
+  }
+
   reportAction(action) {
     if (!this.synced) return false;
     this.game.post({

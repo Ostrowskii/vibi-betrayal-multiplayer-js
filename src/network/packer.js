@@ -54,6 +54,12 @@ export const packer = {
         user: { $: "String" },
       },
     },
+    next_turn: {
+      $: "Struct",
+      fields: {
+        user: { $: "String" },
+      },
+    },
     select_uc: {
       $: "Struct",
       fields: {

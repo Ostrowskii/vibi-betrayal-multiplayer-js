@@ -29,6 +29,11 @@ const app = {
   lastPhase: null,
   lastScreen: null,
   hadLiveMatch: false,
+  viewerState: {
+    key: "",
+    publicCards: 0,
+    privateCards: 0,
+  },
 };
 
 const audioPool = new Map();
@@ -103,6 +108,18 @@ function localSeat(state) {
   if (state.players.C1.name === app.form.user) return "C1";
   if (state.players.C2.name === app.form.user) return "C2";
   return null;
+}
+
+function syncViewerState(state) {
+  const key = state
+    ? `${state.screen}:${state.matchNumber}:${state.turnNumber}:${state.phase}:${localSeat(state) ?? "none"}`
+    : "";
+
+  if (app.viewerState.key === key) return;
+
+  app.viewerState.key = key;
+  app.viewerState.publicCards = 0;
+  app.viewerState.privateCards = 0;
 }
 
 function perspectiveSeats(state) {
@@ -221,7 +238,9 @@ function renderOwnChoices(state, seat) {
     state.screen === "game" &&
     state.phase === "phase_1_selection" &&
     !player.confirmed;
-  const showConfirm = state.screen === "game" && state.phase === "phase_1_selection";
+  const showConfirm =
+    state.screen === "game" &&
+    (state.phase === "phase_1_selection" || state.phase === "phase_2_results");
 
   return `
     <div class="selection-stack">
@@ -253,6 +272,29 @@ function renderOwnChoices(state, seat) {
 function renderConfirmBar(state, seat) {
   const player = state.players[seat];
   const enemy = state.players[seat === "C1" ? "C2" : "C1"];
+  if (state.phase === "phase_2_results") {
+    const buttonLabel = state.winner ? "Continuar" : "Próximo turno";
+    const helperText = state.winner
+      ? "O turno terminou com vitória. Toque para abrir o desfecho."
+      : "O resultado já foi resolvido. Toque para abrir o próximo turno.";
+
+    return `
+      <div class="confirm-bar">
+        <div class="confirm-copy">
+          <strong>${escapeHtml(buttonLabel)}</strong>
+          <span>${escapeHtml(helperText)}</span>
+        </div>
+        <button
+          class="confirm-button"
+          data-action="advance-turn"
+          data-seat="${seat}"
+        >
+          ${escapeHtml(buttonLabel)}
+        </button>
+      </div>
+    `;
+  }
+
   const canConfirm =
     state.screen === "game" &&
     state.phase === "phase_1_selection" &&
@@ -285,71 +327,86 @@ function renderConfirmBar(state, seat) {
   `;
 }
 
-function renderDecisionCard({
-  title,
-  slot,
-  emptyLabel,
-  emptyDetail,
-  emptyFoot = "",
-}) {
-  const visible = Boolean(slot?.card) && slot.revealed && !slot.hidden;
-  const label = visible ? UC_LABELS[slot.card] ?? UE_LABELS[slot.card] : emptyLabel;
-  const image = visible ? getCardArt(slot.card, false) : ASSETS.cardBack;
-  const stateClass = visible ? "is-revealed" : "is-empty";
-  const detail = visible ? slot.detail || "Aviso publico." : emptyDetail;
-  const foot = visible ? "Aviso publico" : emptyFoot;
+function getViewerCards(state, seat, bucket) {
+  const cards = state.turnView?.[seat]?.[bucket] ?? [];
+  if (cards.length > 0) return cards;
+
+  if (bucket === "publicCards") {
+    return [
+      {
+        key: "public-empty",
+        card: null,
+        title: "Ações públicas",
+        text: "As ações públicas do turno aparecerão aqui.",
+      },
+    ];
+  }
+
+  return [
+    {
+      key: "private-empty",
+      card: null,
+      title: "Informações privadas",
+      text: "As suas informações privadas do turno aparecerão aqui.",
+    },
+  ];
+}
+
+function renderViewerCard(card) {
+  const hasArt = Boolean(card.card);
+  const label = hasArt ? UC_LABELS[card.card] ?? UE_LABELS[card.card] ?? card.title : card.title;
 
   return `
-    <article class="decision-card ${stateClass}">
-      <div class="decision-card-top">
-        <span class="decision-title">${escapeHtml(title)}</span>
-        ${detail ? `<span class="decision-hint">${escapeHtml(detail)}</span>` : ""}
+    <article class="turn-card ${hasArt ? "has-art" : "is-info"}">
+      ${
+        hasArt
+          ? `
+            <div class="turn-card-art">
+              <img src="${getCardArt(card.card, false)}" alt="${escapeHtml(label)}" />
+            </div>
+          `
+          : `<div class="turn-card-art is-empty"></div>`
+      }
+      <div class="turn-card-copy">
+        <strong>${escapeHtml(card.title)}</strong>
+        <p>${escapeHtml(card.text)}</p>
       </div>
-      <div class="decision-art">
-        <img src="${image}" alt="${escapeHtml(label)}" />
-      </div>
-      ${label ? `<div class="decision-caption">${escapeHtml(label)}</div>` : ""}
-      ${foot ? `<div class="decision-foot">${escapeHtml(foot)}</div>` : ""}
     </article>
   `;
 }
 
-function slotForSeat(state, seat, role) {
-  if (seat === "C1") {
-    return role === "send" ? state.board.c1Send : state.board.c1Rest;
-  }
-  return role === "send" ? state.board.c2Send : state.board.c2Rest;
-}
-
-function renderDecisionPanel(state, seat, perspective) {
-  const sendSlot = slotForSeat(state, seat, "send");
-  const restSlot = slotForSeat(state, seat, "rest");
-  const isSelf = perspective === "self";
-  const title = isSelf ? "Seus avisos publicos" : "Avisos do inimigo";
-  const subtitle = isSelf
-    ? "So aparece algo aqui quando sua jogada gera aviso publico."
-    : "So aparece algo aqui quando a jogada do inimigo gera aviso publico.";
+function renderViewerSection(state, seat, bucket) {
+  const cards = getViewerCards(state, seat, bucket);
+  const index = Math.min(app.viewerState[bucket], cards.length - 1);
+  app.viewerState[bucket] = index;
+  const card = cards[index];
+  const atStart = index <= 0;
+  const atEnd = index >= cards.length - 1;
 
   return `
-    <section class="decision-panel ${isSelf ? "is-self" : "is-enemy"}">
-      <div class="decision-panel-head">
-        <span class="decision-kicker">${escapeHtml(title)}</span>
-        <strong>${escapeHtml(subtitle)}</strong>
+    <section class="turn-viewer">
+      <div class="turn-viewer-shell">
+        <button
+          class="turn-viewer-nav"
+          data-action="viewer-prev"
+          data-viewer="${bucket}"
+          ${atStart ? "disabled" : ""}
+          aria-label="Carta anterior"
+        >
+          &#8592;
+        </button>
+        ${renderViewerCard(card)}
+        <button
+          class="turn-viewer-nav"
+          data-action="viewer-next"
+          data-viewer="${bucket}"
+          ${atEnd ? "disabled" : ""}
+          aria-label="Próxima carta"
+        >
+          &#8594;
+        </button>
       </div>
-      <div class="decision-grid">
-        ${renderDecisionCard({
-          title: "Ataque visivel",
-          slot: sendSlot,
-          emptyLabel: "",
-          emptyDetail: "",
-        })}
-        ${renderDecisionCard({
-          title: "Descanso revelado",
-          slot: restSlot,
-          emptyLabel: "Sem info",
-          emptyDetail: "Nenhuma carta de descanso foi revelada.",
-        })}
-      </div>
+      <div class="turn-viewer-meta">${index + 1} / ${cards.length}</div>
     </section>
   `;
 }
@@ -357,8 +414,8 @@ function renderDecisionPanel(state, seat, perspective) {
 function renderEnemyNote() {
   return `
     <div class="enemy-note">
-      <strong>Informacao oculta.</strong>
-      <span>As escolhas do inimigo aparecem no painel central quando forem reveladas pela fase.</span>
+      <strong>Informação oculta.</strong>
+      <span>As escolhas do inimigo continuam escondidas até o turno ser resolvido.</span>
     </div>
   `;
 }
@@ -399,7 +456,7 @@ function renderPlayerPanel(state, seat, perspective) {
 }
 
 function renderCenterStage(state) {
-  const { self, enemy } = perspectiveSeats(state);
+  const { self } = perspectiveSeats(state);
 
   return `
     <section class="center-stage">
@@ -415,13 +472,13 @@ function renderCenterStage(state) {
           }
         </div>
       </div>
-      <div class="decision-stage">
-        ${renderDecisionPanel(state, enemy, "enemy")}
-        ${renderDecisionPanel(state, self, "self")}
+      <div class="viewer-stage">
+        ${renderViewerSection(state, self, "publicCards")}
+        ${renderViewerSection(state, self, "privateCards")}
       </div>
       <div class="center-lower center-lower-single">
         <div class="event-feed">
-          <div class="event-feed-title">Relatorio do tabuleiro</div>
+          <div class="event-feed-title">Registro da mesa</div>
           <div class="event-feed-list">
             ${state.publicLog
               .map((line) => `<div class="event-line">${escapeHtml(line)}</div>`)
@@ -621,6 +678,7 @@ function joinRoom() {
   app.hadLiveMatch = false;
   app.lastPhase = null;
   app.lastScreen = null;
+  app.viewerState.key = "";
   app.state = null;
   app.session = new MatchSession({ room, user });
   playSound("click", 0.45);
@@ -635,6 +693,7 @@ function backToMenu() {
   app.hadLiveMatch = false;
   app.lastPhase = null;
   app.lastScreen = null;
+  app.viewerState.key = "";
 }
 
 function handleStateSideEffects(prev, next) {
@@ -646,7 +705,7 @@ function handleStateSideEffects(prev, next) {
 
   if (prev?.phase !== next.phase) {
     if (next.phase === "phase_0_start_effects") playSound("turnStart", 0.45);
-    if (next.phase === "phase_2_reveal_c1" || next.phase === "phase_4_reveal_c2") {
+    if (next.phase === "phase_2_results") {
       playSound("place", 0.5);
     }
   }
@@ -675,6 +734,8 @@ function update() {
     app.state = nextState;
   }
 
+  syncViewerState(app.state);
+
   const markup = renderApp();
   if (markup !== app.lastMarkup) {
     const activeField = captureActiveField();
@@ -697,7 +758,7 @@ root.addEventListener("click", (event) => {
   const actionNode = event.target.closest("[data-action]");
   if (!actionNode) return;
 
-  const { action, card } = actionNode.dataset;
+  const { action, card, viewer } = actionNode.dataset;
 
   switch (action) {
     case "join-room":
@@ -708,6 +769,11 @@ root.addEventListener("click", (event) => {
       return;
     case "confirm-selection":
       if (app.session?.confirmSelection()) {
+        playSound("turnConfirm", 0.42);
+      }
+      return;
+    case "advance-turn":
+      if (app.session?.advanceTurn()) {
         playSound("turnConfirm", 0.42);
       }
       return;
@@ -736,6 +802,18 @@ root.addEventListener("click", (event) => {
         playSound("turnConfirm", 0.45);
       }
       return;
+    case "viewer-prev":
+      if (!viewer) return;
+      app.viewerState[viewer] = Math.max(0, app.viewerState[viewer] - 1);
+      return;
+    case "viewer-next": {
+      if (!viewer || !app.state) return;
+      const seat = localSeat(app.state);
+      if (!seat) return;
+      const cards = getViewerCards(app.state, seat, viewer);
+      app.viewerState[viewer] = Math.min(cards.length - 1, app.viewerState[viewer] + 1);
+      return;
+    }
   }
 });
 
