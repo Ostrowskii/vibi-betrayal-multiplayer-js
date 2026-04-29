@@ -3,7 +3,6 @@ import "./styles.css";
 import { ASSETS } from "./assets.js";
 import {
   normalizeUCType,
-  PHASE_LABELS,
   UC_LABELS,
   UC_TYPES,
   UE_LABELS,
@@ -31,8 +30,7 @@ const app = {
   hadLiveMatch: false,
   viewerState: {
     key: "",
-    publicCards: 0,
-    privateCards: 0,
+    turnCards: 0,
   },
 };
 
@@ -118,8 +116,7 @@ function syncViewerState(state) {
   if (app.viewerState.key === key) return;
 
   app.viewerState.key = key;
-  app.viewerState.publicCards = 0;
-  app.viewerState.privateCards = 0;
+  app.viewerState.turnCards = 0;
 }
 
 function perspectiveSeats(state) {
@@ -327,32 +324,42 @@ function renderConfirmBar(state, seat) {
   `;
 }
 
-function getViewerCards(state, seat, bucket) {
-  const cards = state.turnView?.[seat]?.[bucket] ?? [];
-  if (cards.length > 0) return cards;
-
-  if (bucket === "publicCards") {
-    return [
-      {
-        key: "public-empty",
-        card: null,
-        title: "Ações públicas",
-        text: "As ações públicas do turno aparecerão aqui.",
-      },
-    ];
-  }
+function getViewerCards(state, seat) {
+  const publicCards = state.turnView?.[seat]?.publicCards ?? [];
+  const privateCards = state.turnView?.[seat]?.privateCards ?? [];
 
   return [
     {
-      key: "private-empty",
+      key: `turn-${state.turnNumber}-public-header`,
       card: null,
-      title: "Informações privadas",
-      text: "As suas informações privadas do turno aparecerão aqui.",
+      title: `Turno ${state.turnNumber}`,
+      text: "Ações públicas",
+      mode: "banner",
     },
+    ...publicCards,
+    {
+      key: `turn-${state.turnNumber}-private-header`,
+      card: null,
+      title: "Informações confidenciais",
+      text: "",
+      mode: "banner",
+    },
+    ...privateCards,
   ];
 }
 
 function renderViewerCard(card) {
+  if (card.mode === "banner") {
+    return `
+      <article class="turn-card is-banner">
+        <div class="turn-card-copy is-banner">
+          <strong>${escapeHtml(card.title)}</strong>
+          ${card.text ? `<p>${escapeHtml(card.text)}</p>` : ""}
+        </div>
+      </article>
+    `;
+  }
+
   const hasArt = Boolean(card.card);
   const label = hasArt ? UC_LABELS[card.card] ?? UE_LABELS[card.card] ?? card.title : card.title;
 
@@ -375,10 +382,10 @@ function renderViewerCard(card) {
   `;
 }
 
-function renderViewerSection(state, seat, bucket) {
-  const cards = getViewerCards(state, seat, bucket);
-  const index = Math.min(app.viewerState[bucket], cards.length - 1);
-  app.viewerState[bucket] = index;
+function renderViewerSection(state, seat) {
+  const cards = getViewerCards(state, seat);
+  const index = Math.min(app.viewerState.turnCards, cards.length - 1);
+  app.viewerState.turnCards = index;
   const card = cards[index];
   const atStart = index <= 0;
   const atEnd = index >= cards.length - 1;
@@ -389,7 +396,6 @@ function renderViewerSection(state, seat, bucket) {
         <button
           class="turn-viewer-nav"
           data-action="viewer-prev"
-          data-viewer="${bucket}"
           ${atStart ? "disabled" : ""}
           aria-label="Carta anterior"
         >
@@ -399,7 +405,6 @@ function renderViewerSection(state, seat, bucket) {
         <button
           class="turn-viewer-nav"
           data-action="viewer-next"
-          data-viewer="${bucket}"
           ${atEnd ? "disabled" : ""}
           aria-label="Próxima carta"
         >
@@ -408,15 +413,6 @@ function renderViewerSection(state, seat, bucket) {
       </div>
       <div class="turn-viewer-meta">${index + 1} / ${cards.length}</div>
     </section>
-  `;
-}
-
-function renderEnemyNote() {
-  return `
-    <div class="enemy-note">
-      <strong>Informação oculta.</strong>
-      <span>As escolhas do inimigo continuam escondidas até o turno ser resolvido.</span>
-    </div>
   `;
 }
 
@@ -445,11 +441,7 @@ function renderPlayerPanel(state, seat, perspective) {
         </div>
       </div>
       <div class="player-body">
-        ${
-          isLocal
-            ? renderOwnChoices(state, seat)
-            : renderEnemyNote()
-        }
+        ${isLocal ? renderOwnChoices(state, seat) : ""}
       </div>
     </section>
   `;
@@ -460,21 +452,8 @@ function renderCenterStage(state) {
 
   return `
     <section class="center-stage">
-      <div class="phase-panel">
-        <div class="phase-kicker">Partida ${state.matchNumber}</div>
-        <h1>${escapeHtml(PHASE_LABELS[state.phase] ?? state.phase)}</h1>
-        <div class="phase-subline">
-          <span>Turno ${state.turnNumber}</span>
-          ${
-            state.phaseTicksRemaining
-              ? `<span>${state.phaseTicksRemaining} ticks</span>`
-              : `<span>livre</span>`
-          }
-        </div>
-      </div>
       <div class="viewer-stage">
-        ${renderViewerSection(state, self, "publicCards")}
-        ${renderViewerSection(state, self, "privateCards")}
+        ${renderViewerSection(state, self)}
       </div>
       <div class="center-lower center-lower-single">
         <div class="event-feed">
@@ -758,7 +737,7 @@ root.addEventListener("click", (event) => {
   const actionNode = event.target.closest("[data-action]");
   if (!actionNode) return;
 
-  const { action, card, viewer } = actionNode.dataset;
+  const { action, card } = actionNode.dataset;
 
   switch (action) {
     case "join-room":
@@ -803,15 +782,14 @@ root.addEventListener("click", (event) => {
       }
       return;
     case "viewer-prev":
-      if (!viewer) return;
-      app.viewerState[viewer] = Math.max(0, app.viewerState[viewer] - 1);
+      app.viewerState.turnCards = Math.max(0, app.viewerState.turnCards - 1);
       return;
     case "viewer-next": {
-      if (!viewer || !app.state) return;
+      if (!app.state) return;
       const seat = localSeat(app.state);
       if (!seat) return;
-      const cards = getViewerCards(app.state, seat, viewer);
-      app.viewerState[viewer] = Math.min(cards.length - 1, app.viewerState[viewer] + 1);
+      const cards = getViewerCards(app.state, seat);
+      app.viewerState.turnCards = Math.min(cards.length - 1, app.viewerState.turnCards + 1);
       return;
     }
   }
