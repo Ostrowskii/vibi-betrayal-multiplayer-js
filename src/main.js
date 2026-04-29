@@ -290,24 +290,26 @@ function renderDecisionCard({
   slot,
   emptyLabel,
   emptyDetail,
+  emptyFoot = "",
 }) {
   const visible = Boolean(slot?.card) && slot.revealed && !slot.hidden;
   const label = visible ? UC_LABELS[slot.card] ?? UE_LABELS[slot.card] : emptyLabel;
   const image = visible ? getCardArt(slot.card, false) : ASSETS.cardBack;
   const stateClass = visible ? "is-revealed" : "is-empty";
   const detail = visible ? slot.detail || "Aviso publico." : emptyDetail;
+  const foot = visible ? "Aviso publico" : emptyFoot;
 
   return `
     <article class="decision-card ${stateClass}">
       <div class="decision-card-top">
         <span class="decision-title">${escapeHtml(title)}</span>
-        <span class="decision-hint">${escapeHtml(detail)}</span>
+        ${detail ? `<span class="decision-hint">${escapeHtml(detail)}</span>` : ""}
       </div>
       <div class="decision-art">
         <img src="${image}" alt="${escapeHtml(label)}" />
       </div>
-      <div class="decision-caption">${escapeHtml(label)}</div>
-      <div class="decision-foot">${visible ? "Aviso publico" : "Carta vazia"}</div>
+      ${label ? `<div class="decision-caption">${escapeHtml(label)}</div>` : ""}
+      ${foot ? `<div class="decision-foot">${escapeHtml(foot)}</div>` : ""}
     </article>
   `;
 }
@@ -338,8 +340,8 @@ function renderDecisionPanel(state, seat, perspective) {
         ${renderDecisionCard({
           title: "Ataque visivel",
           slot: sendSlot,
-          emptyLabel: "Sem aviso",
-          emptyDetail: "Nada publico foi detectado.",
+          emptyLabel: "",
+          emptyDetail: "",
         })}
         ${renderDecisionCard({
           title: "Descanso revelado",

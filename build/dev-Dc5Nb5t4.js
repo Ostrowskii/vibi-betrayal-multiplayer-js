@@ -43,17 +43,17 @@
         ${Z(a)}
       </button>
     </div>
-  `}function bt({title:e,slot:n,emptyLabel:r,emptyDetail:i}){let s=!!n?.card&&n.revealed&&!n.hidden,c=s?a[n.card]??o[n.card]:r,l=s?pt(n.card,!1):t.cardBack,u=s?`is-revealed`:`is-empty`,d=s?n.detail||`Aviso publico.`:i;return`
-    <article class="decision-card ${u}">
+  `}function bt({title:e,slot:n,emptyLabel:r,emptyDetail:i,emptyFoot:s=``}){let c=!!n?.card&&n.revealed&&!n.hidden,l=c?a[n.card]??o[n.card]:r,u=c?pt(n.card,!1):t.cardBack,d=c?`is-revealed`:`is-empty`,f=c?n.detail||`Aviso publico.`:i,p=c?`Aviso publico`:s;return`
+    <article class="decision-card ${d}">
       <div class="decision-card-top">
         <span class="decision-title">${Z(e)}</span>
-        <span class="decision-hint">${Z(d)}</span>
+        ${f?`<span class="decision-hint">${Z(f)}</span>`:``}
       </div>
       <div class="decision-art">
-        <img src="${l}" alt="${Z(c)}" />
+        <img src="${u}" alt="${Z(l)}" />
       </div>
-      <div class="decision-caption">${Z(c)}</div>
-      <div class="decision-foot">${s?`Aviso publico`:`Carta vazia`}</div>
+      ${l?`<div class="decision-caption">${Z(l)}</div>`:``}
+      ${p?`<div class="decision-foot">${Z(p)}</div>`:``}
     </article>
   `}function xt(e,t,n){return t===`C1`?n===`send`?e.board.c1Send:e.board.c1Rest:n===`send`?e.board.c2Send:e.board.c2Rest}function St(e,t,n){let r=xt(e,t,`send`),i=xt(e,t,`rest`),a=n===`self`,o=a?`Seus avisos publicos`:`Avisos do inimigo`,s=a?`So aparece algo aqui quando sua jogada gera aviso publico.`:`So aparece algo aqui quando a jogada do inimigo gera aviso publico.`;return`
     <section class="decision-panel ${a?`is-self`:`is-enemy`}">
@@ -62,7 +62,7 @@
         <strong>${Z(s)}</strong>
       </div>
       <div class="decision-grid">
-        ${bt({title:`Ataque visivel`,slot:r,emptyLabel:`Sem aviso`,emptyDetail:`Nada publico foi detectado.`})}
+        ${bt({title:`Ataque visivel`,slot:r,emptyLabel:``,emptyDetail:``})}
         ${bt({title:`Descanso revelado`,slot:i,emptyLabel:`Sem info`,emptyDetail:`Nenhuma carta de descanso foi revelada.`})}
       </div>
     </section>
