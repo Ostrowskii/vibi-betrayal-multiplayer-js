@@ -408,43 +408,6 @@ button {
   text-align: center;
 }
 
-.card-status {
-  color: var(--text-muted);
-  font-size: 0.5rem;
-  letter-spacing: 0.02em;
-}
-
-.card-button.is-selected .card-status {
-  color: var(--gold-strong);
-}
-
-.confirm-bar {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-column: 1 / -1;
-  gap: 0.45rem;
-  align-items: center;
-  padding: 0.45rem 0.55rem;
-  border: 1px solid var(--line-soft);
-  border-radius: 0.8rem;
-  background: rgba(255, 255, 255, 0.025);
-}
-
-.confirm-copy {
-  display: grid;
-  gap: 0.12rem;
-}
-
-.confirm-copy strong {
-  color: var(--gold-strong);
-  font-size: 0.68rem;
-}
-
-.confirm-copy span {
-  color: var(--text-muted);
-  font-size: 0.56rem;
-}
-
 .confirm-button {
   border: 0;
   border-radius: 999px;
@@ -463,6 +426,11 @@ button {
 .confirm-button.is-waiting {
   color: var(--text-main);
   background: linear-gradient(180deg, #4d695c, #2d453d);
+}
+
+.confirm-button-inline {
+  padding-inline: 0.95rem;
+  align-self: center;
 }
 
 .center-stage {

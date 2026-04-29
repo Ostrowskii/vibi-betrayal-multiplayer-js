@@ -9,7 +9,6 @@
       <img src="${yt(e,d)}" alt="${Z(l)}" />
       <span class="card-title">${Z(l)}</span>
       ${f?`<span class="card-badge">${Z(f)}</span>`:``}
-      <span class="card-status">${u?`Selecionado`:`Toque para escolher`}</span>
     </button>
   `}function Ct({title:e,hint:t,cards:n,handType:r,player:i,seat:a,interactive:o,tone:s}){let c=r===`uc`?`is-rest`:`is-attack`;return`
     <section class="selection-group ${c}">
@@ -21,42 +20,28 @@
         ${n.map(e=>St({card:e,handType:r,player:i,seat:a,interactive:o})).join(``)}
       </div>
     </section>
-  `}function wt(e,t){let n=e.players[t],a=e.screen===`game`&&e.phase===`phase_1_selection`&&!n.confirmed,o=e.screen===`game`&&(e.phase===`phase_1_selection`||e.phase===`phase_2_results`);return`
+  `}function wt(e,t){let n=e.players[t],a=e.screen===`game`&&e.phase===`phase_1_selection`&&!n.confirmed;return`
     <div class="selection-stack">
       ${Ct({title:`Descanso`,hint:`Escolha quem descansa neste turno.`,cards:r,handType:`uc`,player:n,seat:t,interactive:a,tone:`tone-rest`})}
       ${Ct({title:`Ataque`,hint:`Escolha qual estrategia enviar ao inimigo.`,cards:i,handType:`ue`,player:n,seat:t,interactive:a,tone:`tone-attack`})}
-      ${o?Tt(e,t):``}
     </div>
-  `}function Tt(e,t){let n=e.players[t],r=e.players[t===`C1`?`C2`:`C1`];if(e.phase===`phase_2_results`){let n=e.winner?`Continuar`:`Próximo turno`,r=e.winner?`O turno terminou com vitória. Toque para abrir o desfecho.`:`O resultado já foi resolvido. Toque para abrir o próximo turno.`;return`
-      <div class="confirm-bar">
-        <div class="confirm-copy">
-          <strong>${Z(n)}</strong>
-          <span>${Z(r)}</span>
-        </div>
-        <button
-          class="confirm-button"
-          data-action="advance-turn"
-          data-seat="${t}"
-        >
-          ${Z(n)}
-        </button>
-      </div>
-    `}let i=e.screen===`game`&&e.phase===`phase_1_selection`&&!n.confirmed&&n.selectedUC&&n.selectedUE,a=n.confirmed?`Aguardando`:`Confirmar`,o=n.confirmed?`Suas escolhas foram travadas.`:`Escolha descanso e ataque para fechar o turno.`,s=r.confirmed?`Confirmado`:`Aguardando`,c=i?``:`disabled`;return`
-    <div class="confirm-bar">
-      <div class="confirm-copy">
-        <strong>${Z(a)}</strong>
-        <span>${Z(o)}</span>
-        <span>Inimigo: ${Z(s)}</span>
-      </div>
+  `}function Tt(e,t){let n=e.players[t];if(e.phase===`phase_2_results`)return`
       <button
-        class="confirm-button ${n.confirmed?`is-waiting`:``}"
-        data-action="confirm-selection"
+        class="confirm-button confirm-button-inline"
+        data-action="advance-turn"
         data-seat="${t}"
-        ${n.confirmed?`disabled`:c}
       >
-        ${Z(a)}
+        ${Z(e.winner?`Continuar`:`Próximo turno`)}
       </button>
-    </div>
+    `;let r=e.screen===`game`&&e.phase===`phase_1_selection`&&!n.confirmed&&n.selectedUC&&n.selectedUE,i=n.confirmed?`Aguardando`:`Confirmar`,a=r?``:`disabled`;return`
+    <button
+      class="confirm-button confirm-button-inline ${n.confirmed?`is-waiting`:``}"
+      data-action="confirm-selection"
+      data-seat="${t}"
+      ${n.confirmed?`disabled`:a}
+    >
+      ${Z(i)}
+    </button>
   `}function Et(e,t){let n=e.turnView?.[t]?.publicCards??[],r=e.turnView?.[t]?.privateCards??[];return[{key:`turn-${e.turnNumber}-public-header`,card:null,title:`Turno ${e.turnNumber}`,text:`Ações públicas`,mode:`banner`},...n,{key:`turn-${e.turnNumber}-private-header`,card:null,title:`Informações confidenciais`,text:``,mode:`banner`},...r]}function Dt(e){if(e.mode===`banner`)return`
       <article class="turn-card is-banner">
         <div class="turn-card-copy is-banner">
@@ -99,7 +84,7 @@
       </div>
       <div class="turn-viewer-meta">${r+1} / ${n.length}</div>
     </section>
-  `}function kt(e,t,n){let r=e.players[t],i=n===`self`,a=r.castleTrust>=3?`is-maxed`:``,o=r.tradeRouteBlockedThisTurn?`bloqueada`:`livre`,s=i?`Voce`:`Inimigo`;return`
+  `}function kt(e,t,n){let r=e.players[t],i=n===`self`,a=r.castleTrust>=3?`is-maxed`:``,o=r.tradeRouteBlockedThisTurn?`bloqueada`:`livre`,s=i?`Voce`:`Inimigo`,c=i&&e.screen===`game`&&(e.phase===`phase_1_selection`||e.phase===`phase_2_results`);return`
     <section class="player-panel ${i?`player-local`:`player-enemy`}">
       <div class="player-header">
         <div class="player-crest">
@@ -114,6 +99,7 @@
           <span class="meta-pill ${a}">Confianca ${r.castleTrust}/3</span>
           <span class="meta-pill">Guarda ${r.guardDamage}/6</span>
           <span class="meta-pill">Rota ${Z(o)}</span>
+          ${c?Tt(e,t):``}
         </div>
       </div>
       <div class="player-body">

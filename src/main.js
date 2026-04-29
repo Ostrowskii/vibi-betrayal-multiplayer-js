@@ -189,7 +189,6 @@ function renderCardButton({ card, handType, player, seat, interactive }) {
       <img src="${getCardArt(card, disabled)}" alt="${escapeHtml(label)}" />
       <span class="card-title">${escapeHtml(label)}</span>
       ${badge ? `<span class="card-badge">${escapeHtml(badge)}</span>` : ""}
-      <span class="card-status">${selected ? "Selecionado" : "Toque para escolher"}</span>
     </button>
   `;
 }
@@ -235,9 +234,6 @@ function renderOwnChoices(state, seat) {
     state.screen === "game" &&
     state.phase === "phase_1_selection" &&
     !player.confirmed;
-  const showConfirm =
-    state.screen === "game" &&
-    (state.phase === "phase_1_selection" || state.phase === "phase_2_results");
 
   return `
     <div class="selection-stack">
@@ -261,34 +257,23 @@ function renderOwnChoices(state, seat) {
         interactive,
         tone: "tone-attack",
       })}
-      ${showConfirm ? renderConfirmBar(state, seat) : ""}
     </div>
   `;
 }
 
-function renderConfirmBar(state, seat) {
+function renderHeaderAction(state, seat) {
   const player = state.players[seat];
-  const enemy = state.players[seat === "C1" ? "C2" : "C1"];
   if (state.phase === "phase_2_results") {
     const buttonLabel = state.winner ? "Continuar" : "Próximo turno";
-    const helperText = state.winner
-      ? "O turno terminou com vitória. Toque para abrir o desfecho."
-      : "O resultado já foi resolvido. Toque para abrir o próximo turno.";
 
     return `
-      <div class="confirm-bar">
-        <div class="confirm-copy">
-          <strong>${escapeHtml(buttonLabel)}</strong>
-          <span>${escapeHtml(helperText)}</span>
-        </div>
-        <button
-          class="confirm-button"
-          data-action="advance-turn"
-          data-seat="${seat}"
-        >
-          ${escapeHtml(buttonLabel)}
-        </button>
-      </div>
+      <button
+        class="confirm-button confirm-button-inline"
+        data-action="advance-turn"
+        data-seat="${seat}"
+      >
+        ${escapeHtml(buttonLabel)}
+      </button>
     `;
   }
 
@@ -299,28 +284,17 @@ function renderConfirmBar(state, seat) {
     player.selectedUC &&
     player.selectedUE;
   const buttonLabel = player.confirmed ? "Aguardando" : "Confirmar";
-  const helperText = player.confirmed
-    ? "Suas escolhas foram travadas."
-    : "Escolha descanso e ataque para fechar o turno.";
-  const enemyText = enemy.confirmed ? "Confirmado" : "Aguardando";
   const disabledAttr = canConfirm ? "" : "disabled";
 
   return `
-    <div class="confirm-bar">
-      <div class="confirm-copy">
-        <strong>${escapeHtml(buttonLabel)}</strong>
-        <span>${escapeHtml(helperText)}</span>
-        <span>Inimigo: ${escapeHtml(enemyText)}</span>
-      </div>
-      <button
-        class="confirm-button ${player.confirmed ? "is-waiting" : ""}"
-        data-action="confirm-selection"
-        data-seat="${seat}"
-        ${player.confirmed ? "disabled" : disabledAttr}
-      >
-        ${escapeHtml(buttonLabel)}
-      </button>
-    </div>
+    <button
+      class="confirm-button confirm-button-inline ${player.confirmed ? "is-waiting" : ""}"
+      data-action="confirm-selection"
+      data-seat="${seat}"
+      ${player.confirmed ? "disabled" : disabledAttr}
+    >
+      ${escapeHtml(buttonLabel)}
+    </button>
   `;
 }
 
@@ -422,6 +396,10 @@ function renderPlayerPanel(state, seat, perspective) {
   const trustClass = player.castleTrust >= 3 ? "is-maxed" : "";
   const blockText = player.tradeRouteBlockedThisTurn ? "bloqueada" : "livre";
   const roleLabel = isLocal ? "Voce" : "Inimigo";
+  const showHeaderAction =
+    isLocal &&
+    state.screen === "game" &&
+    (state.phase === "phase_1_selection" || state.phase === "phase_2_results");
 
   return `
     <section class="player-panel ${isLocal ? "player-local" : "player-enemy"}">
@@ -438,6 +416,7 @@ function renderPlayerPanel(state, seat, perspective) {
           <span class="meta-pill ${trustClass}">Confianca ${player.castleTrust}/3</span>
           <span class="meta-pill">Guarda ${player.guardDamage}/6</span>
           <span class="meta-pill">Rota ${escapeHtml(blockText)}</span>
+          ${showHeaderAction ? renderHeaderAction(state, seat) : ""}
         </div>
       </div>
       <div class="player-body">
