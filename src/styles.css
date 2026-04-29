@@ -235,7 +235,7 @@ button {
 }
 
 .player-enemy {
-  padding: 0.32rem 0.42rem;
+  padding: 0.18rem 0.3rem;
 }
 
 .player-header {
@@ -306,44 +306,57 @@ button {
 }
 
 .player-enemy .player-header {
-  gap: 0.38rem;
+  gap: 0.22rem;
 }
 
 .player-enemy .player-crest {
-  width: 1.9rem;
-  height: 1.9rem;
-  border-radius: 0.65rem;
+  width: 1.48rem;
+  height: 1.48rem;
+  border-radius: 0.5rem;
 }
 
 .player-enemy .player-crest img {
-  width: 1.35rem;
-  height: 1.35rem;
+  width: 1.02rem;
+  height: 1.02rem;
 }
 
 .player-enemy .player-heading {
-  line-height: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.12rem 0.28rem;
+  line-height: 0.95;
+  min-width: 0;
 }
 
 .player-enemy .player-seat {
-  font-size: 0.8rem;
+  font-size: 0.66rem;
+  letter-spacing: 0.09em;
 }
 
 .player-enemy .player-name {
-  font-size: 0.96rem;
+  font-size: 0.86rem;
+  min-width: 0;
 }
 
 .player-enemy .player-subhead {
-  margin-top: 0.08rem;
-  font-size: 0.72rem;
+  margin-top: 0;
+  font-size: 0.62rem;
 }
 
 .player-enemy .player-meta {
-  gap: 0.24rem;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+  gap: 0.14rem;
+  align-items: center;
+  justify-content: end;
 }
 
 .player-enemy .meta-pill {
-  padding: 0.2rem 0.42rem;
-  font-size: 0.74rem;
+  padding: 0.12rem 0.28rem;
+  font-size: 0.62rem;
+  line-height: 1;
 }
 
 .turn-viewer,
