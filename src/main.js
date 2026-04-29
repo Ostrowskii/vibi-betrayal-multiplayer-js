@@ -32,6 +32,10 @@ const app = {
     key: "",
     turnCards: 0,
   },
+  reviewState: {
+    key: "",
+    dismissed: true,
+  },
 };
 
 const audioPool = new Map();
@@ -112,11 +116,29 @@ function syncViewerState(state) {
   const key = state
     ? `${state.screen}:${state.matchNumber}:${state.turnNumber}:${state.phase}:${localSeat(state) ?? "none"}`
     : "";
+  const reviewKey =
+    state && state.lastResolvedTurn
+      ? `${state.matchNumber}:${state.lastResolvedTurn}`
+      : "";
 
-  if (app.viewerState.key === key) return;
+  if (app.viewerState.key !== key) {
+    app.viewerState.key = key;
+    app.viewerState.turnCards = 0;
+  }
 
-  app.viewerState.key = key;
-  app.viewerState.turnCards = 0;
+  if (app.reviewState.key !== reviewKey) {
+    app.reviewState.key = reviewKey;
+    app.reviewState.dismissed = !reviewKey;
+  }
+}
+
+function reviewPending(state) {
+  return Boolean(
+    state &&
+      state.lastResolvedTurn > 0 &&
+      state.phase === "phase_1_selection" &&
+      !app.reviewState.dismissed,
+  );
 }
 
 function perspectiveSeats(state) {
@@ -233,6 +255,7 @@ function renderOwnChoices(state, seat) {
   const interactive =
     state.screen === "game" &&
     state.phase === "phase_1_selection" &&
+    !reviewPending(state) &&
     !player.confirmed;
 
   return `
@@ -263,6 +286,18 @@ function renderOwnChoices(state, seat) {
 
 function renderHeaderAction(state, seat) {
   const player = state.players[seat];
+  if (reviewPending(state)) {
+    return `
+      <button
+        class="confirm-button confirm-button-inline"
+        data-action="dismiss-turn-review"
+        data-seat="${seat}"
+      >
+        Proximo turno
+      </button>
+    `;
+  }
+
   if (state.phase === "phase_2_results") {
     const buttonLabel = state.winner ? "Continuar" : "Próximo turno";
 
@@ -301,18 +336,19 @@ function renderHeaderAction(state, seat) {
 function getViewerCards(state, seat) {
   const publicCards = state.turnView?.[seat]?.publicCards ?? [];
   const privateCards = state.turnView?.[seat]?.privateCards ?? [];
+  const turnLabel = state.lastResolvedTurn || state.turnNumber;
 
   return [
     {
-      key: `turn-${state.turnNumber}-public-header`,
+      key: `turn-${turnLabel}-public-header`,
       card: null,
-      title: `Turno ${state.turnNumber}`,
+      title: `Turno ${turnLabel}`,
       text: "Ações públicas",
       mode: "banner",
     },
     ...publicCards,
     {
-      key: `turn-${state.turnNumber}-private-header`,
+      key: `turn-${turnLabel}-private-header`,
       card: null,
       title: "Informações confidenciais",
       text: "",
@@ -637,6 +673,8 @@ function joinRoom() {
   app.lastPhase = null;
   app.lastScreen = null;
   app.viewerState.key = "";
+  app.reviewState.key = "";
+  app.reviewState.dismissed = true;
   app.state = null;
   app.session = new MatchSession({ room, user });
   playSound("click", 0.45);
@@ -652,6 +690,8 @@ function backToMenu() {
   app.lastPhase = null;
   app.lastScreen = null;
   app.viewerState.key = "";
+  app.reviewState.key = "";
+  app.reviewState.dismissed = true;
 }
 
 function handleStateSideEffects(prev, next) {
@@ -734,6 +774,10 @@ root.addEventListener("click", (event) => {
       if (app.session?.advanceTurn()) {
         playSound("turnConfirm", 0.42);
       }
+      return;
+    case "dismiss-turn-review":
+      app.reviewState.dismissed = true;
+      playSound("click", 0.35);
       return;
     case "select-uc":
       if (app.session?.selectUC(card)) {

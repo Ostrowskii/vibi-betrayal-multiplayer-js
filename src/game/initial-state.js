@@ -80,6 +80,7 @@ export function createInitialState() {
     },
     board: createBoardState(),
     turnView: createTurnView(),
+    lastResolvedTurn: 0,
     winner: null,
     victoryType: null,
     reportAction: null,

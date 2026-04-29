@@ -107,10 +107,15 @@ function updatePoisonAvailability(state) {
     c2TargetTrust >= 3 ? "active" : "disabled";
 }
 
-function startTurn(state) {
+function startTurn(
+  state,
+  { preserveTurnView = false, immediateSelection = false } = {},
+) {
   state.screen = "game";
-  state.phase = "phase_0_start_effects";
-  state.phaseTicksRemaining = PHASE_DURATIONS.phase_0_start_effects;
+  state.phase = immediateSelection ? "phase_1_selection" : "phase_0_start_effects";
+  state.phaseTicksRemaining = immediateSelection
+    ? 0
+    : PHASE_DURATIONS.phase_0_start_effects;
   state.winner = null;
   state.victoryType = null;
   state.reportAction = null;
@@ -125,8 +130,13 @@ function startTurn(state) {
 
   updatePoisonAvailability(state);
   clearBoard(state);
-  clearTurnView(state);
+  if (!preserveTurnView) {
+    clearTurnView(state);
+  }
   pushLog(state, `Turno ${state.turnNumber} iniciado.`);
+  if (immediateSelection) {
+    pushLog(state, "Seleção simultânea aberta.");
+  }
 }
 
 function enterSelectionPhase(state) {
@@ -483,7 +493,7 @@ function applyExhaustion(state) {
 function resolveTurn(state) {
   prepareTurnView(state);
   clearBoard(state);
-  setPhaseResults(state);
+  state.lastResolvedTurn = state.turnNumber;
 
   resolveInteraction(state, "C1", "C2");
 
@@ -495,7 +505,13 @@ function resolveTurn(state) {
     applyExhaustion(state);
     updatePoisonAvailability(state);
     pushLog(state, "Resultados do turno prontos.");
+    state.turnNumber += 1;
+    startTurn(state, {
+      preserveTurnView: true,
+      immediateSelection: true,
+    });
   } else {
+    setPhaseResults(state);
     pushLog(state, "O turno terminou com uma vitória.");
   }
 }
