@@ -134,6 +134,7 @@ function cardCountBadge(player, card) {
 
 function getCardDisabled(player, card, handType) {
   if (handType === "uc") {
+    if (card === "dummy") return false;
     return player.ucs[normalizeUCType(card)].status === "dead";
   }
   if (card === "assassin") return player.ues.assassin.status !== "alive";
@@ -216,7 +217,11 @@ function renderSelectionGroup({
 
 function renderOwnChoices(state, seat) {
   const player = state.players[seat];
-  const interactive = state.screen === "game" && state.phase === "phase_1_selection";
+  const interactive =
+    state.screen === "game" &&
+    state.phase === "phase_1_selection" &&
+    !player.confirmed;
+  const showConfirm = state.screen === "game" && state.phase === "phase_1_selection";
 
   return `
     <div class="selection-stack">
@@ -240,43 +245,69 @@ function renderOwnChoices(state, seat) {
         interactive,
         tone: "tone-attack",
       })}
+      ${showConfirm ? renderConfirmBar(state, seat) : ""}
+    </div>
+  `;
+}
+
+function renderConfirmBar(state, seat) {
+  const player = state.players[seat];
+  const enemy = state.players[seat === "C1" ? "C2" : "C1"];
+  const canConfirm =
+    state.screen === "game" &&
+    state.phase === "phase_1_selection" &&
+    !player.confirmed &&
+    player.selectedUC &&
+    player.selectedUE;
+  const buttonLabel = player.confirmed ? "Aguardando" : "Confirmar";
+  const helperText = player.confirmed
+    ? "Suas escolhas foram travadas."
+    : "Escolha descanso e ataque para fechar o turno.";
+  const enemyText = enemy.confirmed ? "Confirmado" : "Aguardando";
+  const disabledAttr = canConfirm ? "" : "disabled";
+
+  return `
+    <div class="confirm-bar">
+      <div class="confirm-copy">
+        <strong>${escapeHtml(buttonLabel)}</strong>
+        <span>${escapeHtml(helperText)}</span>
+        <span>Inimigo: ${escapeHtml(enemyText)}</span>
+      </div>
+      <button
+        class="confirm-button ${player.confirmed ? "is-waiting" : ""}"
+        data-action="confirm-selection"
+        data-seat="${seat}"
+        ${player.confirmed ? "disabled" : disabledAttr}
+      >
+        ${escapeHtml(buttonLabel)}
+      </button>
     </div>
   `;
 }
 
 function renderDecisionCard({
   title,
-  card,
-  handType,
-  variant = "self",
-  hidden = false,
-  revealed = true,
+  slot,
+  emptyLabel,
+  emptyDetail,
 }) {
-  const showCard = Boolean(card) && variant === "self" ? true : Boolean(card) && revealed && !hidden;
-  const label = !card
-    ? "Aguardando"
-    : showCard
-      ? handType === "uc"
-        ? UC_LABELS[card]
-        : UE_LABELS[card]
-      : hidden
-        ? "Oculto"
-        : "Verso";
-  const image = !card ? ASSETS.cardBack : showCard ? getCardArt(card, false) : ASSETS.cardBack;
-  const stateClass = !card ? "is-empty" : showCard ? "is-revealed" : "is-hidden";
-  const hint = handType === "uc" ? "UC descansando" : "UE enviada";
+  const visible = Boolean(slot?.card) && slot.revealed && !slot.hidden;
+  const label = visible ? UC_LABELS[slot.card] ?? UE_LABELS[slot.card] : emptyLabel;
+  const image = visible ? getCardArt(slot.card, false) : ASSETS.cardBack;
+  const stateClass = visible ? "is-revealed" : "is-empty";
+  const detail = visible ? slot.detail || "Aviso publico." : emptyDetail;
 
   return `
     <article class="decision-card ${stateClass}">
       <div class="decision-card-top">
         <span class="decision-title">${escapeHtml(title)}</span>
-        <span class="decision-hint">${escapeHtml(hint)}</span>
+        <span class="decision-hint">${escapeHtml(detail)}</span>
       </div>
       <div class="decision-art">
         <img src="${image}" alt="${escapeHtml(label)}" />
       </div>
       <div class="decision-caption">${escapeHtml(label)}</div>
-      <div class="decision-foot">${variant === "self" ? "Sua escolha" : "Revela no tempo da fase"}</div>
+      <div class="decision-foot">${visible ? "Aviso publico" : "Carta vazia"}</div>
     </article>
   `;
 }
@@ -289,14 +320,13 @@ function slotForSeat(state, seat, role) {
 }
 
 function renderDecisionPanel(state, seat, perspective) {
-  const player = state.players[seat];
   const sendSlot = slotForSeat(state, seat, "send");
   const restSlot = slotForSeat(state, seat, "rest");
   const isSelf = perspective === "self";
-  const title = isSelf ? "Suas decisoes" : "Decisoes do inimigo";
+  const title = isSelf ? "Seus avisos publicos" : "Avisos do inimigo";
   const subtitle = isSelf
-    ? `${player.name || "Voce"} decide aqui antes da revelacao.`
-    : `${player.name || "Inimigo"} so aparece aqui quando a fase revelar.`;
+    ? "So aparece algo aqui quando sua jogada gera aviso publico."
+    : "So aparece algo aqui quando a jogada do inimigo gera aviso publico.";
 
   return `
     <section class="decision-panel ${isSelf ? "is-self" : "is-enemy"}">
@@ -305,40 +335,18 @@ function renderDecisionPanel(state, seat, perspective) {
         <strong>${escapeHtml(subtitle)}</strong>
       </div>
       <div class="decision-grid">
-        ${
-          isSelf
-            ? renderDecisionCard({
-                title: "Envio",
-                card: player.selectedUE,
-                handType: "ue",
-                variant: "self",
-              })
-            : renderDecisionCard({
-                title: "Envio",
-                card: sendSlot.card,
-                handType: "ue",
-                variant: "enemy",
-                hidden: sendSlot.hidden,
-                revealed: sendSlot.revealed,
-              })
-        }
-        ${
-          isSelf
-            ? renderDecisionCard({
-                title: "Descanso",
-                card: player.selectedUC,
-                handType: "uc",
-                variant: "self",
-              })
-            : renderDecisionCard({
-                title: "Descanso",
-                card: restSlot.card,
-                handType: "uc",
-                variant: "enemy",
-                hidden: restSlot.hidden,
-                revealed: restSlot.revealed,
-              })
-        }
+        ${renderDecisionCard({
+          title: "Ataque visivel",
+          slot: sendSlot,
+          emptyLabel: "Sem aviso",
+          emptyDetail: "Nada publico foi detectado.",
+        })}
+        ${renderDecisionCard({
+          title: "Descanso revelado",
+          slot: restSlot,
+          emptyLabel: "Sem info",
+          emptyDetail: "Nenhuma carta de descanso foi revelada.",
+        })}
       </div>
     </section>
   `;
@@ -388,48 +396,8 @@ function renderPlayerPanel(state, seat, perspective) {
   `;
 }
 
-function renderBoardSlot(slot) {
-  const icon = slot.role === "send" ? ASSETS.iconForward : ASSETS.iconRest;
-  const image = slot.card
-    ? slot.hidden || !slot.revealed
-      ? ASSETS.cardBack
-      : getCardArt(slot.card, false)
-    : ASSETS.cardBack;
-  const label = slot.card
-    ? slot.hidden
-      ? "Oculto"
-      : slot.revealed
-        ? UC_LABELS[slot.card] ?? UE_LABELS[slot.card]
-        : "Verso"
-    : "Vazio";
-  const emptyClass = slot.card ? "" : "slot-empty";
-
-  return `
-    <div class="board-slot ${emptyClass}">
-      <div class="slot-icon">
-        <img src="${icon}" alt="${slot.role}" />
-      </div>
-      <div class="slot-card">
-        <img src="${image}" alt="${escapeHtml(label)}" />
-      </div>
-      <div class="slot-caption">${escapeHtml(label)}</div>
-    </div>
-  `;
-}
-
 function renderCenterStage(state) {
   const { self, enemy } = perspectiveSeats(state);
-  const spotlight = state.board.spotlight
-    ? `
-      <div class="spotlight-card">
-        <div class="spotlight-tag">${escapeHtml(state.board.spotlight.label)}</div>
-        <img src="${getCardArt(state.board.spotlight.card)}" alt="${escapeHtml(state.board.spotlight.card)}" />
-        <span>${escapeHtml(
-          `${state.board.spotlight.owner === self ? "Voce" : "Inimigo"} mostrou ${UC_LABELS[state.board.spotlight.card] ?? UE_LABELS[state.board.spotlight.card]}`,
-        )}</span>
-      </div>
-    `
-    : `<div class="spotlight-card is-empty"><span>Sem SHOWDOWN nesta fase</span></div>`;
 
   return `
     <section class="center-stage">
@@ -449,8 +417,7 @@ function renderCenterStage(state) {
         ${renderDecisionPanel(state, enemy, "enemy")}
         ${renderDecisionPanel(state, self, "self")}
       </div>
-      <div class="center-lower">
-        ${spotlight}
+      <div class="center-lower center-lower-single">
         <div class="event-feed">
           <div class="event-feed-title">Relatorio do tabuleiro</div>
           <div class="event-feed-list">
@@ -728,7 +695,7 @@ root.addEventListener("click", (event) => {
   const actionNode = event.target.closest("[data-action]");
   if (!actionNode) return;
 
-  const { action, seat, card } = actionNode.dataset;
+  const { action, card } = actionNode.dataset;
 
   switch (action) {
     case "join-room":
@@ -736,6 +703,11 @@ root.addEventListener("click", (event) => {
       return;
     case "back-to-menu":
       backToMenu();
+      return;
+    case "confirm-selection":
+      if (app.session?.confirmSelection()) {
+        playSound("turnConfirm", 0.42);
+      }
       return;
     case "select-uc":
       if (app.session?.selectUC(card)) {

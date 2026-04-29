@@ -79,6 +79,12 @@ export class MatchSession {
     return true;
   }
 
+  confirmSelection() {
+    if (!this.synced) return false;
+    this.game.post({ $: "confirm", user: this.user });
+    return true;
+  }
+
   reportAction(action) {
     if (!this.synced) return false;
     this.game.post({

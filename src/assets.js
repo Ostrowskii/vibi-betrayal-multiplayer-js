@@ -32,8 +32,8 @@ export const ASSETS = {
       gray: asset("../assets/image_guard_gray.png"),
     },
     dummy: {
-      color: asset("../assets/image_king.png"),
-      gray: asset("../assets/image_king_gray.png"),
+      color: asset("../assets/image_dummy.png"),
+      gray: asset("../assets/image_dummy.png"),
     },
     assassin: {
       color: asset("../assets/image_assassin.png"),

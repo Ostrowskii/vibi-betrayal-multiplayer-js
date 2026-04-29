@@ -48,6 +48,12 @@ export const packer = {
         user: { $: "String" },
       },
     },
+    confirm: {
+      $: "Struct",
+      fields: {
+        user: { $: "String" },
+      },
+    },
     select_uc: {
       $: "Struct",
       fields: {

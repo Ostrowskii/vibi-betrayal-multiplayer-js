@@ -14,10 +14,12 @@ export function createPlayerState(id, name = "") {
     tradeRouteBlockedNextTurn: false,
     selectedUC: null,
     selectedUE: null,
+    confirmed: false,
     ucs: {
       king: { status: "active", exhaustion: 0 },
       chef: { status: "active", exhaustion: 0 },
       guard: { status: "active", exhaustion: 0 },
+      dummy: { status: "active", exhaustion: 0 },
     },
     ues: {
       assassin: { status: "alive" },
@@ -37,6 +39,7 @@ export function createBoardSlot(key, owner, role) {
     card: null,
     revealed: false,
     hidden: false,
+    detail: "",
   };
 }
 

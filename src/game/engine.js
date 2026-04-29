@@ -38,29 +38,33 @@ function clearBoard(state) {
   state.board = createBoardState();
 }
 
-function syncBoardFromSelections(state) {
-  clearBoard(state);
-  state.board.c1Send.card = state.players.C1.selectedUE;
-  state.board.c2Rest.card = normalizeUCType(state.players.C2.selectedUC);
-  state.board.c2Send.card = state.players.C2.selectedUE;
-  state.board.c1Rest.card = normalizeUCType(state.players.C1.selectedUC);
+function laneForSeat(state, seat) {
+  if (seat === "C1") {
+    return {
+      attack: state.board.c1Send,
+      restInfo: state.board.c1Rest,
+    };
+  }
+  return {
+    attack: state.board.c2Send,
+    restInfo: state.board.c2Rest,
+  };
 }
 
-function setSpotlight(state, owner, card, label) {
-  state.board.spotlight = { owner, card, label };
+function setPublicAttack(state, seat, card, detail = "") {
+  const slot = laneForSeat(state, seat).attack;
+  slot.card = card;
+  slot.revealed = true;
+  slot.hidden = false;
+  slot.detail = detail;
 }
 
-function revealAttack(state, attackerId, defenderId, revealRest = true) {
-  const sendSlot = attackerId === "C1" ? state.board.c1Send : state.board.c2Send;
-  const restSlot = defenderId === "C1" ? state.board.c1Rest : state.board.c2Rest;
-  sendSlot.revealed = true;
-  restSlot.revealed = revealRest;
-}
-
-function hideRestingCard(state, defenderId) {
-  const restSlot = defenderId === "C1" ? state.board.c1Rest : state.board.c2Rest;
-  restSlot.hidden = true;
-  restSlot.revealed = false;
+function setPublicRestInfo(state, seat, card, detail = "") {
+  const slot = laneForSeat(state, seat).restInfo;
+  slot.card = card;
+  slot.revealed = true;
+  slot.hidden = false;
+  slot.detail = detail;
 }
 
 function updatePoisonAvailability(state) {
@@ -97,8 +101,10 @@ function bothPlayersReady(state) {
   return Boolean(
     state.players.C1.selectedUC &&
       state.players.C1.selectedUE &&
+      state.players.C1.confirmed &&
       state.players.C2.selectedUC &&
-      state.players.C2.selectedUE,
+      state.players.C2.selectedUE &&
+      state.players.C2.confirmed,
   );
 }
 
@@ -117,9 +123,8 @@ function applyAssassin(state, attackerId, defenderId) {
   const defender = state.players[defenderId];
   const defendingCard = normalizeUCType(defender.selectedUC);
 
-  revealAttack(state, attackerId, defenderId, defendingCard === "king");
-
   if (defendingCard === "king") {
+    setPublicAttack(state, attackerId, "assassin", "Matou o Rei");
     defender.ucs.king.status = "dead";
     setWinner(
       state,
@@ -130,9 +135,8 @@ function applyAssassin(state, attackerId, defenderId) {
     return;
   }
 
+  setPublicAttack(state, attackerId, "assassin", "Foi pego");
   attacker.ues.assassin.status = "dead";
-  hideRestingCard(state, defenderId);
-  setSpotlight(state, defenderId, "king", "SHOWDOWN");
   pushLog(
     state,
     `${attacker.name} perdeu o Assassino. O Rei de ${defender.name} foi exposto.`,
@@ -144,14 +148,19 @@ function applySpy(state, attackerId, defenderId) {
   const defender = state.players[defenderId];
   const defendingCard = normalizeUCType(defender.selectedUC);
 
-  revealAttack(state, attackerId, defenderId, true);
-
-  if (defendingCard === "king") {
+  if (defendingCard === "dummy") {
+    setPublicAttack(state, attackerId, "spy", "Foi pego");
     attacker.ues.spy.status = "imprisoned";
-    pushLog(state, `${attacker.name} perdeu o Spy para uma emboscada do Rei.`);
+    pushLog(state, `${attacker.name} perdeu o Spy porque ninguem descansou.`);
     return;
   }
 
+  setPublicRestInfo(
+    state,
+    attackerId,
+    defendingCard,
+    `Spy revelou ${UC_LABELS[defendingCard]}.`,
+  );
   pushLog(
     state,
     `${attacker.name} usou Scout e encontrou ${UC_LABELS[defendingCard]} em descanso.`,
@@ -165,7 +174,7 @@ function applyInvader(state, attackerId, defenderId) {
 
   attacker.ues.invader.available = Math.max(0, attacker.ues.invader.available - 1);
   applyTradeBlockFromInvader(state, defenderId);
-  revealAttack(state, attackerId, defenderId, true);
+  setPublicAttack(state, attackerId, "invader", "Ataque publico");
 
   if (defendingCard === "guard") {
     defender.ucs.guard.status = "dead";
@@ -175,7 +184,6 @@ function applyInvader(state, attackerId, defenderId) {
 
   if (defender.ucs.guard.status !== "dead") {
     defender.guardDamage += 2;
-    setSpotlight(state, defenderId, "guard", "SHOWDOWN +2");
     pushLog(
       state,
       `${attacker.name} acertou o Guarda de ${defender.name} com SHOWDOWN.`,
@@ -188,7 +196,6 @@ function applyInvader(state, attackerId, defenderId) {
   }
 
   defender.ucs.king.status = "dead";
-  setSpotlight(state, defenderId, "king", "SHOWDOWN");
   setWinner(
     state,
     attackerId,
@@ -205,8 +212,7 @@ function applyTribute(state, attackerId, defenderId) {
   defender.ues.tribute.available += 1;
   defender.castleTrust = Math.min(3, defender.castleTrust + 1);
 
-  revealAttack(state, attackerId, defenderId, false);
-  hideRestingCard(state, defenderId);
+  setPublicAttack(state, attackerId, "tribute", "Confianca +1");
   pushLog(
     state,
     `${attacker.name} enviou Tributo. A confianca de ${defender.name} subiu.`,
@@ -218,9 +224,8 @@ function applyPoisonedTribute(state, attackerId, defenderId) {
   const defender = state.players[defenderId];
   const defendingCard = normalizeUCType(defender.selectedUC);
 
-  revealAttack(state, attackerId, defenderId, true);
-
   if (defendingCard === "chef") {
+    setPublicAttack(state, attackerId, "poisoned_tribute", "Matou o Rei");
     setWinner(
       state,
       attackerId,
@@ -230,6 +235,7 @@ function applyPoisonedTribute(state, attackerId, defenderId) {
     return;
   }
 
+  setPublicAttack(state, attackerId, "poisoned_tribute", "Confianca -1");
   defender.castleTrust = Math.max(0, defender.castleTrust - 1);
   attacker.ues.poisoned_tribute.status = "disabled";
   pushLog(
@@ -266,7 +272,6 @@ function resolveInteraction(state, attackerId, defenderId) {
 function enterPhase2(state) {
   state.phase = "phase_2_reveal_c1";
   state.phaseTicksRemaining = PHASE_DURATIONS.phase_2_reveal_c1;
-  syncBoardFromSelections(state);
   resolveInteraction(state, "C1", "C2");
 }
 
@@ -279,7 +284,6 @@ function enterPhase3(state) {
 function enterPhase4(state) {
   state.phase = "phase_4_reveal_c2";
   state.phaseTicksRemaining = PHASE_DURATIONS.phase_4_reveal_c2;
-  syncBoardFromSelections(state);
   resolveInteraction(state, "C2", "C1");
 }
 
@@ -295,6 +299,7 @@ function enterPhase6(state) {
 
   for (const player of Object.values(state.players)) {
     for (const key of UC_TYPES) {
+      if (key === "dummy") continue;
       if (player.ucs[key].status === "dead") continue;
       if (player.selectedUC === key) {
         player.ucs[key].exhaustion = 0;
@@ -315,6 +320,7 @@ function enterPhase7(state) {
   for (const player of Object.values(state.players)) {
     player.selectedUC = null;
     player.selectedUE = null;
+    player.confirmed = false;
   }
 
   updatePoisonAvailability(state);
@@ -335,6 +341,7 @@ function enterReport(state) {
 }
 
 function canSelectUC(player, card) {
+  if (card === "dummy") return true;
   return player.ucs[normalizeUCType(card)]?.status !== "dead";
 }
 
@@ -389,7 +396,7 @@ function handleSelection(state, user, card, kind) {
   const tagged = cardTag(card);
   const selected = kind === "uc" ? normalizeUCType(tagged) : tagged;
 
-  if (!selected) return state;
+  if (!selected || player.confirmed) return state;
 
   if (kind === "uc") {
     if (!canSelectUC(player, selected)) return state;
@@ -398,10 +405,31 @@ function handleSelection(state, user, card, kind) {
   } else {
     if (!canSelectUE(player, selected)) return state;
     player.selectedUE = selected;
-    pushLog(next, `${seat} travou uma carta de estrategia.`);
+      pushLog(next, `${seat} travou uma carta de estrategia.`);
   }
 
-  syncBoardFromSelections(next);
+  return next;
+}
+
+function handleConfirm(state, user) {
+  const seat = seatForUser(state, user);
+  if (!seat || state.screen !== "game" || state.phase !== "phase_1_selection") {
+    return state;
+  }
+
+  const next = cloneState(state);
+  const player = next.players[seat];
+  if (player.confirmed || !player.selectedUC || !player.selectedUE) {
+    return state;
+  }
+
+  player.confirmed = true;
+  pushLog(next, `${seat} confirmou suas escolhas.`);
+
+  if (bothPlayersReady(next)) {
+    enterPhase2(next);
+  }
+
   return next;
 }
 
@@ -465,6 +493,8 @@ export function onPost(post, state) {
       return handleSelection(state, post.user.trim(), post.card, "ue");
     case "continue":
       return handleContinue(state, post.user.trim());
+    case "confirm":
+      return handleConfirm(state, post.user.trim());
     case "report_action":
       return handleReportAction(state, post.user.trim(), post.action);
     default:

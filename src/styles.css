@@ -345,7 +345,7 @@ button {
 }
 
 .selection-strip.is-rest {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .selection-strip.is-attack {
@@ -415,6 +415,53 @@ button {
 
 .card-button.is-selected .card-status {
   color: var(--gold-strong);
+}
+
+.confirm-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-column: 1 / -1;
+  gap: 0.45rem;
+  align-items: center;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid var(--line-soft);
+  border-radius: 0.8rem;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.confirm-copy {
+  display: grid;
+  gap: 0.12rem;
+}
+
+.confirm-copy strong {
+  color: var(--gold-strong);
+  font-size: 0.68rem;
+}
+
+.confirm-copy span {
+  color: var(--text-muted);
+  font-size: 0.56rem;
+}
+
+.confirm-button {
+  border: 0;
+  border-radius: 999px;
+  color: #1b120c;
+  background: linear-gradient(180deg, var(--gold-strong), var(--gold));
+  padding: 0.55rem 0.85rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+}
+
+.confirm-button:disabled {
+  cursor: default;
+  opacity: 0.78;
+}
+
+.confirm-button.is-waiting {
+  color: var(--text-main);
+  background: linear-gradient(180deg, #4d695c, #2d453d);
 }
 
 .enemy-note {
@@ -559,6 +606,10 @@ button {
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
   gap: 0.5rem;
   min-height: 0;
+}
+
+.center-lower-single {
+  grid-template-columns: 1fr;
 }
 
 .spotlight-card {
@@ -730,7 +781,7 @@ button {
   }
 
   .selection-strip.is-rest {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .selection-strip.is-attack {
@@ -763,6 +814,10 @@ button {
   .event-feed,
   .spotlight-card {
     padding: 0.4rem;
+  }
+
+  .confirm-bar {
+    padding: 0.35rem 0.4rem;
   }
 
   .phase-panel h1 {
