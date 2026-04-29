@@ -180,6 +180,14 @@ function cardCountBadge(player, card) {
   return "";
 }
 
+function cardExhaustionBadge(player, card, handType) {
+  if (handType !== "uc") return "";
+  const normalizedCard = normalizeUCType(card);
+  if (!normalizedCard || normalizedCard === "dummy") return "";
+  const exhaustion = player.ucs[normalizedCard]?.exhaustion ?? 0;
+  return `Ex ${exhaustion}`;
+}
+
 function getCardDisabled(player, card, handType) {
   if (handType === "uc") {
     if (card === "dummy") return false;
@@ -207,6 +215,7 @@ function renderCardButton({ card, handType, player, seat, interactive }) {
 
   const disabled = getCardDisabled(player, card, handType);
   const badge = cardCountBadge(player, card);
+  const exhaustionBadge = cardExhaustionBadge(player, card, handType);
   const action = handType === "uc" ? "select-uc" : "select-ue";
   const disabledClass = disabled || !interactive ? "is-disabled" : "";
   const selectedClass = selected ? "is-selected" : "";
@@ -221,6 +230,11 @@ function renderCardButton({ card, handType, player, seat, interactive }) {
       ${disabledAttr}
     >
       <img src="${getCardArt(card, disabled)}" alt="${escapeHtml(label)}" />
+      ${
+        exhaustionBadge
+          ? `<span class="card-stack-badge">${escapeHtml(exhaustionBadge)}</span>`
+          : ""
+      }
       <span class="card-title">${escapeHtml(label)}</span>
       ${badge ? `<span class="card-badge">${escapeHtml(badge)}</span>` : ""}
     </button>
