@@ -121,6 +121,35 @@ button {
   font-size: 0.85rem;
 }
 
+.server-note.is-online {
+  color: #bce7c0;
+}
+
+.server-note.is-offline {
+  color: #ffb4a3;
+}
+
+.server-banner {
+  margin-bottom: 1rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 0.9rem;
+  border: 1px solid var(--line-soft);
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.server-banner.is-online {
+  color: #dff3e2;
+  background: rgba(33, 68, 60, 0.32);
+  border-color: rgba(138, 214, 155, 0.24);
+}
+
+.server-banner.is-offline {
+  color: #ffe0d7;
+  background: rgba(143, 47, 45, 0.28);
+  border-color: rgba(255, 142, 121, 0.22);
+}
+
 .field {
   display: grid;
   gap: 0.45rem;

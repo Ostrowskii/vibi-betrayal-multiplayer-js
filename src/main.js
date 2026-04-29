@@ -3,6 +3,7 @@ import "./styles.css";
 import { ASSETS } from "./assets.js";
 import { PHASE_LABELS, UC_LABELS, UC_TYPES, UE_LABELS, UE_TYPES } from "./game/constants.js";
 import { getVictoryLabel } from "./game/engine.js";
+import { OfficialServerProbe } from "./network/server-probe.js";
 import { MatchSession } from "./network/session.js";
 
 const root = document.querySelector("#app");
@@ -12,6 +13,7 @@ const app = {
     user: "",
     room: "",
   },
+  serverProbe: new OfficialServerProbe(),
   session: null,
   state: null,
   notice: "",
@@ -67,6 +69,16 @@ function escapeHtml(value) {
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
+}
+
+function serverStatus() {
+  return (
+    app.serverProbe?.snapshot() ?? {
+      kind: "checking",
+      text: "Verificando o servidor oficial do vibinet...",
+      detail: "",
+    }
+  );
 }
 
 function playSound(key, volume = 0.7) {
@@ -402,6 +414,8 @@ function renderLobby(state) {
 }
 
 function renderMenu() {
+  const status = serverStatus();
+
   return `
     <div class="screen menu-screen">
       <div class="menu-backdrop"></div>
@@ -412,8 +426,9 @@ function renderMenu() {
             <span class="menu-kicker">vibinet room play</span>
             <h1>Usuario e sala.</h1>
             <p>Sem criar sala separado. Quem entrar primeiro vira C1.</p>
-            <p class="server-note">Servidor: oficial do vibinet</p>
+            <p class="server-note is-${status.kind}">${escapeHtml(status.text)}</p>
           </div>
+          <div class="server-banner is-${status.kind}">${escapeHtml(status.detail)}</div>
           <label class="field">
             <span>Usuario</span>
             <input
@@ -586,6 +601,10 @@ root.addEventListener("click", (event) => {
       }
       return;
   }
+});
+
+window.addEventListener("beforeunload", () => {
+  app.serverProbe?.close();
 });
 
 window.addEventListener("keydown", (event) => {
