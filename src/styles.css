@@ -488,6 +488,7 @@ button {
 
 .viewer-stage {
   display: grid;
+  grid-template-rows: minmax(0, 1fr);
   gap: 0.45rem;
   min-height: 0;
   height: 100%;
@@ -495,6 +496,7 @@ button {
 
 .turn-viewer {
   display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
   gap: 0.35rem;
   min-height: 0;
   height: 100%;
@@ -562,6 +564,7 @@ button {
   border-radius: 0.65rem;
   background: rgba(255, 255, 255, 0.025);
   min-height: 0;
+  height: 100%;
   align-self: stretch;
 }
 
@@ -571,8 +574,10 @@ button {
 }
 
 .turn-card-art img {
-  width: min(100%, var(--decision-art-size));
-  height: min(100%, calc(var(--decision-art-size) + 1.9rem));
+  width: auto;
+  max-width: 100%;
+  height: 100%;
+  max-height: calc(var(--decision-art-size) + 1.9rem);
   object-fit: cover;
   border-radius: 0.55rem;
 }
