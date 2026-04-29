@@ -265,6 +265,12 @@ button {
   font-size: 1.18rem;
 }
 
+.player-subhead {
+  margin-top: 0.15rem;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
 .player-meta {
   grid-column: 1 / -1;
   display: flex;
@@ -292,22 +298,13 @@ button {
   margin-top: 0.8rem;
 }
 
-.selection-box,
+.decision-panel,
 .event-feed,
 .spotlight-card {
   padding: 0.8rem;
   border-radius: 1rem;
   background: rgba(255, 255, 255, 0.035);
   border: 1px solid var(--line-soft);
-}
-
-.selection-line {
-  color: var(--text-muted);
-  font-size: 0.94rem;
-}
-
-.selection-line strong {
-  color: var(--text-main);
 }
 
 .hand-controls {
@@ -337,7 +334,7 @@ button {
 
 .hand-strip {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.55rem;
 }
 
@@ -396,23 +393,18 @@ button {
   text-align: center;
 }
 
-.hidden-hand {
+.enemy-note {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.45rem;
-  align-items: center;
-}
-
-.hidden-hand-back {
-  border-radius: 0.95rem;
-  overflow: hidden;
-  border: 1px solid var(--line-soft);
-}
-
-.hidden-hand-label {
-  grid-column: 1 / -1;
+  gap: 0.35rem;
+  padding: 0.8rem;
+  border-radius: 1rem;
+  border: 1px dashed var(--line-soft);
   color: var(--text-muted);
-  font-size: 0.86rem;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.enemy-note strong {
+  color: var(--gold);
 }
 
 .center-stage {
@@ -453,42 +445,86 @@ button {
   font-size: 0.92rem;
 }
 
-.board-grid {
+.decision-stage {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.8rem;
 }
 
-.board-slot {
-  padding: 0.75rem;
+.decision-panel {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.decision-panel-head {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.decision-kicker {
+  color: var(--gold);
+  font-size: 0.76rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.decision-panel-head strong {
+  font-size: 0.96rem;
+  color: var(--text-main);
+}
+
+.decision-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.decision-card {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.7rem;
   border-radius: 1rem;
   border: 1px solid var(--line-soft);
   background: rgba(255, 255, 255, 0.03);
+}
+
+.decision-card.is-empty {
+  border-style: dashed;
+  opacity: 0.82;
+}
+
+.decision-card-top {
   display: grid;
-  gap: 0.55rem;
+  gap: 0.12rem;
 }
 
-.slot-empty {
-  opacity: 0.65;
+.decision-title {
+  color: var(--text-main);
+  font-size: 0.86rem;
+  font-weight: 700;
 }
 
-.slot-icon {
-  width: 2rem;
-  height: 2rem;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.05);
-  display: grid;
-  place-items: center;
-}
-
-.slot-icon img {
-  width: 1.05rem;
-  height: 1.05rem;
-}
-
-.slot-caption {
+.decision-hint,
+.decision-foot,
+.decision-caption {
   color: var(--text-muted);
-  font-size: 0.82rem;
+  font-size: 0.78rem;
+}
+
+.decision-caption {
+  color: var(--gold-strong);
+  min-height: 2.1em;
+}
+
+.decision-art {
+  border-radius: 0.9rem;
+  overflow: hidden;
+}
+
+.decision-art img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 0.8rem;
 }
 
 .center-lower {
@@ -635,7 +671,7 @@ button {
   }
 
   .player-body {
-    grid-template-columns: 14rem 1fr;
+    grid-template-columns: 1fr;
     align-items: start;
   }
 
@@ -645,7 +681,7 @@ button {
   }
 
   .phase-panel,
-  .board-grid,
+  .decision-stage,
   .center-lower {
     grid-column: 1;
   }
@@ -657,5 +693,9 @@ button {
 
   .hand-strip {
     grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .decision-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

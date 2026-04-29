@@ -102,6 +102,14 @@ function localSeat(state) {
   return null;
 }
 
+function perspectiveSeats(state) {
+  const self = localSeat(state) ?? "C1";
+  return {
+    self,
+    enemy: self === "C1" ? "C2" : "C1",
+  };
+}
+
 function getCastleIcon(seat, gray = false) {
   if (seat === "C1") return gray ? ASSETS.castle1Gray : ASSETS.castle1;
   return gray ? ASSETS.castle2Gray : ASSETS.castle2;
@@ -198,43 +206,133 @@ function renderOwnHand(state, seat, handView) {
   `;
 }
 
-function renderHiddenHand(seat) {
+function renderDecisionCard({
+  title,
+  card,
+  handType,
+  variant = "self",
+  hidden = false,
+  revealed = true,
+}) {
+  const showCard = Boolean(card) && variant === "self" ? true : Boolean(card) && revealed && !hidden;
+  const label = !card
+    ? "Aguardando"
+    : showCard
+      ? handType === "uc"
+        ? UC_LABELS[card]
+        : UE_LABELS[card]
+      : hidden
+        ? "Oculto"
+        : "Verso";
+  const image = !card ? ASSETS.cardBack : showCard ? getCardArt(card, false) : ASSETS.cardBack;
+  const stateClass = !card ? "is-empty" : showCard ? "is-revealed" : "is-hidden";
+  const hint = handType === "uc" ? "UC descansando" : "UE enviada";
+
   return `
-    <div class="hidden-hand">
-      <div class="hidden-hand-back"><img src="${ASSETS.cardBack}" alt="Carta oculta" /></div>
-      <div class="hidden-hand-back"><img src="${ASSETS.cardBack}" alt="Carta oculta" /></div>
-      <div class="hidden-hand-back"><img src="${ASSETS.cardBack}" alt="Carta oculta" /></div>
-      <div class="hidden-hand-label">${seat === "C1" ? "Mao de C1 oculta" : "Mao de C2 oculta"}</div>
+    <article class="decision-card ${stateClass}">
+      <div class="decision-card-top">
+        <span class="decision-title">${escapeHtml(title)}</span>
+        <span class="decision-hint">${escapeHtml(hint)}</span>
+      </div>
+      <div class="decision-art">
+        <img src="${image}" alt="${escapeHtml(label)}" />
+      </div>
+      <div class="decision-caption">${escapeHtml(label)}</div>
+      <div class="decision-foot">${variant === "self" ? "Sua escolha" : "Revela no tempo da fase"}</div>
+    </article>
+  `;
+}
+
+function slotForSeat(state, seat, role) {
+  if (seat === "C1") {
+    return role === "send" ? state.board.c1Send : state.board.c1Rest;
+  }
+  return role === "send" ? state.board.c2Send : state.board.c2Rest;
+}
+
+function renderDecisionPanel(state, seat, perspective) {
+  const player = state.players[seat];
+  const sendSlot = slotForSeat(state, seat, "send");
+  const restSlot = slotForSeat(state, seat, "rest");
+  const isSelf = perspective === "self";
+  const title = isSelf ? "Suas decisoes" : "Decisoes do inimigo";
+  const subtitle = isSelf
+    ? `${player.name || "Voce"} decide aqui antes da revelacao.`
+    : `${player.name || "Inimigo"} so aparece aqui quando a fase revelar.`;
+
+  return `
+    <section class="decision-panel ${isSelf ? "is-self" : "is-enemy"}">
+      <div class="decision-panel-head">
+        <span class="decision-kicker">${escapeHtml(title)}</span>
+        <strong>${escapeHtml(subtitle)}</strong>
+      </div>
+      <div class="decision-grid">
+        ${
+          isSelf
+            ? renderDecisionCard({
+                title: "Envio",
+                card: player.selectedUE,
+                handType: "ue",
+                variant: "self",
+              })
+            : renderDecisionCard({
+                title: "Envio",
+                card: sendSlot.card,
+                handType: "ue",
+                variant: "enemy",
+                hidden: sendSlot.hidden,
+                revealed: sendSlot.revealed,
+              })
+        }
+        ${
+          isSelf
+            ? renderDecisionCard({
+                title: "Descanso",
+                card: player.selectedUC,
+                handType: "uc",
+                variant: "self",
+              })
+            : renderDecisionCard({
+                title: "Descanso",
+                card: restSlot.card,
+                handType: "uc",
+                variant: "enemy",
+                hidden: restSlot.hidden,
+                revealed: restSlot.revealed,
+              })
+        }
+      </div>
+    </section>
+  `;
+}
+
+function renderEnemyNote() {
+  return `
+    <div class="enemy-note">
+      <strong>Informacao oculta.</strong>
+      <span>As escolhas do inimigo aparecem no painel central quando forem reveladas pela fase.</span>
     </div>
   `;
 }
 
-function selectionStatus(player) {
-  const uc = player.selectedUC ? UC_LABELS[player.selectedUC] : "aguardando";
-  const ue = player.selectedUE ? UE_LABELS[player.selectedUE] : "aguardando";
-  return `
-    <div class="selection-line"><strong>UC:</strong> ${escapeHtml(uc)}</div>
-    <div class="selection-line"><strong>UE:</strong> ${escapeHtml(ue)}</div>
-  `;
-}
-
-function renderPlayerPanel(state, seat) {
+function renderPlayerPanel(state, seat, perspective) {
   const player = state.players[seat];
-  const viewerSeat = localSeat(state);
-  const isLocal = viewerSeat === seat;
+  const isLocal = perspective === "self";
   const handView = app.handViews[seat] ?? "uc";
   const trustClass = player.castleTrust >= 3 ? "is-maxed" : "";
   const blockText = player.tradeRouteBlockedThisTurn ? "bloqueada" : "livre";
+  const roleLabel = isLocal ? "Voce" : "Inimigo";
 
   return `
-    <section class="player-panel ${seat === "C2" ? "player-top" : "player-bottom"}">
+    <section class="player-panel ${isLocal ? "player-local" : "player-enemy"}">
       <div class="player-header">
         <div class="player-crest">
           <img src="${getCastleIcon(seat, false)}" alt="${seat}" />
         </div>
         <div class="player-heading">
-          <div class="player-seat">${seat}</div>
+          <div class="player-seat">${roleLabel}</div>
           <div class="player-name">${escapeHtml(player.name || "Aguardando...")}</div>
+          <div class="player-subhead">${escapeHtml(seat)}</div>
         </div>
         <div class="player-meta">
           <span class="meta-pill ${trustClass}">Confianca ${player.castleTrust}/3</span>
@@ -243,13 +341,10 @@ function renderPlayerPanel(state, seat) {
         </div>
       </div>
       <div class="player-body">
-        <div class="selection-box">
-          ${selectionStatus(player)}
-        </div>
         ${
           isLocal
             ? renderOwnHand(state, seat, handView)
-            : renderHiddenHand(seat)
+            : renderEnemyNote()
         }
       </div>
     </section>
@@ -286,13 +381,14 @@ function renderBoardSlot(slot) {
 }
 
 function renderCenterStage(state) {
+  const { self, enemy } = perspectiveSeats(state);
   const spotlight = state.board.spotlight
     ? `
       <div class="spotlight-card">
         <div class="spotlight-tag">${escapeHtml(state.board.spotlight.label)}</div>
         <img src="${getCardArt(state.board.spotlight.card)}" alt="${escapeHtml(state.board.spotlight.card)}" />
         <span>${escapeHtml(
-          `${state.board.spotlight.owner} mostrou ${UC_LABELS[state.board.spotlight.card] ?? UE_LABELS[state.board.spotlight.card]}`,
+          `${state.board.spotlight.owner === self ? "Voce" : "Inimigo"} mostrou ${UC_LABELS[state.board.spotlight.card] ?? UE_LABELS[state.board.spotlight.card]}`,
         )}</span>
       </div>
     `
@@ -312,11 +408,9 @@ function renderCenterStage(state) {
           }
         </div>
       </div>
-      <div class="board-grid">
-        ${renderBoardSlot(state.board.c1Send)}
-        ${renderBoardSlot(state.board.c2Rest)}
-        ${renderBoardSlot(state.board.c2Send)}
-        ${renderBoardSlot(state.board.c1Rest)}
+      <div class="decision-stage">
+        ${renderDecisionPanel(state, enemy, "enemy")}
+        ${renderDecisionPanel(state, self, "self")}
       </div>
       <div class="center-lower">
         ${spotlight}
@@ -370,6 +464,7 @@ function renderReportOverlay(state) {
 }
 
 function renderBoardScreen(state) {
+  const { self, enemy } = perspectiveSeats(state);
   const overlays = [];
 
   if (state.screen === "winner_transition") overlays.push(renderWinnerOverlay(state));
@@ -379,9 +474,9 @@ function renderBoardScreen(state) {
     <div class="screen board-screen">
       <div class="board-backdrop"></div>
       <div class="board-shell">
-        ${renderPlayerPanel(state, "C2")}
+        ${renderPlayerPanel(state, enemy, "enemy")}
         ${renderCenterStage(state)}
-        ${renderPlayerPanel(state, "C1")}
+        ${renderPlayerPanel(state, self, "self")}
       </div>
       ${overlays.join("")}
     </div>
