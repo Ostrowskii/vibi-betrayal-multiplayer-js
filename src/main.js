@@ -3,6 +3,7 @@ import "./styles.css";
 import { ASSETS } from "./assets.js";
 import { PHASE_LABELS, UC_LABELS, UC_TYPES, UE_LABELS, UE_TYPES } from "./game/constants.js";
 import { getVictoryLabel } from "./game/engine.js";
+import { VIBINET_SERVER_LABEL } from "./network/config.js";
 import { OfficialServerProbe } from "./network/server-probe.js";
 import { MatchSession } from "./network/session.js";
 
@@ -75,7 +76,7 @@ function serverStatus() {
   return (
     app.serverProbe?.snapshot() ?? {
       kind: "checking",
-      text: "Verificando o servidor oficial do vibinet...",
+      text: `Verificando ${VIBINET_SERVER_LABEL}...`,
       detail: "",
     }
   );

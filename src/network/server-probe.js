@@ -1,4 +1,5 @@
 import { create_client } from "vibinet";
+import { VIBINET_SERVER_LABEL, VIBINET_SERVER_URL } from "./config.js";
 
 const WS_CONNECTING = 0;
 const WS_OPEN = 1;
@@ -13,7 +14,7 @@ export class OfficialServerProbe {
     this.client = null;
 
     try {
-      this.client = create_client();
+      this.client = create_client(VIBINET_SERVER_URL);
       this.client.on_sync(() => {
         this.lastSyncAt = Date.now();
       });
@@ -26,7 +27,7 @@ export class OfficialServerProbe {
     if (this.bootError) {
       return {
         kind: "offline",
-        text: "Servidor oficial do vibinet indisponivel.",
+        text: `Servidor ${VIBINET_SERVER_LABEL} indisponivel.`,
         detail: "A conexao inicial nem conseguiu abrir o cliente de rede.",
       };
     }
@@ -45,15 +46,15 @@ export class OfficialServerProbe {
     if (readyState === WS_OPEN && synced) {
       return {
         kind: "online",
-        text: "Servidor oficial do vibinet online.",
-        detail: "A conexao com o servidor oficial respondeu ao sync inicial.",
+        text: `Servidor ${VIBINET_SERVER_LABEL} online.`,
+        detail: "A conexao com o servidor configurado respondeu ao sync inicial.",
       };
     }
 
     if (readyState === WS_CONNECTING && waitMs < OFFLINE_TIMEOUT_MS && !reconnecting) {
       return {
         kind: "checking",
-        text: "Verificando o servidor oficial do vibinet...",
+        text: `Verificando ${VIBINET_SERVER_LABEL}...`,
         detail: "A tela inicial ainda esta aguardando a primeira resposta de sync.",
       };
     }
@@ -69,15 +70,15 @@ export class OfficialServerProbe {
     if (readyState === WS_CLOSING || reconnecting) {
       return {
         kind: "offline",
-        text: "Servidor oficial do vibinet reconectando.",
+        text: `Servidor ${VIBINET_SERVER_LABEL} reconectando.`,
         detail: "A conexao caiu ou nao respondeu. O cliente esta tentando reconectar.",
       };
     }
 
     return {
       kind: "offline",
-      text: "Servidor oficial do vibinet offline ou sem resposta.",
-      detail: "Se o botao de entrar nao fizer nada, o problema provavelmente esta no servidor oficial.",
+      text: `Servidor ${VIBINET_SERVER_LABEL} offline ou sem resposta.`,
+      detail: "Se o botao de entrar nao fizer nada, o problema provavelmente esta no endpoint configurado.",
     };
   }
 
