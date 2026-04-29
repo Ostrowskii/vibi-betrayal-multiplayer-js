@@ -509,6 +509,37 @@ function renderLobby(state) {
   `;
 }
 
+function renderRoomBlocked(state) {
+  const roster = state.roster.length
+    ? state.roster.map((name, index) => `<div class="lobby-name">${index + 1}. ${escapeHtml(name)}</div>`).join("")
+    : `<div class="lobby-name">Nenhum jogador confirmado nesta sala.</div>`;
+
+  const title =
+    state.roster.length >= 2
+      ? "Sala ocupada"
+      : "Voce nao entrou nessa partida";
+  const copy =
+    state.roster.length >= 2
+      ? "Essa sala ja tem dois jogadores. Use outra sala ou reinicie a partida existente."
+      : "Seu navegador sincronizou a sala, mas este usuario nao virou um dos dois jogadores ativos.";
+
+  return `
+    <div class="screen menu-screen">
+      <div class="menu-backdrop"></div>
+      <div class="menu-shell">
+        <img class="menu-title" src="${ASSETS.title}" alt="Betrayal" />
+        <div class="menu-card">
+          <h2>${escapeHtml(title)}</h2>
+          <p>${escapeHtml(copy)}</p>
+          <div class="lobby-list">${roster}</div>
+          <div class="notice">Dica: teste com uma sala nova e dois usuarios diferentes.</div>
+          <button class="menu-button" data-action="back-to-menu">Voltar ao menu local</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 function renderMenu() {
   const status = serverStatus();
 
@@ -556,6 +587,9 @@ function renderMenu() {
 function renderApp() {
   if (!app.session || !app.state) {
     return renderMenu();
+  }
+  if (app.session.synced && !localSeat(app.state)) {
+    return renderRoomBlocked(app.state);
   }
   if (app.state.screen === "lobby") {
     return renderLobby(app.state);
