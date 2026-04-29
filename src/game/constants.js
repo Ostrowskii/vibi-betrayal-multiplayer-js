@@ -1,5 +1,5 @@
 export const PLAYER_IDS = ["C1", "C2"];
-export const UC_TYPES = ["king", "chef", "guard", "dummy"];
+export const UC_TYPES = ["king", "chef", "guard"];
 export const UE_TYPES = [
   "assassin",
   "spy",
@@ -27,7 +27,7 @@ export const UC_LABELS = {
   king: "Rei",
   chef: "Cozinheiro",
   guard: "Guarda",
-  dummy: "Dummy",
+  dummy: "Rei",
 };
 
 export const UE_LABELS = {
@@ -51,3 +51,7 @@ export const PHASE_LABELS = {
   winner_transition: "Vitoria",
   report: "Relatorio",
 };
+
+export function normalizeUCType(card) {
+  return card === "dummy" ? "king" : card;
+}

@@ -1,5 +1,6 @@
 import {
   LOG_LIMIT,
+  normalizeUCType,
   PHASE_DURATIONS,
   TICK_RATE,
   TOLERANCE_MS,
@@ -40,9 +41,9 @@ function clearBoard(state) {
 function syncBoardFromSelections(state) {
   clearBoard(state);
   state.board.c1Send.card = state.players.C1.selectedUE;
-  state.board.c2Rest.card = state.players.C2.selectedUC;
+  state.board.c2Rest.card = normalizeUCType(state.players.C2.selectedUC);
   state.board.c2Send.card = state.players.C2.selectedUE;
-  state.board.c1Rest.card = state.players.C1.selectedUC;
+  state.board.c1Rest.card = normalizeUCType(state.players.C1.selectedUC);
 }
 
 function setSpotlight(state, owner, card, label) {
@@ -114,7 +115,7 @@ function applyTradeBlockFromInvader(state, defenderId) {
 function applyAssassin(state, attackerId, defenderId) {
   const attacker = state.players[attackerId];
   const defender = state.players[defenderId];
-  const defendingCard = defender.selectedUC;
+  const defendingCard = normalizeUCType(defender.selectedUC);
 
   revealAttack(state, attackerId, defenderId, defendingCard === "king");
 
@@ -141,13 +142,13 @@ function applyAssassin(state, attackerId, defenderId) {
 function applySpy(state, attackerId, defenderId) {
   const attacker = state.players[attackerId];
   const defender = state.players[defenderId];
-  const defendingCard = defender.selectedUC;
+  const defendingCard = normalizeUCType(defender.selectedUC);
 
   revealAttack(state, attackerId, defenderId, true);
 
-  if (defendingCard === "dummy") {
+  if (defendingCard === "king") {
     attacker.ues.spy.status = "imprisoned";
-    pushLog(state, `${attacker.name} perdeu o Spy para uma emboscada do Dummy.`);
+    pushLog(state, `${attacker.name} perdeu o Spy para uma emboscada do Rei.`);
     return;
   }
 
@@ -160,7 +161,7 @@ function applySpy(state, attackerId, defenderId) {
 function applyInvader(state, attackerId, defenderId) {
   const attacker = state.players[attackerId];
   const defender = state.players[defenderId];
-  const defendingCard = defender.selectedUC;
+  const defendingCard = normalizeUCType(defender.selectedUC);
 
   attacker.ues.invader.available = Math.max(0, attacker.ues.invader.available - 1);
   applyTradeBlockFromInvader(state, defenderId);
@@ -215,7 +216,7 @@ function applyTribute(state, attackerId, defenderId) {
 function applyPoisonedTribute(state, attackerId, defenderId) {
   const attacker = state.players[attackerId];
   const defender = state.players[defenderId];
-  const defendingCard = defender.selectedUC;
+  const defendingCard = normalizeUCType(defender.selectedUC);
 
   revealAttack(state, attackerId, defenderId, true);
 
@@ -334,7 +335,7 @@ function enterReport(state) {
 }
 
 function canSelectUC(player, card) {
-  return player.ucs[card]?.status !== "dead";
+  return player.ucs[normalizeUCType(card)]?.status !== "dead";
 }
 
 function canSelectUE(player, card) {
@@ -385,7 +386,8 @@ function handleSelection(state, user, card, kind) {
 
   const next = cloneState(state);
   const player = next.players[seat];
-  const selected = cardTag(card);
+  const tagged = cardTag(card);
+  const selected = kind === "uc" ? normalizeUCType(tagged) : tagged;
 
   if (!selected) return state;
 
@@ -550,5 +552,5 @@ export function getVictoryLabel(victoryType) {
 }
 
 export function getCardLabel(card) {
-  return UC_LABELS[card] ?? UE_LABELS[card] ?? card;
+  return UC_LABELS[normalizeUCType(card)] ?? UE_LABELS[card] ?? card;
 }

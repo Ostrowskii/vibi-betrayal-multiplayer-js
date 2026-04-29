@@ -1,7 +1,14 @@
 import "./styles.css";
 
 import { ASSETS } from "./assets.js";
-import { PHASE_LABELS, UC_LABELS, UC_TYPES, UE_LABELS, UE_TYPES } from "./game/constants.js";
+import {
+  normalizeUCType,
+  PHASE_LABELS,
+  UC_LABELS,
+  UC_TYPES,
+  UE_LABELS,
+  UE_TYPES,
+} from "./game/constants.js";
 import { getVictoryLabel } from "./game/engine.js";
 import { VIBINET_SERVER_LABEL } from "./network/config.js";
 import { OfficialServerProbe } from "./network/server-probe.js";
@@ -19,10 +26,6 @@ const app = {
   state: null,
   notice: "",
   lastMarkup: "",
-  handViews: {
-    C1: "uc",
-    C2: "uc",
-  },
   lastPhase: null,
   lastScreen: null,
   hadLiveMatch: false,
@@ -116,8 +119,9 @@ function getCastleIcon(seat, gray = false) {
 }
 
 function getCardArt(card, disabled = false) {
-  if (!card) return ASSETS.cardBack;
-  const set = ASSETS.cards[card];
+  const key = normalizeUCType(card);
+  if (!key) return ASSETS.cardBack;
+  const set = ASSETS.cards[key];
   if (!set) return ASSETS.cardBack;
   return disabled ? set.gray : set.color;
 }
@@ -130,7 +134,7 @@ function cardCountBadge(player, card) {
 
 function getCardDisabled(player, card, handType) {
   if (handType === "uc") {
-    return player.ucs[card].status === "dead";
+    return player.ucs[normalizeUCType(card)].status === "dead";
   }
   if (card === "assassin") return player.ues.assassin.status !== "alive";
   if (card === "spy") return player.ues.spy.status !== "active";
@@ -145,63 +149,97 @@ function getCardDisabled(player, card, handType) {
 }
 
 function renderCardButton({ card, handType, player, seat, interactive }) {
-  const label = handType === "uc" ? UC_LABELS[card] : UE_LABELS[card];
+  const normalizedCard = handType === "uc" ? normalizeUCType(card) : card;
+  const label = handType === "uc" ? UC_LABELS[normalizedCard] : UE_LABELS[card];
   const selected =
-    handType === "uc" ? player.selectedUC === card : player.selectedUE === card;
-
-  if (selected) {
-    return `
-      <div class="card-button card-placeholder">
-        <span>Selecionada</span>
-      </div>
-    `;
-  }
+    handType === "uc"
+      ? normalizeUCType(player.selectedUC) === normalizedCard
+      : player.selectedUE === card;
 
   const disabled = getCardDisabled(player, card, handType);
   const badge = cardCountBadge(player, card);
   const action = handType === "uc" ? "select-uc" : "select-ue";
   const disabledClass = disabled || !interactive ? "is-disabled" : "";
+  const selectedClass = selected ? "is-selected" : "";
   const disabledAttr = disabled || !interactive ? "disabled" : "";
 
   return `
     <button
-      class="card-button ${disabledClass}"
+      class="card-button ${disabledClass} ${selectedClass}"
       data-action="${action}"
-      data-card="${card}"
+      data-card="${normalizedCard}"
       data-seat="${seat}"
       ${disabledAttr}
     >
       <img src="${getCardArt(card, disabled)}" alt="${escapeHtml(label)}" />
       <span class="card-title">${escapeHtml(label)}</span>
       ${badge ? `<span class="card-badge">${escapeHtml(badge)}</span>` : ""}
+      <span class="card-status">${selected ? "Selecionado" : "Toque para escolher"}</span>
     </button>
   `;
 }
 
-function renderOwnHand(state, seat, handView) {
-  const player = state.players[seat];
-  const cards = handView === "uc" ? UC_TYPES : UE_TYPES;
+function renderSelectionGroup({
+  title,
+  hint,
+  cards,
+  handType,
+  player,
+  seat,
+  interactive,
+  tone,
+}) {
+  const kindClass = handType === "uc" ? "is-rest" : "is-attack";
 
   return `
-    <div class="hand-controls">
-      <span class="hand-title">${handView === "uc" ? "Mao do Castelo" : "Mao de Estrategia"}</span>
-      <button class="swap-button" data-action="toggle-hand" data-seat="${seat}">
-        <img src="${ASSETS.iconSwap}" alt="Trocar mao" />
-        <span>Trocar</span>
-      </button>
-    </div>
-    <div class="hand-strip">
-      ${cards
-        .map((card) =>
-          renderCardButton({
-            card,
-            handType: handView,
-            player,
-            seat,
-            interactive: state.screen === "game" && state.phase === "phase_1_selection",
-          }),
-        )
-        .join("")}
+    <section class="selection-group ${kindClass}">
+      <div class="selection-head">
+        <span class="selection-kicker">${escapeHtml(title)}</span>
+        <strong>${escapeHtml(hint)}</strong>
+      </div>
+      <div class="selection-strip ${kindClass} ${tone}">
+        ${cards
+          .map((card) =>
+            renderCardButton({
+              card,
+              handType,
+              player,
+              seat,
+              interactive,
+            }),
+          )
+          .join("")}
+      </div>
+    </section>
+  `;
+}
+
+function renderOwnChoices(state, seat) {
+  const player = state.players[seat];
+  const interactive = state.screen === "game" && state.phase === "phase_1_selection";
+
+  return `
+    <div class="selection-stack">
+      ${renderSelectionGroup({
+        title: "Descanso",
+        hint: "Escolha quem descansa neste turno.",
+        cards: UC_TYPES,
+        handType: "uc",
+        player,
+        seat,
+        interactive,
+        tone: "tone-rest",
+      })}
+      ${renderSelectionGroup({
+        title: "Ataque",
+        hint: "Escolha qual estrategia enviar ao inimigo.",
+        cards: UE_TYPES,
+        handType: "ue",
+        player,
+        seat,
+        interactive,
+        tone: "tone-attack",
+      })}
     </div>
   `;
 }
@@ -318,7 +356,6 @@ function renderEnemyNote() {
 function renderPlayerPanel(state, seat, perspective) {
   const player = state.players[seat];
   const isLocal = perspective === "self";
-  const handView = app.handViews[seat] ?? "uc";
   const trustClass = player.castleTrust >= 3 ? "is-maxed" : "";
   const blockText = player.tradeRouteBlockedThisTurn ? "bloqueada" : "livre";
   const roleLabel = isLocal ? "Voce" : "Inimigo";
@@ -343,7 +380,7 @@ function renderPlayerPanel(state, seat, perspective) {
       <div class="player-body">
         ${
           isLocal
-            ? renderOwnHand(state, seat, handView)
+            ? renderOwnChoices(state, seat)
             : renderEnemyNote()
         }
       </div>
@@ -499,7 +536,7 @@ function renderLobby(state) {
           <p>${
             connecting
               ? "Sincronizando com o servidor da sala."
-              : "Esperando dois usuarios. O primeiro vira C1 e o segundo vira C2."
+              : "Esperando dois usuarios ativos na sala."
           }</p>
           <div class="lobby-list">${names}</div>
           <button class="menu-button" data-action="back-to-menu">Voltar ao menu local</button>
@@ -699,11 +736,6 @@ root.addEventListener("click", (event) => {
       return;
     case "back-to-menu":
       backToMenu();
-      return;
-    case "toggle-hand":
-      app.handViews[seat] = app.handViews[seat] === "uc" ? "ue" : "uc";
-      playSound("hover", 0.35);
-      app.lastMarkup = "";
       return;
     case "select-uc":
       if (app.session?.selectUC(card)) {

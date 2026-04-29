@@ -171,8 +171,7 @@ button {
 }
 
 .menu-button,
-.report-actions button,
-.swap-button {
+.report-actions button {
   border: 0;
   border-radius: 999px;
   color: #1b120c;
@@ -307,39 +306,50 @@ button {
   border: 1px solid var(--line-soft);
 }
 
-.hand-controls {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.8rem;
-}
-
-.hand-title {
-  color: var(--gold);
-  font-size: 0.94rem;
-}
-
-.swap-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-  padding: 0.55rem 0.85rem;
-  font-weight: 700;
-}
-
-.swap-button img {
-  width: 1rem;
-  height: 1rem;
-}
-
-.hand-strip {
+.selection-stack,
+.selection-group {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.selection-group {
+  padding: 0.8rem;
+  border-radius: 1rem;
+  border: 1px solid var(--line-soft);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.selection-head {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.selection-kicker {
+  color: var(--gold);
+  font-size: 0.76rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.selection-head strong {
+  font-size: 0.94rem;
+  color: var(--text-main);
+}
+
+.selection-strip {
+  display: grid;
   gap: 0.55rem;
 }
 
-.card-button,
-.card-placeholder {
+.selection-strip.is-rest {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.selection-strip.is-attack {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.card-button {
   position: relative;
   min-height: 8.75rem;
   padding: 0.45rem;
@@ -351,16 +361,21 @@ button {
   display: grid;
   gap: 0.45rem;
   align-content: start;
+  text-align: left;
 }
 
 .card-button img,
-.card-placeholder img,
 .slot-card img,
 .spotlight-card img {
   width: 100%;
   aspect-ratio: 1 / 1;
   object-fit: cover;
   border-radius: 0.8rem;
+}
+
+.card-button.is-selected {
+  border-color: rgba(240, 200, 122, 0.8);
+  box-shadow: inset 0 0 0 1px rgba(240, 200, 122, 0.3);
 }
 
 .card-button.is-disabled {
@@ -386,11 +401,14 @@ button {
   font-weight: 700;
 }
 
-.card-placeholder {
-  place-items: center;
-  color: var(--gold);
-  border-style: dashed;
-  text-align: center;
+.card-status {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  letter-spacing: 0.02em;
+}
+
+.card-button.is-selected .card-status {
+  color: var(--gold-strong);
 }
 
 .enemy-note {
@@ -691,7 +709,12 @@ button {
     grid-row: 1 / span 3;
   }
 
-  .hand-strip {
+  .selection-stack {
+    grid-template-columns: 0.9fr 1.1fr;
+    align-items: start;
+  }
+
+  .selection-strip.is-attack {
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 

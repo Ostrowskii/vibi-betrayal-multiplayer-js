@@ -18,7 +18,6 @@ export function createPlayerState(id, name = "") {
       king: { status: "active", exhaustion: 0 },
       chef: { status: "active", exhaustion: 0 },
       guard: { status: "active", exhaustion: 0 },
-      dummy: { status: "active", exhaustion: 0 },
     },
     ues: {
       assassin: { status: "alive" },
