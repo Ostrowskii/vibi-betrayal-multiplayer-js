@@ -909,9 +909,7 @@ root.addEventListener("click", (event) => {
       backToMenu();
       return;
     case "confirm-selection":
-      if (app.session?.confirmSelection()) {
-        playSound("turnConfirm", 0.42);
-      }
+      app.session?.confirmSelection();
       return;
     case "advance-turn":
       if (app.session?.advanceTurn()) {
@@ -926,7 +924,6 @@ root.addEventListener("click", (event) => {
     case "set-panel-view":
       if (!view) return;
       app.panelView = view;
-      playSound("click", 0.28);
       return;
     case "close-review-modal":
       app.reviewState.open = false;
