@@ -12,7 +12,7 @@
   --wine: #8f2f2d;
   --pine: #21443c;
   --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
-  --enemy-panel-height: clamp(4.9rem, 12.5dvh, 6.5rem);
+  --enemy-panel-height: clamp(4.9rem, 10dvh, 6.5rem);
   --card-art-size: 5.15rem;
   --decision-art-size: 6.8rem;
   font-family: Baskerville, "Palatino Linotype", "Book Antiqua", serif;
@@ -976,7 +976,7 @@ button {
 
 @media (min-width: 900px) {
   :root {
-    --enemy-panel-height: clamp(5.2rem, 12.5dvh, 6.8rem);
+    --enemy-panel-height: clamp(5.2rem, 10dvh, 6.8rem);
     --card-art-size: 5.8rem;
     --decision-art-size: 8.1rem;
   }
@@ -1008,7 +1008,7 @@ button {
 
 @media (max-height: 760px) {
   :root {
-    --enemy-panel-height: clamp(4.4rem, 12.5dvh, 5.3rem);
+    --enemy-panel-height: clamp(4.4rem, 10dvh, 5.3rem);
     --card-art-size: 4.35rem;
     --decision-art-size: 5.6rem;
   }
