@@ -16,7 +16,7 @@ export function createPlayerState(id, name = "") {
     selectedUE: null,
     confirmed: false,
     ucs: {
-      king: { status: "active", exhaustion: 0 },
+      king: { status: "active", exhaustion: 0, madnessStage: 0 },
       chef: { status: "active", exhaustion: 0 },
       guard: { status: "active", exhaustion: 0 },
       dummy: { status: "active", exhaustion: 0 },

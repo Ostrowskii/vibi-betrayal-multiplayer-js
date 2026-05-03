@@ -173,6 +173,10 @@ function setPhaseResults(state) {
   state.phaseTicksRemaining = 0;
 }
 
+function opposingSeat(seat) {
+  return seat === "C1" ? "C2" : "C1";
+}
+
 function pushAssassinCards(state, attackerId, defenderId, killedKing) {
   const attackerText = killedKing
     ? "Você enviou um assassino e matou o rei inimigo."
@@ -449,6 +453,44 @@ function applyPoisonedTribute(state, attackerId, defenderId) {
   );
 }
 
+function pushKingMadnessResetCards(state, seat) {
+  const enemySeat = opposingSeat(seat);
+
+  pushPublicCard(
+    state,
+    seat,
+    "king",
+    "Fúria do Rei",
+    "Seu Rei chegou a 5 stacks, matou o próprio Cozinheiro e zerou a exaustão.",
+  );
+  pushPublicCard(
+    state,
+    enemySeat,
+    "king",
+    "Fúria do Rei",
+    "O Rei inimigo chegou a 5 stacks, matou o próprio Cozinheiro e zerou a exaustão.",
+  );
+}
+
+function pushKingMadnessLossCards(state, seat) {
+  const enemySeat = opposingSeat(seat);
+
+  pushPublicCard(
+    state,
+    seat,
+    "king",
+    "Loucura do Rei",
+    "Seu Rei chegou ao próximo 5º stack, enlouqueceu e entregou a vitória ao inimigo.",
+  );
+  pushPublicCard(
+    state,
+    enemySeat,
+    "king",
+    "Loucura do Rei",
+    "O Rei inimigo chegou ao próximo 5º stack, enlouqueceu e entregou a vitória ao seu reino.",
+  );
+}
+
 function resolveInteraction(state, attackerId, defenderId) {
   const attacker = state.players[attackerId];
   const ue = attacker.selectedUE;
@@ -487,6 +529,46 @@ function applyExhaustion(state) {
     }
   }
 
+  const madnessSeats = [];
+
+  for (const seat of PLAYER_IDS) {
+    const player = state.players[seat];
+    const king = player.ucs.king;
+    if (king.status === "dead" || king.exhaustion < 5) continue;
+
+    if (king.madnessStage === 0 && player.ucs.chef.status !== "dead") {
+      player.ucs.chef.status = "dead";
+      player.ucs.chef.exhaustion = 0;
+      king.exhaustion = 0;
+      king.madnessStage = 1;
+      pushKingMadnessResetCards(state, seat);
+      pushLog(
+        state,
+        `${player.name} deixou o Rei chegar a 5 stacks. O Cozinheiro morreu e a exaustão do Rei foi zerada.`,
+      );
+      continue;
+    }
+
+    madnessSeats.push(seat);
+  }
+
+  if (madnessSeats.length > 0) {
+    const seat = madnessSeats[0];
+    const player = state.players[seat];
+    const enemySeat = opposingSeat(seat);
+    const enemy = state.players[enemySeat];
+
+    player.ucs.king.status = "dead";
+    pushKingMadnessLossCards(state, seat);
+    setWinner(
+      state,
+      enemySeat,
+      "madness",
+      `${player.name} deixou o Rei enlouquecer no 5º stack. ${enemy.name} venceu imediatamente.`,
+    );
+    return;
+  }
+
   pushLog(state, "Contadores de exaustão atualizados.");
 }
 
@@ -503,17 +585,20 @@ function resolveTurn(state) {
 
   if (!state.winner) {
     applyExhaustion(state);
-    updatePoisonAvailability(state);
-    pushLog(state, "Resultados do turno prontos.");
-    state.turnNumber += 1;
-    startTurn(state, {
-      preserveTurnView: true,
-      immediateSelection: true,
-    });
-  } else {
-    setPhaseResults(state);
-    pushLog(state, "O turno terminou com uma vitória.");
+    if (!state.winner) {
+      updatePoisonAvailability(state);
+      pushLog(state, "Resultados do turno prontos.");
+      state.turnNumber += 1;
+      startTurn(state, {
+        preserveTurnView: true,
+        immediateSelection: true,
+      });
+      return;
+    }
   }
+
+  setPhaseResults(state);
+  pushLog(state, "O turno terminou com uma vitória.");
 }
 
 function enterWinnerTransition(state) {
@@ -765,6 +850,7 @@ export const gameConfig = {
 export function getVictoryLabel(victoryType) {
   if (victoryType === "capture") return "Captura";
   if (victoryType === "assassination") return "Assassinato";
+  if (victoryType === "madness") return "Loucura";
   return "Sem vitória";
 }
 
