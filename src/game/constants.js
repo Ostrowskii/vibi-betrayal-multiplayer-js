@@ -19,9 +19,9 @@ export const PHASE_DURATIONS = {
 };
 
 export const UC_LABELS = {
-  king: "Rei",
-  chef: "Cozinheiro",
-  guard: "Guarda",
+  king: "King",
+  chef: "Cook",
+  guard: "Guard",
   dummy: "Dummy",
 };
 

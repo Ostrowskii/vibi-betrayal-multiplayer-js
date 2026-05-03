@@ -179,10 +179,10 @@ function opposingSeat(seat) {
 
 function pushAssassinCards(state, attackerId, defenderId, killedKing) {
   const attackerText = killedKing
-    ? "Você enviou um assassino e matou o rei inimigo."
+    ? "Você enviou um assassino e matou o King inimigo."
     : "Você enviou um assassino, mas ele foi pego.";
   const defenderText = killedKing
-    ? "O inimigo enviou um assassino e o seu rei morreu enquanto descansava."
+    ? "O inimigo enviou um assassino e o seu King morreu enquanto descansava."
     : "O inimigo enviou um assassino, mas ele foi pego.";
 
   pushPublicCard(state, attackerId, "assassin", "Assassino", attackerText);
@@ -203,7 +203,7 @@ function applyAssassin(state, attackerId, defenderId) {
       state,
       attackerId,
       "assassination",
-      `${attacker.name} assassinou o rei de ${defender.name}.`,
+      `${attacker.name} assassinou o King de ${defender.name}.`,
     );
     return;
   }
@@ -211,7 +211,7 @@ function applyAssassin(state, attackerId, defenderId) {
   attacker.ues.assassin.status = "dead";
   pushLog(
     state,
-    `${attacker.name} perdeu o Assassino. O rei de ${defender.name} foi exposto.`,
+    `${attacker.name} perdeu o Assassino. O King de ${defender.name} foi exposto.`,
   );
 }
 
@@ -282,14 +282,14 @@ function pushInvaderCards(
       attackerId,
       "invader",
       "Invasores",
-      "Você enviou invasores e o guarda do inimigo estava dormindo.",
+      "Você enviou invasores e o Guard do inimigo estava dormindo.",
     );
     pushPublicCard(
       state,
       defenderId,
       "invader",
       "Invasores",
-      "O inimigo enviou invasores e o seu guarda estava dormindo.",
+      "O inimigo enviou invasores e o seu Guard estava dormindo.",
     );
     return;
   }
@@ -300,14 +300,14 @@ function pushInvaderCards(
       attackerId,
       "invader",
       "Invasores",
-      `Você enviou invasores e o guarda do inimigo defendeu. A vida do guarda caiu de ${guardBefore} para ${guardAfter}.`,
+      `Você enviou invasores e o Guard do inimigo defendeu. A vida do Guard caiu de ${guardBefore} para ${guardAfter}.`,
     );
     pushPublicCard(
       state,
       defenderId,
       "invader",
       "Invasores",
-      `O inimigo enviou invasores e o seu guarda defendeu. A vida do guarda caiu de ${guardBefore} para ${guardAfter}.`,
+      `O inimigo enviou invasores e o seu Guard defendeu. A vida do Guard caiu de ${guardBefore} para ${guardAfter}.`,
     );
     return;
   }
@@ -317,14 +317,14 @@ function pushInvaderCards(
     attackerId,
     "invader",
     "Invasores",
-    "Você enviou invasores e o guarda do inimigo não estava disponível. O rei foi capturado.",
+    "Você enviou invasores e o Guard do inimigo não estava disponível. O King foi capturado.",
   );
   pushPublicCard(
     state,
     defenderId,
     "invader",
     "Invasores",
-    "O inimigo enviou invasores e o seu guarda não estava disponível. O rei foi capturado.",
+    "O inimigo enviou invasores e o seu Guard não estava disponível. O King foi capturado.",
   );
 }
 
@@ -340,7 +340,7 @@ function applyInvader(state, attackerId, defenderId) {
   if (defendingCard === "guard") {
     defender.ucs.guard.status = "dead";
     pushInvaderCards(state, attackerId, defenderId, defendingCard, guardBefore, null);
-    pushLog(state, `${attacker.name} derrubou o guarda de ${defender.name}.`);
+    pushLog(state, `${attacker.name} derrubou o Guard de ${defender.name}.`);
     return;
   }
 
@@ -356,7 +356,7 @@ function applyInvader(state, attackerId, defenderId) {
     );
     if (defender.guardDamage >= 6) {
       defender.ucs.guard.status = "dead";
-      pushLog(state, `O guarda de ${defender.name} caiu por excesso de dano.`);
+      pushLog(state, `O Guard de ${defender.name} caiu por excesso de dano.`);
     }
     return;
   }
@@ -367,7 +367,7 @@ function applyInvader(state, attackerId, defenderId) {
     state,
     attackerId,
     "capture",
-    `${attacker.name} capturou o rei de ${defender.name}.`,
+    `${attacker.name} capturou o King de ${defender.name}.`,
   );
 }
 
@@ -412,14 +412,14 @@ function applyPoisonedTribute(state, attackerId, defenderId) {
       attackerId,
       "poisoned_tribute",
       "Betrayl",
-      "Você enviou um tributo envenenado enquanto o cozinheiro inimigo dormia. O rei foi envenenado.",
+      "Você enviou um tributo envenenado enquanto o Cook inimigo dormia. O King foi envenenado.",
     );
     pushPublicCard(
       state,
       defenderId,
       "poisoned_tribute",
       "Betrayl",
-      "O inimigo enviou um tributo envenenado enquanto o seu cozinheiro dormia. O rei foi envenenado.",
+      "O inimigo enviou um tributo envenenado enquanto o seu Cook dormia. O King foi envenenado.",
     );
     setWinner(
       state,
@@ -460,15 +460,15 @@ function pushKingMadnessResetCards(state, seat) {
     state,
     seat,
     "king",
-    "Fúria do Rei",
-    "Seu Rei chegou a 5 stacks, matou o próprio Cozinheiro e zerou a exaustão.",
+    "Fúria do King",
+    "Seu King chegou a 5 stacks, matou o próprio Cook e zerou a exaustão.",
   );
   pushPublicCard(
     state,
     enemySeat,
     "king",
-    "Fúria do Rei",
-    "O Rei inimigo chegou a 5 stacks, matou o próprio Cozinheiro e zerou a exaustão.",
+    "Fúria do King",
+    "O King inimigo chegou a 5 stacks, matou o próprio Cook e zerou a exaustão.",
   );
 }
 
@@ -479,15 +479,15 @@ function pushKingMadnessLossCards(state, seat) {
     state,
     seat,
     "king",
-    "Loucura do Rei",
-    "Seu Rei chegou ao próximo 5º stack, enlouqueceu e entregou a vitória ao inimigo.",
+    "Loucura do King",
+    "Seu King chegou ao próximo 5º stack, enlouqueceu e entregou a vitória ao inimigo.",
   );
   pushPublicCard(
     state,
     enemySeat,
     "king",
-    "Loucura do Rei",
-    "O Rei inimigo chegou ao próximo 5º stack, enlouqueceu e entregou a vitória ao seu reino.",
+    "Loucura do King",
+    "O King inimigo chegou ao próximo 5º stack, enlouqueceu e entregou a vitória ao seu reino.",
   );
 }
 
@@ -544,7 +544,7 @@ function applyExhaustion(state) {
       pushKingMadnessResetCards(state, seat);
       pushLog(
         state,
-        `${player.name} deixou o Rei chegar a 5 stacks. O Cozinheiro morreu e a exaustão do Rei foi zerada.`,
+        `${player.name} deixou o King chegar a 5 stacks. O Cook morreu e a exaustão do King foi zerada.`,
       );
       continue;
     }
@@ -564,7 +564,7 @@ function applyExhaustion(state) {
       state,
       enemySeat,
       "madness",
-      `${player.name} deixou o Rei enlouquecer no 5º stack. ${enemy.name} venceu imediatamente.`,
+      `${player.name} deixou o King enlouquecer no 5º stack. ${enemy.name} venceu imediatamente.`,
     );
     return;
   }

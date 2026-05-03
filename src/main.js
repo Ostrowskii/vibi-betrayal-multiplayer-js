@@ -286,7 +286,7 @@ function renderEnemyFocus(state, seat) {
       </div>
       <div class="enemy-focus-metrics">
         ${renderEnemyMetric("Confianca", `${player.castleTrust}/3`, player.castleTrust >= 3)}
-        ${renderEnemyMetric("Guarda", `${player.guardDamage}/6`)}
+        ${renderEnemyMetric("Guard", `${player.guardDamage}/6`)}
         ${renderEnemyMetric("Rota", blockValue)}
       </div>
     </section>
@@ -569,7 +569,7 @@ function renderPlayerPanel(state, seat, perspective) {
           </div>
           <div class="player-meta enemy-meta">
             ${renderEnemyMetric("Confianca", `${player.castleTrust}/3`, player.castleTrust >= 3)}
-            ${renderEnemyMetric("Guarda", `${player.guardDamage}/6`)}
+            ${renderEnemyMetric("Guard", `${player.guardDamage}/6`)}
             ${renderEnemyMetric("Rota", blockValue)}
           </div>
         </div>
@@ -590,7 +590,7 @@ function renderPlayerPanel(state, seat, perspective) {
         </div>
         <div class="player-meta">
           <span class="meta-pill ${trustClass}">Confianca ${player.castleTrust}/3</span>
-          <span class="meta-pill">Guarda ${player.guardDamage}/6</span>
+          <span class="meta-pill">Guard ${player.guardDamage}/6</span>
           <span class="meta-pill">Rota ${escapeHtml(blockText)}</span>
           ${showReviewButton ? renderReviewButton(state) : ""}
           ${showHeaderAction ? renderHeaderAction(state, seat) : ""}

@@ -672,9 +672,9 @@ button {
 
 .card-caption {
   position: absolute;
-  top: 0.28rem;
   left: 0.28rem;
   right: 0.28rem;
+  bottom: 0.28rem;
   min-width: 0;
   padding: 0.22rem 0.55rem;
   border-radius: 0.65rem;
@@ -695,8 +695,8 @@ button {
 
 .card-inline-stack {
   position: absolute;
+  top: 0.28rem;
   right: 0.28rem;
-  bottom: 0.28rem;
   display: inline-flex;
   align-items: center;
   gap: 0.22rem;
