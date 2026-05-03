@@ -12,7 +12,7 @@
   --wine: #8f2f2d;
   --pine: #21443c;
   --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
-  --enemy-panel-height: clamp(3.8rem, 8.33dvh, 4.9rem);
+  --enemy-panel-height: clamp(4.9rem, 12.5dvh, 6.5rem);
   --card-art-size: 5.15rem;
   --decision-art-size: 6.8rem;
   font-family: Baskerville, "Palatino Linotype", "Book Antiqua", serif;
@@ -321,48 +321,48 @@ button {
 }
 
 .enemy-header {
-  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
-  gap: 0.22rem;
+  grid-template-columns: minmax(0, 0.62fr) minmax(0, 1.38fr);
+  gap: 0.28rem;
   height: 100%;
 }
 
 .enemy-identity {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  gap: 0.2rem;
+  gap: 0.24rem;
   align-items: center;
   min-width: 0;
   min-height: 0;
 }
 
 .enemy-crest {
-  width: auto;
-  height: 100%;
+  width: 2.15rem;
+  height: 2.15rem;
   aspect-ratio: 1 / 1;
   min-width: 2.15rem;
-  max-width: calc(var(--enemy-panel-height) - 0.5rem);
+  flex: 0 0 auto;
   border-radius: 0.72rem;
 }
 
 .enemy-crest img {
   max-width: 100%;
   max-height: 100%;
-  width: auto;
-  height: auto;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
 }
 
 .enemy-heading {
   display: grid;
   align-content: center;
-  gap: 0.08rem;
+  gap: 0.14rem;
   min-width: 0;
   line-height: 1;
 }
 
 .enemy-heading .player-name {
-  font-size: clamp(0.92rem, 2.1dvh, 1.22rem);
-  line-height: 0.9;
+  font-size: clamp(1.3rem, 3.2dvh, 1.8rem);
+  line-height: 0.88;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -373,23 +373,23 @@ button {
   grid-auto-flow: column;
   justify-content: start;
   align-items: center;
-  gap: 0.16rem;
+  gap: 0.24rem;
 }
 
 .enemy-id-line .player-seat {
-  font-size: 0.48rem;
+  font-size: 0.66rem;
   letter-spacing: 0.08em;
 }
 
 .enemy-id-line .player-subhead {
   margin-top: 0;
-  font-size: 0.54rem;
+  font-size: 0.8rem;
 }
 
 .enemy-meta {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.16rem;
+  gap: 0.2rem;
   width: 100%;
   height: 100%;
   align-self: stretch;
@@ -399,11 +399,11 @@ button {
   display: grid;
   align-content: center;
   justify-items: center;
-  gap: 0.08rem;
-  padding: 0.14rem 0.12rem;
+  gap: 0.12rem;
+  padding: 0.26rem 0.18rem 0.22rem;
   min-width: 0;
   border: 1px solid var(--line-soft);
-  border-radius: 0.62rem;
+  border-radius: 0.72rem;
   background: rgba(255, 255, 255, 0.05);
   text-align: center;
 }
@@ -415,7 +415,7 @@ button {
 
 .enemy-metric-label {
   color: var(--text-muted);
-  font-size: clamp(0.34rem, 0.7dvh, 0.48rem);
+  font-size: clamp(0.46rem, 1dvh, 0.62rem);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   line-height: 1;
@@ -423,7 +423,7 @@ button {
 
 .enemy-metric-value {
   color: var(--text-main);
-  font-size: clamp(0.82rem, 1.72dvh, 1.08rem);
+  font-size: clamp(1.1rem, 2.6dvh, 1.58rem);
   line-height: 0.92;
 }
 
@@ -976,7 +976,7 @@ button {
 
 @media (min-width: 900px) {
   :root {
-    --enemy-panel-height: clamp(4.2rem, 8.33dvh, 5.2rem);
+    --enemy-panel-height: clamp(5.2rem, 12.5dvh, 6.8rem);
     --card-art-size: 5.8rem;
     --decision-art-size: 8.1rem;
   }
@@ -1008,7 +1008,7 @@ button {
 
 @media (max-height: 760px) {
   :root {
-    --enemy-panel-height: clamp(3.4rem, 8.33dvh, 4.25rem);
+    --enemy-panel-height: clamp(4.4rem, 12.5dvh, 5.3rem);
     --card-art-size: 4.35rem;
     --decision-art-size: 5.6rem;
   }
@@ -1024,39 +1024,41 @@ button {
   }
 
   .player-enemy {
-    padding: 0.12rem 0.2rem;
+    padding: 0.14rem 0.22rem;
   }
 
   .enemy-header {
-    gap: 0.18rem;
+    gap: 0.22rem;
   }
 
   .enemy-identity {
-    gap: 0.16rem;
+    gap: 0.18rem;
   }
 
   .enemy-crest {
-    min-width: 1.85rem;
+    width: 2.15rem;
+    height: 2.15rem;
+    min-width: 2.15rem;
   }
 
   .enemy-heading .player-name {
-    font-size: clamp(0.82rem, 1.86dvh, 1rem);
+    font-size: clamp(1.08rem, 2.6dvh, 1.36rem);
   }
 
   .enemy-id-line .player-seat {
-    font-size: 0.42rem;
+    font-size: 0.56rem;
   }
 
   .enemy-id-line .player-subhead {
-    font-size: 0.48rem;
+    font-size: 0.66rem;
   }
 
   .enemy-metric-value {
-    font-size: clamp(0.72rem, 1.55dvh, 0.92rem);
+    font-size: clamp(0.92rem, 2.05dvh, 1.22rem);
   }
 
   .enemy-metric-label {
-    font-size: clamp(0.3rem, 0.58dvh, 0.42rem);
+    font-size: clamp(0.4rem, 0.78dvh, 0.52rem);
   }
 
   .selection-group,

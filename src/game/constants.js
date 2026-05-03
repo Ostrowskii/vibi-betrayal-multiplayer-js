@@ -30,7 +30,7 @@ export const UE_LABELS = {
   spy: "Spy",
   invader: "Invasor",
   tribute: "Tributo",
-  poisoned_tribute: "Tributo Envenenado",
+  poisoned_tribute: "Envenenamento",
 };
 
 export const PHASE_LABELS = {

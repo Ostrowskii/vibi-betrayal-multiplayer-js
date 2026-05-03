@@ -411,21 +411,21 @@ function applyPoisonedTribute(state, attackerId, defenderId) {
       state,
       attackerId,
       "poisoned_tribute",
-      "Tributo envenenado",
+      "Envenenamento",
       "Você enviou um tributo envenenado enquanto o cozinheiro inimigo dormia. O rei foi envenenado.",
     );
     pushPublicCard(
       state,
       defenderId,
       "poisoned_tribute",
-      "Tributo envenenado",
+      "Envenenamento",
       "O inimigo enviou um tributo envenenado enquanto o seu cozinheiro dormia. O rei foi envenenado.",
     );
     setWinner(
       state,
       attackerId,
       "assassination",
-      `${attacker.name} venceu com Tributo Envenenado sobre ${defender.name}.`,
+      `${attacker.name} venceu com Envenenamento sobre ${defender.name}.`,
     );
     return;
   }
@@ -437,14 +437,14 @@ function applyPoisonedTribute(state, attackerId, defenderId) {
     state,
     attackerId,
     "poisoned_tribute",
-    "Tributo envenenado",
+    "Envenenamento",
     `Você enviou um tributo envenenado. A confiança do inimigo caiu de ${trustBefore} para ${defender.castleTrust}.`,
   );
   pushPublicCard(
     state,
     defenderId,
     "poisoned_tribute",
-    "Tributo envenenado",
+    "Envenenamento",
     `O inimigo enviou um tributo envenenado. Sua confiança caiu de ${trustBefore} para ${defender.castleTrust}.`,
   );
   pushLog(
