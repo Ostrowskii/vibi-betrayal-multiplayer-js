@@ -687,7 +687,7 @@ button {
 
 .card-inline-stack img {
   width: auto;
-  height: 1em;
+  height: 1cap;
   object-fit: contain;
   flex: 0 0 auto;
 }
