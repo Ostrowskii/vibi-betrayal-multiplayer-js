@@ -213,7 +213,7 @@ button {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-rows: var(--enemy-panel-height) minmax(4.4rem, 0.34fr) minmax(0, 1fr);
+  grid-template-rows: var(--enemy-panel-height) minmax(0, 1fr);
   gap: 0.42rem;
   height: 100dvh;
   min-height: 100dvh;

@@ -603,21 +603,6 @@ function renderPlayerPanel(state, seat, perspective) {
   `;
 }
 
-function renderCenterStage(state) {
-  return `
-    <section class="center-stage">
-      <div class="event-feed">
-        <div class="event-feed-title">Registro da mesa</div>
-        <div class="event-feed-list">
-          ${state.publicLog
-            .map((line) => `<div class="event-line">${escapeHtml(line)}</div>`)
-            .join("")}
-        </div>
-      </div>
-    </section>
-  `;
-}
-
 function renderWinnerOverlay(state) {
   const winnerName = state.players[state.winner]?.name || state.winner;
   return `
@@ -666,7 +651,6 @@ function renderBoardScreen(state) {
     <div class="screen board-screen">
       <div class="board-backdrop"></div>
       <div class="board-shell">
-        ${renderCenterStage(state)}
         ${renderPlayerPanel(state, enemy, "enemy")}
         ${renderPlayerPanel(state, self, "self")}
       </div>

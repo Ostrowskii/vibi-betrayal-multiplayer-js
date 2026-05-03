@@ -193,16 +193,7 @@
           </div>
         </div>
       </section>
-    `}function Bt(e){return`
-    <section class="center-stage">
-      <div class="event-feed">
-        <div class="event-feed-title">Registro da mesa</div>
-        <div class="event-feed-list">
-          ${e.publicLog.map(e=>`<div class="event-line">${J(e)}</div>`).join(``)}
-        </div>
-      </div>
-    </section>
-  `}function Vt(e){let n=e.players[e.winner]?.name||e.winner;return`
+    `}function Bt(e){let n=e.players[e.winner]?.name||e.winner;return`
     <div class="overlay overlay-winner" data-action="continue-winner">
       <div class="winner-shell">
         <img class="winner-title" src="${t.textWinner}" alt="Winner" />
@@ -212,7 +203,7 @@
         <span class="overlay-hint">toque ou pressione qualquer tecla</span>
       </div>
     </div>
-  `}function Ht(e){let t=e.players[e.winner]?.name||e.winner||`Ninguem`;return`
+  `}function Vt(e){let t=e.players[e.winner]?.name||e.winner||`Ninguem`;return`
     <div class="overlay overlay-report">
       <div class="report-shell">
         <h2>Relatorio Final</h2>
@@ -225,17 +216,16 @@
         </div>
       </div>
     </div>
-  `}function Ut(e){let{self:t,enemy:n}=Ct(e),r=[];return St(e)&&r.push(Rt(e)),e.screen===`winner_transition`&&r.push(Vt(e)),e.screen===`report`&&r.push(Ht(e)),`
+  `}function Ht(e){let{self:t,enemy:n}=Ct(e),r=[];return St(e)&&r.push(Rt(e)),e.screen===`winner_transition`&&r.push(Bt(e)),e.screen===`report`&&r.push(Vt(e)),`
     <div class="screen board-screen">
       <div class="board-backdrop"></div>
       <div class="board-shell">
-        ${Bt(e)}
         ${zt(e,n,`enemy`)}
         ${zt(e,t,`self`)}
       </div>
       ${r.join(``)}
     </div>
-  `}function Wt(e){let n=!q.session?.synced,r=e.roster.length?e.roster.map((e,t)=>`<div class="lobby-name">${t+1}. ${J(e)}</div>`).join(``):`<div class="lobby-name">Nenhum jogador na sala ainda.</div>`;return`
+  `}function Ut(e){let n=!q.session?.synced,r=e.roster.length?e.roster.map((e,t)=>`<div class="lobby-name">${t+1}. ${J(e)}</div>`).join(``):`<div class="lobby-name">Nenhum jogador na sala ainda.</div>`;return`
     <div class="screen menu-screen">
       <div class="menu-backdrop"></div>
       <div class="menu-shell">
@@ -248,7 +238,7 @@
         </div>
       </div>
     </div>
-  `}function Gt(e){let n=e.roster.length?e.roster.map((e,t)=>`<div class="lobby-name">${t+1}. ${J(e)}</div>`).join(``):`<div class="lobby-name">Nenhum jogador confirmado nesta sala.</div>`,r=e.roster.length>=2?`Sala ocupada`:`Voce nao entrou nessa partida`,i=e.roster.length>=2?`Essa sala ja tem dois jogadores. Use outra sala ou reinicie a partida existente.`:`Seu navegador sincronizou a sala, mas este usuario nao virou um dos dois jogadores ativos.`;return`
+  `}function Wt(e){let n=e.roster.length?e.roster.map((e,t)=>`<div class="lobby-name">${t+1}. ${J(e)}</div>`).join(``):`<div class="lobby-name">Nenhum jogador confirmado nesta sala.</div>`,r=e.roster.length>=2?`Sala ocupada`:`Voce nao entrou nessa partida`,i=e.roster.length>=2?`Essa sala ja tem dois jogadores. Use outra sala ou reinicie a partida existente.`:`Seu navegador sincronizou a sala, mas este usuario nao virou um dos dois jogadores ativos.`;return`
     <div class="screen menu-screen">
       <div class="menu-backdrop"></div>
       <div class="menu-shell">
@@ -262,7 +252,7 @@
         </div>
       </div>
     </div>
-  `}function Kt(){let e=bt();return`
+  `}function Gt(){let e=bt();return`
     <div class="screen menu-screen">
       <div class="menu-backdrop"></div>
       <div class="menu-shell">
@@ -296,4 +286,4 @@
         </div>
       </div>
     </div>
-  `}function qt(){return!q.session||!q.state?Kt():q.session.synced&&q.state.roster.length>=2&&!X(q.state)?Gt(q.state):q.state.screen===`lobby`?Wt(q.state):Ut(q.state)}function Jt(){let e=q.form.user.trim(),t=q.form.room.trim();if(!e||!t){q.notice=`Preencha usuario e sala.`,Y(`invalid`,.55);return}q.session&&q.session.close(),q.notice=``,q.hadLiveMatch=!1,q.lastPhase=null,q.lastScreen=null,q.panelView=`rest`,q.reviewState.key=``,q.reviewState.open=!1,q.reviewState.cardIndex=0,q.state=null,q.session=new ht({room:t,user:e}),Y(`click`,.45)}function Yt(){q.session&&q.session.close(),q.session=null,q.state=null,q.hadLiveMatch=!1,q.lastPhase=null,q.lastScreen=null,q.panelView=`rest`,q.reviewState.key=``,q.reviewState.open=!1,q.reviewState.cardIndex=0}function Xt(e,t,n){if(t){if((t.screen===`game`||t.screen===`winner_transition`||t.screen===`report`)&&(q.hadLiveMatch=!0),e?.phase!==t.phase&&(t.phase===`phase_0_start_effects`&&Y(`turnStart`,.45),t.phase===`phase_2_results`&&Y(`place`,.5)),e?.screen!==t.screen){let e=X(t);t.screen===`winner_transition`&&Y(t.winner===e?`victory`:`defeat`,.6)}n?.autoOpened&&e?.lastResolvedTurn!==t.lastResolvedTurn&&Y(`place`,.5),q.hadLiveMatch&&t.screen===`lobby`&&t.roster.length===0&&(Yt(),q.notice=`A partida voltou ao menu compartilhado.`)}}function Zt(){if(q.session){let e=q.session.computeState(),t=xt(e);Xt(q.state,e,t),q.state=e}let e=qt();if(e!==q.lastMarkup){let t=_t();K.innerHTML=e,q.lastMarkup=e,yt(),vt(t)}requestAnimationFrame(Zt)}K.addEventListener(`input`,e=>{let t=e.target.dataset.field;t&&(q.form[t]=e.target.value)}),K.addEventListener(`click`,e=>{let t=e.target.closest(`[data-action]`);if(!t)return;let{action:n,card:r,view:i}=t.dataset;switch(n){case`join-room`:Jt();return;case`back-to-menu`:Yt();return;case`confirm-selection`:q.session?.confirmSelection();return;case`advance-turn`:q.session?.advanceTurn()&&Y(`turnConfirm`,.42);return;case`open-review-modal`:if(!Z(q.state))return;q.reviewState.open=!0,Y(`click`,.35);return;case`set-panel-view`:if(!i)return;q.panelView=i;return;case`close-review-modal`:q.reviewState.open=!1,Y(`click`,.3);return;case`select-uc`:q.session?.selectUC(r)&&Y(`select`,.45);return;case`select-ue`:q.session?.selectUE(r)&&Y(`select`,.45);return;case`continue-winner`:q.session?.continueWinner()&&Y(`click`,.4);return;case`report-menu`:q.session?.reportAction(`menu`)&&Y(`click`,.45);return;case`report-restart`:q.session?.reportAction(`restart`)&&Y(`turnConfirm`,.45);return;case`viewer-prev`:q.reviewState.cardIndex=Math.max(0,q.reviewState.cardIndex-1);return;case`viewer-next`:{if(!q.state)return;let e=X(q.state);if(!e)return;let t=Ft(q.state,e);q.reviewState.cardIndex=Math.min(t.length-1,q.reviewState.cardIndex+1);return}}}),window.addEventListener(`beforeunload`,()=>{q.session?.leave(),q.serverProbe?.close()}),window.addEventListener(`keydown`,e=>{e.repeat||q.state?.screen===`winner_transition`&&(q.session?.continueWinner(),Y(`click`,.35))}),Zt();
+  `}function Kt(){return!q.session||!q.state?Gt():q.session.synced&&q.state.roster.length>=2&&!X(q.state)?Wt(q.state):q.state.screen===`lobby`?Ut(q.state):Ht(q.state)}function qt(){let e=q.form.user.trim(),t=q.form.room.trim();if(!e||!t){q.notice=`Preencha usuario e sala.`,Y(`invalid`,.55);return}q.session&&q.session.close(),q.notice=``,q.hadLiveMatch=!1,q.lastPhase=null,q.lastScreen=null,q.panelView=`rest`,q.reviewState.key=``,q.reviewState.open=!1,q.reviewState.cardIndex=0,q.state=null,q.session=new ht({room:t,user:e}),Y(`click`,.45)}function Jt(){q.session&&q.session.close(),q.session=null,q.state=null,q.hadLiveMatch=!1,q.lastPhase=null,q.lastScreen=null,q.panelView=`rest`,q.reviewState.key=``,q.reviewState.open=!1,q.reviewState.cardIndex=0}function Yt(e,t,n){if(t){if((t.screen===`game`||t.screen===`winner_transition`||t.screen===`report`)&&(q.hadLiveMatch=!0),e?.phase!==t.phase&&(t.phase===`phase_0_start_effects`&&Y(`turnStart`,.45),t.phase===`phase_2_results`&&Y(`place`,.5)),e?.screen!==t.screen){let e=X(t);t.screen===`winner_transition`&&Y(t.winner===e?`victory`:`defeat`,.6)}n?.autoOpened&&e?.lastResolvedTurn!==t.lastResolvedTurn&&Y(`place`,.5),q.hadLiveMatch&&t.screen===`lobby`&&t.roster.length===0&&(Jt(),q.notice=`A partida voltou ao menu compartilhado.`)}}function Xt(){if(q.session){let e=q.session.computeState(),t=xt(e);Yt(q.state,e,t),q.state=e}let e=Kt();if(e!==q.lastMarkup){let t=_t();K.innerHTML=e,q.lastMarkup=e,yt(),vt(t)}requestAnimationFrame(Xt)}K.addEventListener(`input`,e=>{let t=e.target.dataset.field;t&&(q.form[t]=e.target.value)}),K.addEventListener(`click`,e=>{let t=e.target.closest(`[data-action]`);if(!t)return;let{action:n,card:r,view:i}=t.dataset;switch(n){case`join-room`:qt();return;case`back-to-menu`:Jt();return;case`confirm-selection`:q.session?.confirmSelection();return;case`advance-turn`:q.session?.advanceTurn()&&Y(`turnConfirm`,.42);return;case`open-review-modal`:if(!Z(q.state))return;q.reviewState.open=!0,Y(`click`,.35);return;case`set-panel-view`:if(!i)return;q.panelView=i;return;case`close-review-modal`:q.reviewState.open=!1,Y(`click`,.3);return;case`select-uc`:q.session?.selectUC(r)&&Y(`select`,.45);return;case`select-ue`:q.session?.selectUE(r)&&Y(`select`,.45);return;case`continue-winner`:q.session?.continueWinner()&&Y(`click`,.4);return;case`report-menu`:q.session?.reportAction(`menu`)&&Y(`click`,.45);return;case`report-restart`:q.session?.reportAction(`restart`)&&Y(`turnConfirm`,.45);return;case`viewer-prev`:q.reviewState.cardIndex=Math.max(0,q.reviewState.cardIndex-1);return;case`viewer-next`:{if(!q.state)return;let e=X(q.state);if(!e)return;let t=Ft(q.state,e);q.reviewState.cardIndex=Math.min(t.length-1,q.reviewState.cardIndex+1);return}}}),window.addEventListener(`beforeunload`,()=>{q.session?.leave(),q.serverProbe?.close()}),window.addEventListener(`keydown`,e=>{e.repeat||q.state?.screen===`winner_transition`&&(q.session?.continueWinner(),Y(`click`,.35))}),Xt();
