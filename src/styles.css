@@ -13,6 +13,8 @@
   --pine: #21443c;
   --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
   --enemy-panel-height: clamp(4.9rem, 10dvh, 6.5rem);
+  --center-slot-height: 145px;
+  --center-slot-width: calc(var(--center-slot-height) * 1086 / 1448);
   --card-art-size: 5.15rem;
   --decision-art-size: 6.8rem;
   font-family: Baskerville, "Palatino Linotype", "Book Antiqua", serif;
@@ -290,7 +292,7 @@ button {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-rows: var(--enemy-panel-height) minmax(0, 1fr);
+  grid-template-rows: var(--enemy-panel-height) auto minmax(0, 1fr);
   gap: 0.42rem;
   height: 100dvh;
   min-height: 100dvh;
@@ -535,6 +537,10 @@ button {
   height: 100%;
 }
 
+.selection-footer {
+  display: grid;
+}
+
 .selection-group {
   padding: 0.55rem;
   border-radius: 0.85rem;
@@ -590,7 +596,7 @@ button {
 }
 
 .selection-strip.is-attack {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .player-local .selection-strip.is-rest {
@@ -598,7 +604,7 @@ button {
 }
 
 .player-local .selection-strip.is-attack {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .card-button {
@@ -630,6 +636,7 @@ button {
 
 .card-art-shell {
   position: relative;
+  --card-caption-offset: 2.15rem;
   width: 100%;
   height: auto;
   max-width: 100%;
@@ -695,7 +702,7 @@ button {
 
 .card-inline-stack {
   position: absolute;
-  top: 0.28rem;
+  bottom: calc(0.28rem + var(--card-caption-offset));
   right: 0.28rem;
   display: inline-flex;
   align-items: center;
@@ -797,88 +804,109 @@ button {
 
 .center-stage {
   min-height: 0;
-  padding: 0.4rem;
+  padding: 0 0.4rem;
 }
 
-.enemy-focus {
+.decision-stage {
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
-  gap: 0.45rem;
-  height: 100%;
-  padding: 0.55rem;
+  grid-template-rows: repeat(2, var(--center-slot-height));
+  gap: 0;
+}
+
+.decision-row {
+  display: flex;
+  gap: 0.34rem;
+}
+
+.decision-row.is-enemy {
+  justify-content: flex-start;
+}
+
+.decision-row.is-self {
+  justify-content: flex-end;
+}
+
+.center-slot {
+  width: var(--center-slot-width);
+  height: var(--center-slot-height);
+  min-width: 0;
+  min-height: 0;
   border-radius: 0.95rem;
   border: 1px solid var(--line-soft);
-  background: rgba(255, 255, 255, 0.04);
+  overflow: hidden;
 }
 
-.enemy-focus-crest {
-  display: grid;
-  place-items: center;
+.stage-empty-slot {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
 }
 
-.enemy-focus-crest img {
-  width: min(32vw, 5.4rem);
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-}
-
-.enemy-focus-copy {
-  display: grid;
-  gap: 0.18rem;
-  text-align: center;
-}
-
-.enemy-focus-name {
-  font-size: clamp(1.12rem, 2.7dvh, 1.6rem);
-  line-height: 0.92;
-}
-
-.enemy-focus-role {
-  color: var(--gold);
-  font-size: 0.72rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.enemy-focus-metrics {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.34rem;
-  min-height: 0;
-}
-
-.bottom-action-bar {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.34rem;
-}
-
-.bottom-tool {
-  display: grid;
-  place-items: center;
-  min-height: 3.35rem;
-  padding: 0.35rem;
-  border: 1px solid var(--line-soft);
-  border-radius: 0.9rem;
-  background: rgba(255, 255, 255, 0.05);
+.stage-choice-button {
+  padding: 0.24rem;
+  background:
+    linear-gradient(180deg, rgba(72, 39, 22, 0.88), rgba(24, 15, 10, 0.95));
   color: var(--text-main);
+  display: grid;
+  place-items: stretch;
 }
 
-.bottom-tool.is-active {
+.stage-choice-button.is-active {
   border-color: rgba(240, 200, 122, 0.8);
   box-shadow: inset 0 0 0 1px rgba(240, 200, 122, 0.3);
 }
 
-.bottom-tool img {
-  width: 1.7rem;
-  height: 1.7rem;
+.stage-choice-button .card-art-shell {
+  --card-caption-offset: 1.9rem;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+}
+
+.stage-choice-button .card-art-shell > .card-art {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  justify-self: stretch;
+  align-self: stretch;
+}
+
+.stage-choice-button .card-title {
+  font-size: 0.96rem;
+  line-height: 1;
+}
+
+.stage-choice-button .card-badge {
+  min-width: 1.7rem;
+  padding: 0.14rem 0.34rem;
+  font-size: 0.78rem;
+}
+
+.stage-choice-button .card-inline-stack {
+  gap: 0.18rem;
+  padding: 0.18rem 0.38rem;
+  font-size: 0.98rem;
+}
+
+.stage-choice-empty {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  justify-items: center;
+  gap: 0.35rem;
+  padding: 0.65rem;
+  text-align: center;
+}
+
+.stage-choice-empty img {
+  width: 2.15rem;
+  height: 2.15rem;
   object-fit: contain;
 }
 
-.bottom-tool span {
-  font-size: 1rem;
-  font-weight: 700;
+.stage-choice-empty strong {
+  font-size: 0.94rem;
+  line-height: 1.05;
 }
 
 .turn-viewer {
@@ -1249,7 +1277,7 @@ button {
   }
 
   .player-local .selection-strip.is-attack {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
 }

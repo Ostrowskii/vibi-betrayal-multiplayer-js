@@ -185,6 +185,10 @@ function cardExhaustionBadge(player, card, handType) {
   return String(exhaustion);
 }
 
+function visibleAttackCards() {
+  return UE_TYPES.filter((card) => card !== "poisoned_tribute");
+}
+
 function getCardDisabled(player, card, handType) {
   if (handType === "uc") {
     if (card === "dummy") return false;
@@ -271,23 +275,83 @@ function renderSelectionGroup({
   `;
 }
 
-function renderEnemyFocus(state, seat) {
-  const player = state.players[seat];
-  const blockValue = player.tradeRouteBlockedThisTurn ? "Bloqueada" : "Livre";
+function renderStageChoiceButton({ player, handType, view, icon, ariaLabel }) {
+  const selectedCard =
+    handType === "uc"
+      ? normalizeUCType(player.selectedUC)
+      : player.selectedUE === "poisoned_tribute"
+        ? null
+        : player.selectedUE;
+  const label = selectedCard
+    ? handType === "uc"
+      ? UC_LABELS[selectedCard]
+      : UE_LABELS[selectedCard]
+    : view === "rest"
+      ? "Descanso"
+      : "Ataque";
+  const badge = selectedCard ? cardCountBadge(player, selectedCard) : "";
+  const exhaustionBadge = selectedCard
+    ? cardExhaustionBadge(player, selectedCard, handType)
+    : "";
 
   return `
-    <section class="enemy-focus">
-      <div class="enemy-focus-crest">
-        <img src="${getCastleIcon(seat, false)}" alt="${seat}" />
+    <button
+      class="center-slot stage-choice-button ${app.panelView === view ? "is-active" : ""}"
+      data-action="set-panel-view"
+      data-view="${view}"
+      aria-label="${escapeHtml(ariaLabel)}"
+    >
+      ${
+        selectedCard
+          ? `
+            <div class="card-art-shell">
+              <img class="card-art" src="${getCardArt(selectedCard, false)}" alt="${escapeHtml(label)}" />
+              <div class="card-caption">
+                <span class="card-title">${escapeHtml(label)}</span>
+              </div>
+              ${badge ? `<span class="card-badge">${escapeHtml(badge)}</span>` : ""}
+              ${
+                exhaustionBadge
+                  ? `<span class="card-inline-stack"><img src="${ASSETS.zzz}" alt="" aria-hidden="true" /><span>${escapeHtml(exhaustionBadge)}</span></span>`
+                  : ""
+              }
+            </div>
+          `
+          : `
+            <span class="stage-choice-empty">
+              <img src="${icon}" alt="" aria-hidden="true" />
+              <strong>${escapeHtml(label)}</strong>
+            </span>
+          `
+      }
+    </button>
+  `;
+}
+
+function renderCenterStage(state, self) {
+  const player = state.players[self];
+
+  return `
+    <section class="center-stage decision-stage">
+      <div class="decision-row is-enemy">
+        <div class="center-slot stage-empty-slot" aria-hidden="true"></div>
+        <div class="center-slot stage-empty-slot" aria-hidden="true"></div>
       </div>
-      <div class="enemy-focus-copy">
-        <div class="enemy-focus-name">${escapeHtml(player.name || "Aguardando...")}</div>
-        <div class="enemy-focus-role">Inimigo</div>
-      </div>
-      <div class="enemy-focus-metrics">
-        ${renderEnemyMetric("Confianca", `${player.castleTrust}/3`, player.castleTrust >= 3)}
-        ${renderEnemyMetric("Guard", `${player.guardDamage}/6`)}
-        ${renderEnemyMetric("Rota", blockValue)}
+      <div class="decision-row is-self">
+        ${renderStageChoiceButton({
+          player,
+          handType: "ue",
+          view: "attack",
+          icon: ASSETS.iconForward,
+          ariaLabel: "Abrir visualização de ataque",
+        })}
+        ${renderStageChoiceButton({
+          player,
+          handType: "uc",
+          view: "rest",
+          icon: ASSETS.iconRest,
+          ariaLabel: "Abrir visualização de descanso",
+        })}
       </div>
     </section>
   `;
@@ -299,35 +363,33 @@ function renderOwnChoices(state, seat) {
     state.screen === "game" &&
     state.phase === "phase_1_selection" &&
     !player.confirmed;
-  const { enemy } = perspectiveSeats(state);
+  const currentView = app.panelView === "attack" ? "attack" : "rest";
 
-  let content = "";
-  if (app.panelView === "enemy") {
-    content = renderEnemyFocus(state, enemy);
-  } else if (app.panelView === "attack") {
-    content = renderSelectionGroup({
-      cards: UE_TYPES,
-      handType: "ue",
-      player,
-      seat,
-      interactive,
-      tone: "tone-attack",
-    });
-  } else {
-    content = renderSelectionGroup({
-      cards: UC_TYPES,
-      handType: "uc",
-      player,
-      seat,
-      interactive,
-      tone: "tone-rest",
-    });
-  }
+  const content =
+    currentView === "attack"
+      ? renderSelectionGroup({
+        cards: visibleAttackCards(),
+        handType: "ue",
+        player,
+        seat,
+        interactive,
+        tone: "tone-attack",
+      })
+      : renderSelectionGroup({
+        cards: UC_TYPES,
+        handType: "uc",
+        player,
+        seat,
+        interactive,
+        tone: "tone-rest",
+      });
 
   return `
     <div class="selection-stack">
       <div class="selection-stage">${content}</div>
-      ${renderBottomActionBar(state, seat, enemy)}
+      <div class="selection-footer">
+        ${renderHeaderAction(state, seat)}
+      </div>
     </div>
   `;
 }
@@ -366,40 +428,6 @@ function renderHeaderAction(state, seat) {
     >
       ${escapeHtml(buttonLabel)}
     </button>
-  `;
-}
-
-function renderBottomActionBar(state, seat, enemySeat) {
-  const current = app.panelView;
-
-  return `
-    <div class="bottom-action-bar">
-      <button
-        class="bottom-tool ${current === "enemy" ? "is-active" : ""}"
-        data-action="set-panel-view"
-        data-view="enemy"
-        aria-label="${escapeHtml(enemySeat)}"
-      >
-        <span>${escapeHtml(enemySeat)}</span>
-      </button>
-      <button
-        class="bottom-tool ${current === "rest" ? "is-active" : ""}"
-        data-action="set-panel-view"
-        data-view="rest"
-        aria-label="Descanso"
-      >
-        <img src="${ASSETS.iconRest}" alt="Descanso" />
-      </button>
-      <button
-        class="bottom-tool ${current === "attack" ? "is-active" : ""}"
-        data-action="set-panel-view"
-        data-view="attack"
-        aria-label="Ataque"
-      >
-        <img src="${ASSETS.iconForward}" alt="Ataque" />
-      </button>
-      ${renderHeaderAction(state, seat)}
-    </div>
   `;
 }
 
@@ -650,6 +678,7 @@ function renderBoardScreen(state) {
       <div class="board-backdrop"></div>
       <div class="board-shell">
         ${renderPlayerPanel(state, enemy, "enemy")}
+        ${renderCenterStage(state, self)}
         ${renderPlayerPanel(state, self, "self")}
       </div>
       ${overlays.join("")}
