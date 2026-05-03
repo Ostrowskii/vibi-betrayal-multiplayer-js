@@ -597,12 +597,22 @@ button {
 }
 
 .card-inline-stack {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.18rem;
   flex: 0 0 auto;
   font-size: inherit;
   font-weight: 700;
   line-height: inherit;
   color: var(--gold-strong);
   white-space: nowrap;
+}
+
+.card-inline-stack img {
+  width: 1.1em;
+  height: 1.1em;
+  object-fit: contain;
+  flex: 0 0 auto;
 }
 
 .player-local .card-title {

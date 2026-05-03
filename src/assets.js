@@ -18,6 +18,7 @@ export const ASSETS = {
   iconSwap: asset("../assets/icon_swap.png"),
   iconRest: asset("../assets/icon_rest.png"),
   iconForward: asset("../assets/icon_forward.png"),
+  zzz: asset("../assets/extra/zzz_18598936.png"),
   cards: {
     king: {
       color: asset("../assets/image_king.png"),

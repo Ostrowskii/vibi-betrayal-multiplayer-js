@@ -99,7 +99,7 @@ function playSound(key, volume = 0.7) {
     audioPool.set(key, audio);
   }
   const clone = audio.cloneNode();
-  clone.volume = volume;
+  clone.volume = Math.max(0, Math.min(1, volume * 0.5));
   clone.play().catch(() => {});
 }
 
@@ -186,7 +186,7 @@ function cardExhaustionBadge(player, card, handType) {
   const normalizedCard = normalizeUCType(card);
   if (!normalizedCard || normalizedCard === "dummy") return "";
   const exhaustion = player.ucs[normalizedCard]?.exhaustion ?? 0;
-  return `Ex ${exhaustion}`;
+  return String(exhaustion);
 }
 
 function getCardDisabled(player, card, handType) {
@@ -235,7 +235,7 @@ function renderCardButton({ card, handType, player, seat, interactive }) {
         <span class="card-title">${escapeHtml(label)}</span>
         ${
           exhaustionBadge
-            ? `<span class="card-inline-stack">${escapeHtml(exhaustionBadge)}</span>`
+            ? `<span class="card-inline-stack"><img src="${ASSETS.zzz}" alt="" aria-hidden="true" /><span>${escapeHtml(exhaustionBadge)}</span></span>`
             : ""
         }
       </div>
