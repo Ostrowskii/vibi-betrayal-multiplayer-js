@@ -9,8 +9,8 @@ import {
   UE_TYPES,
 } from "./game/constants.js";
 import { getVictoryLabel } from "./game/engine.js";
-import { VIBINET_SERVER_LABEL } from "./network/config.js";
-import { OfficialServerProbe } from "./network/server-probe.js";
+import { SERVER_CHOICES } from "./network/config.js";
+import { ServerDirectory } from "./network/server-directory.js";
 import { MatchSession } from "./network/session.js";
 
 const root = document.querySelector("#app");
@@ -20,7 +20,9 @@ const app = {
     user: "",
     room: "",
   },
-  serverProbe: new OfficialServerProbe(),
+  menuPage: "user",
+  selectedServerId: "",
+  serverDirectory: new ServerDirectory(),
   session: null,
   state: null,
   notice: "",
@@ -81,13 +83,7 @@ function escapeHtml(value) {
 }
 
 function serverStatus() {
-  return (
-    app.serverProbe?.snapshot() ?? {
-      kind: "checking",
-      text: `Verificando ${VIBINET_SERVER_LABEL}...`,
-      detail: "",
-    }
-  );
+  return app.serverDirectory?.snapshot() ?? [];
 }
 
 function playSound(key, volume = 0.7) {
@@ -717,8 +713,6 @@ function renderRoomBlocked(state) {
 }
 
 function renderMenu() {
-  const status = serverStatus();
-
   return `
     <div class="screen menu-screen">
       <div class="menu-backdrop"></div>
@@ -727,11 +721,8 @@ function renderMenu() {
         <div class="menu-card">
           <div class="menu-copy">
             <span class="menu-kicker">vibinet room play</span>
-            <h1>Usuario e sala.</h1>
-            <p>Entre direto na sala compartilhada.</p>
-            <p class="server-note is-${status.kind}">${escapeHtml(status.text)}</p>
+            <h1>Usuario.</h1>
           </div>
-          <div class="server-banner is-${status.kind}">${escapeHtml(status.detail)}</div>
           <label class="field">
             <span>Usuario</span>
             <input
@@ -740,20 +731,63 @@ function renderMenu() {
               maxlength="24"
             />
           </label>
-          <label class="field">
-            <span>Sala</span>
-            <input
-              data-field="room"
-              placeholder="ex: betrayal-001"
-              maxlength="36"
-            />
-          </label>
           ${
             app.notice
               ? `<div class="notice">${escapeHtml(app.notice)}</div>`
               : ""
           }
-          <button class="menu-button" data-action="join-room">Entrar na sala</button>
+          <button class="menu-button" data-action="open-server-list">Ver servidores</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function getSelectedServer() {
+  return SERVER_CHOICES.find((entry) => entry.id === app.selectedServerId) ?? null;
+}
+
+function renderServerList() {
+  const entries = serverStatus();
+  const selected = getSelectedServer();
+
+  return `
+    <div class="screen menu-screen">
+      <div class="menu-backdrop"></div>
+      <div class="menu-shell">
+        <img class="menu-title" src="${ASSETS.title}" alt="Betrayal" />
+        <div class="menu-card server-menu-card">
+          <div class="menu-copy">
+            <span class="menu-kicker">lista fixa</span>
+            <h1>Servidores.</h1>
+          </div>
+          <div class="server-list-shell">
+            ${entries
+              .map(
+                (entry) => `
+                  <button
+                    class="server-row ${entry.id === app.selectedServerId ? "is-selected" : ""}"
+                    data-action="select-server"
+                    data-server-id="${entry.id}"
+                  >
+                    <span class="server-row-name">${escapeHtml(entry.name)}</span>
+                    <span class="server-row-detail is-${entry.kind}">${escapeHtml(entry.detail)}</span>
+                  </button>
+                `,
+              )
+              .join("")}
+          </div>
+          ${
+            app.notice
+              ? `<div class="notice">${escapeHtml(app.notice)}</div>`
+              : ""
+          }
+          <div class="server-menu-actions">
+            <button class="menu-button is-secondary" data-action="back-to-user-menu">Voltar</button>
+            <button class="menu-button" data-action="connect-selected-server" ${
+              selected ? "" : "disabled"
+            }>Conectar</button>
+          </div>
         </div>
       </div>
     </div>
@@ -762,7 +796,7 @@ function renderMenu() {
 
 function renderApp() {
   if (!app.session || !app.state) {
-    return renderMenu();
+    return app.menuPage === "servers" ? renderServerList() : renderMenu();
   }
   if (app.session.synced && app.state.roster.length >= 2 && !localSeat(app.state)) {
     return renderRoomBlocked(app.state);
@@ -778,7 +812,7 @@ function joinRoom() {
   const room = app.form.room.trim();
 
   if (!user || !room) {
-    app.notice = "Preencha usuario e sala.";
+    app.notice = "Preencha usuario e selecione um servidor.";
     playSound("invalid", 0.55);
     return;
   }
@@ -796,6 +830,7 @@ function joinRoom() {
   app.reviewState.open = false;
   app.reviewState.cardIndex = 0;
   app.state = null;
+  app.menuPage = "user";
   app.session = new MatchSession({ room, user });
   playSound("click", 0.45);
 }
@@ -813,6 +848,39 @@ function backToMenu() {
   app.reviewState.key = "";
   app.reviewState.open = false;
   app.reviewState.cardIndex = 0;
+  app.menuPage = "user";
+}
+
+function openServerList() {
+  const user = app.form.user.trim();
+  if (!user) {
+    app.notice = "Preencha usuario.";
+    playSound("invalid", 0.55);
+    return;
+  }
+  app.notice = "";
+  app.menuPage = "servers";
+  if (!app.selectedServerId && SERVER_CHOICES[0]) {
+    app.selectedServerId = SERVER_CHOICES[0].id;
+  }
+  playSound("click", 0.35);
+}
+
+function backToUserMenu() {
+  app.notice = "";
+  app.menuPage = "user";
+  playSound("click", 0.35);
+}
+
+function connectSelectedServer() {
+  const selected = getSelectedServer();
+  if (!selected) {
+    app.notice = "Selecione um servidor.";
+    playSound("invalid", 0.55);
+    return;
+  }
+  app.form.room = selected.room;
+  joinRoom();
 }
 
 function handleStateSideEffects(prev, next, reviewSync) {
@@ -886,8 +954,19 @@ root.addEventListener("click", (event) => {
   const { action, card, view } = actionNode.dataset;
 
   switch (action) {
-    case "join-room":
-      joinRoom();
+    case "open-server-list":
+      openServerList();
+      return;
+    case "back-to-user-menu":
+      backToUserMenu();
+      return;
+    case "connect-selected-server":
+      connectSelectedServer();
+      return;
+    case "select-server":
+      if (!actionNode.dataset.serverId) return;
+      app.selectedServerId = actionNode.dataset.serverId;
+      playSound("click", 0.22);
       return;
     case "back-to-menu":
       backToMenu();
@@ -957,7 +1036,7 @@ root.addEventListener("click", (event) => {
 
 window.addEventListener("beforeunload", () => {
   app.session?.leave();
-  app.serverProbe?.close();
+  app.serverDirectory?.close();
 });
 
 window.addEventListener("keydown", (event) => {

@@ -188,6 +188,17 @@ button {
   font-weight: 700;
 }
 
+.menu-button.is-secondary {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--line-soft);
+}
+
+.menu-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 .notice {
   margin-top: 1rem;
   padding: 0.8rem 0.9rem;
@@ -195,6 +206,72 @@ button {
   color: #ffe0d7;
   background: rgba(143, 47, 45, 0.28);
   border: 1px solid rgba(255, 142, 121, 0.22);
+}
+
+.server-menu-card {
+  width: min(34rem, 100%);
+}
+
+.server-list-shell {
+  width: min(480px, 100%);
+  height: min(480px, calc(100dvh - 18rem));
+  min-height: 16rem;
+  margin-top: 0.95rem;
+  padding: 0.55rem;
+  overflow-y: auto;
+  border-radius: 1rem;
+  border: 1px solid var(--line-soft);
+  background: rgba(10, 7, 5, 0.55);
+  display: grid;
+  align-content: start;
+  gap: 0.55rem;
+}
+
+.server-row {
+  width: 100%;
+  padding: 0.95rem 1rem;
+  border-radius: 0.95rem;
+  border: 1px solid var(--line-soft);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-main);
+  display: grid;
+  gap: 0.2rem;
+  text-align: left;
+}
+
+.server-row.is-selected {
+  border-color: rgba(240, 200, 122, 0.8);
+  box-shadow: inset 0 0 0 1px rgba(240, 200, 122, 0.3);
+  background: rgba(240, 200, 122, 0.08);
+}
+
+.server-row-name {
+  font-size: 1.08rem;
+  font-weight: 700;
+}
+
+.server-row-detail {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.server-row-detail.is-online {
+  color: #dff3e2;
+}
+
+.server-row-detail.is-offline {
+  color: #ffe0d7;
+}
+
+.server-menu-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+  margin-top: 1rem;
+}
+
+.server-menu-actions .menu-button {
+  margin-top: 0;
 }
 
 .lobby-list {
