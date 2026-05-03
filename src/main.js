@@ -475,11 +475,21 @@ function renderReviewModal(state) {
   `;
 }
 
+function renderEnemyMetric(label, value, accent = false) {
+  return `
+    <div class="enemy-metric ${accent ? "is-maxed" : ""}">
+      <span class="enemy-metric-label">${escapeHtml(label)}</span>
+      <strong class="enemy-metric-value">${escapeHtml(value)}</strong>
+    </div>
+  `;
+}
+
 function renderPlayerPanel(state, seat, perspective) {
   const player = state.players[seat];
   const isLocal = perspective === "self";
   const trustClass = player.castleTrust >= 3 ? "is-maxed" : "";
   const blockText = player.tradeRouteBlockedThisTurn ? "bloqueada" : "livre";
+  const blockValue = player.tradeRouteBlockedThisTurn ? "Bloqueada" : "Livre";
   const roleLabel = isLocal ? "Voce" : "Inimigo";
   const showHeaderAction =
     isLocal &&
@@ -487,8 +497,34 @@ function renderPlayerPanel(state, seat, perspective) {
     (state.phase === "phase_1_selection" || state.phase === "phase_2_results");
   const showReviewButton = isLocal && state.screen === "game";
 
+  if (!isLocal) {
+    return `
+      <section class="player-panel player-enemy">
+        <div class="player-header enemy-header">
+          <div class="enemy-identity">
+            <div class="player-crest enemy-crest">
+              <img src="${getCastleIcon(seat, false)}" alt="${seat}" />
+            </div>
+            <div class="player-heading enemy-heading">
+              <div class="player-name">${escapeHtml(player.name || "Aguardando...")}</div>
+              <div class="enemy-id-line">
+                <div class="player-seat">${roleLabel}</div>
+                <div class="player-subhead">${escapeHtml(seat)}</div>
+              </div>
+            </div>
+          </div>
+          <div class="player-meta enemy-meta">
+            ${renderEnemyMetric("Confianca", `${player.castleTrust}/3`, player.castleTrust >= 3)}
+            ${renderEnemyMetric("Guarda", `${player.guardDamage}/6`)}
+            ${renderEnemyMetric("Rota", blockValue)}
+          </div>
+        </div>
+      </section>
+    `;
+  }
+
   return `
-    <section class="player-panel ${isLocal ? "player-local" : "player-enemy"}">
+    <section class="player-panel player-local">
       <div class="player-header">
         <div class="player-crest">
           <img src="${getCastleIcon(seat, false)}" alt="${seat}" />
