@@ -627,7 +627,15 @@ button {
   align-content: stretch;
 }
 
-.card-button > .card-art,
+.card-art-shell {
+  position: relative;
+  min-height: 0;
+  height: 100%;
+  display: grid;
+  align-self: stretch;
+}
+
+.card-art-shell > .card-art,
 .slot-card img,
 .spotlight-card img {
   width: min(100%, var(--card-art-size));
@@ -637,7 +645,7 @@ button {
   justify-self: center;
 }
 
-.player-local .card-button > .card-art {
+.player-local .card-art-shell > .card-art {
   width: 100%;
   height: 100%;
   max-width: none;
