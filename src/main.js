@@ -30,11 +30,6 @@ const app = {
   lastPhase: null,
   lastScreen: null,
   hadLiveMatch: false,
-  reviewState: {
-    key: "",
-    open: false,
-    cardIndex: 0,
-  },
   panelView: "rest",
 };
 
@@ -104,50 +99,6 @@ function localSeat(state) {
   if (state.players.C1.name === app.form.user) return "C1";
   if (state.players.C2.name === app.form.user) return "C2";
   return null;
-}
-
-function syncReviewState(state) {
-  const reviewKey =
-    state && state.lastResolvedTurn
-      ? `${state.matchNumber}:${state.lastResolvedTurn}`
-      : "";
-
-  const keyChanged = app.reviewState.key !== reviewKey;
-  if (!keyChanged) {
-    return { keyChanged: false, autoOpened: false };
-  }
-
-  app.reviewState.key = reviewKey;
-  app.reviewState.cardIndex = 0;
-  app.reviewState.open = Boolean(
-    reviewKey &&
-      state &&
-      state.screen === "game" &&
-      state.phase === "phase_1_selection",
-  );
-
-  return {
-    keyChanged: true,
-    autoOpened: app.reviewState.open,
-  };
-}
-
-function hasTurnReview(state) {
-  return Boolean(
-    state &&
-      state.lastResolvedTurn > 0 &&
-      app.reviewState.key,
-  );
-}
-
-function shouldShowReviewModal(state) {
-  return Boolean(
-    state &&
-      state.screen === "game" &&
-      state.phase === "phase_1_selection" &&
-      hasTurnReview(state) &&
-      app.reviewState.open,
-  );
 }
 
 function perspectiveSeats(state) {
@@ -431,135 +382,6 @@ function renderHeaderAction(state, seat) {
   `;
 }
 
-function renderReviewButton(state) {
-  if (state.screen !== "game" || state.phase !== "phase_1_selection") {
-    return "";
-  }
-
-  return `
-    <button
-      class="review-button"
-      data-action="open-review-modal"
-      ${hasTurnReview(state) ? "" : "disabled"}
-    >
-      Ver cartas do turno anterior
-    </button>
-  `;
-}
-
-function getViewerCards(state, seat) {
-  const publicCards = state.turnView?.[seat]?.publicCards ?? [];
-  const privateCards = state.turnView?.[seat]?.privateCards ?? [];
-  const turnLabel = state.lastResolvedTurn || state.turnNumber;
-
-  return [
-    {
-      key: `turn-${turnLabel}-private-header`,
-      card: null,
-      title: `Turno ${turnLabel}`,
-      text: "Ações confidenciais",
-      mode: "banner",
-    },
-    ...privateCards,
-    {
-      key: `turn-${turnLabel}-public-header`,
-      card: null,
-      title: "Ações públicas",
-      text: "",
-      mode: "banner",
-    },
-    ...publicCards,
-  ];
-}
-
-function renderViewerCard(card) {
-  if (card.mode === "banner") {
-    return `
-      <article class="turn-card is-banner">
-        <div class="turn-card-copy is-banner">
-          <strong>${escapeHtml(card.title)}</strong>
-          ${card.text ? `<p>${escapeHtml(card.text)}</p>` : ""}
-        </div>
-      </article>
-    `;
-  }
-
-  const hasArt = Boolean(card.card);
-  const label = hasArt ? UC_LABELS[card.card] ?? UE_LABELS[card.card] ?? card.title : card.title;
-
-  return `
-    <article class="turn-card ${hasArt ? "has-art" : "is-info"}">
-      ${
-        hasArt
-          ? `
-            <div class="turn-card-art">
-              <img src="${getCardArt(card.card, false)}" alt="${escapeHtml(label)}" />
-            </div>
-          `
-          : `<div class="turn-card-art is-empty"></div>`
-      }
-      <div class="turn-card-copy">
-        <strong>${escapeHtml(card.title)}</strong>
-        <p>${escapeHtml(card.text)}</p>
-      </div>
-    </article>
-  `;
-}
-
-function renderViewerSection(state, seat) {
-  const cards = getViewerCards(state, seat);
-  const index = Math.min(app.reviewState.cardIndex, cards.length - 1);
-  const card = cards[index];
-
-  return `
-    <section class="turn-viewer">
-      <div class="turn-viewer-shell review-modal-viewer">
-        ${renderViewerCard(card)}
-      </div>
-      <div class="turn-viewer-meta">${index + 1} / ${cards.length}</div>
-    </section>
-  `;
-}
-
-function renderReviewModal(state) {
-  const seat = localSeat(state);
-  if (!seat || !shouldShowReviewModal(state)) return "";
-  const cards = getViewerCards(state, seat);
-  const index = Math.min(app.reviewState.cardIndex, cards.length - 1);
-  const atStart = index <= 0;
-  const atEnd = index >= cards.length - 1;
-
-  return `
-    <div class="review-modal">
-      <button class="review-modal-scrim review-modal-top" data-action="close-review-modal" aria-label="Fechar"></button>
-      <div class="review-modal-row">
-        <button class="review-modal-scrim review-modal-side" data-action="close-review-modal" aria-label="Fechar"></button>
-        <button
-          class="review-modal-nav"
-          data-action="viewer-prev"
-          ${atStart ? "disabled" : ""}
-          aria-label="Carta anterior"
-        >
-          &#8592;
-        </button>
-        <div class="review-modal-shell">
-          ${renderViewerSection(state, seat)}
-        </div>
-        <button
-          class="review-modal-nav"
-          data-action="viewer-next"
-          ${atEnd ? "disabled" : ""}
-          aria-label="Próxima carta"
-        >
-          &#8594;
-        </button>
-        <button class="review-modal-scrim review-modal-side" data-action="close-review-modal" aria-label="Fechar"></button>
-      </div>
-      <button class="review-modal-scrim review-modal-bottom" data-action="close-review-modal" aria-label="Fechar"></button>
-    </div>
-  `;
-}
-
 function renderEnemyMetric(label, value, accent = false) {
   return `
     <div class="enemy-metric ${accent ? "is-maxed" : ""}">
@@ -572,13 +394,8 @@ function renderEnemyMetric(label, value, accent = false) {
 function renderPlayerPanel(state, seat, perspective) {
   const player = state.players[seat];
   const isLocal = perspective === "self";
-  const trustClass = player.castleTrust >= 3 ? "is-maxed" : "";
-  const blockText = player.tradeRouteBlockedThisTurn ? "bloqueada" : "livre";
   const blockValue = player.tradeRouteBlockedThisTurn ? "Bloqueada" : "Livre";
   const roleLabel = isLocal ? "Voce" : "Inimigo";
-  const showHeaderAction =
-    false;
-  const showReviewButton = isLocal && state.screen === "game";
 
   if (!isLocal) {
     return `
@@ -607,24 +424,25 @@ function renderPlayerPanel(state, seat, perspective) {
 
   return `
     <section class="player-panel player-local">
-      <div class="player-header">
-        <div class="player-crest">
-          <img src="${getCastleIcon(seat, false)}" alt="${seat}" />
+      <div class="player-header enemy-header">
+        <div class="enemy-identity">
+          <div class="player-crest enemy-crest">
+            <img src="${getCastleIcon(seat, false)}" alt="${seat}" />
+          </div>
+          <div class="player-heading enemy-heading">
+            <div class="player-name">${escapeHtml(player.name || "Aguardando...")}</div>
+            <div class="enemy-id-line">
+              <div class="player-seat">${roleLabel}</div>
+            </div>
+          </div>
         </div>
-        <div class="player-heading">
-          <div class="player-seat">${roleLabel}</div>
-          <div class="player-name">${escapeHtml(player.name || "Aguardando...")}</div>
-          <div class="player-subhead">${escapeHtml(seat)}</div>
-        </div>
-        <div class="player-meta">
-          <span class="meta-pill ${trustClass}">Confianca ${player.castleTrust}/3</span>
-          <span class="meta-pill">Guard ${player.guardDamage}/6</span>
-          <span class="meta-pill">Rota ${escapeHtml(blockText)}</span>
-          ${showReviewButton ? renderReviewButton(state) : ""}
-          ${showHeaderAction ? renderHeaderAction(state, seat) : ""}
+        <div class="player-meta enemy-meta">
+          ${renderEnemyMetric("Confianca", `${player.castleTrust}/3`, player.castleTrust >= 3)}
+          ${renderEnemyMetric("Guard", `${player.guardDamage}/6`)}
+          ${renderEnemyMetric("Rota", blockValue)}
         </div>
       </div>
-      ${isLocal ? `<div class="player-body">${renderOwnChoices(state, seat)}</div>` : ""}
+      <div class="player-body">${renderOwnChoices(state, seat)}</div>
     </section>
   `;
 }
@@ -669,7 +487,6 @@ function renderBoardScreen(state) {
   const { self, enemy } = perspectiveSeats(state);
   const overlays = [];
 
-  if (shouldShowReviewModal(state)) overlays.push(renderReviewModal(state));
   if (state.screen === "winner_transition") overlays.push(renderWinnerOverlay(state));
   if (state.screen === "report") overlays.push(renderReportOverlay(state));
 
@@ -857,9 +674,6 @@ function joinRoom() {
   app.lastPhase = null;
   app.lastScreen = null;
   app.panelView = "rest";
-  app.reviewState.key = "";
-  app.reviewState.open = false;
-  app.reviewState.cardIndex = 0;
   app.state = null;
   app.menuPage = "user";
   app.session = new MatchSession({ room, user });
@@ -876,9 +690,6 @@ function backToMenu() {
   app.lastPhase = null;
   app.lastScreen = null;
   app.panelView = "rest";
-  app.reviewState.key = "";
-  app.reviewState.open = false;
-  app.reviewState.cardIndex = 0;
   app.menuPage = "user";
 }
 
@@ -914,7 +725,7 @@ function connectSelectedServer() {
   joinRoom();
 }
 
-function handleStateSideEffects(prev, next, reviewSync) {
+function handleStateSideEffects(prev, next) {
   if (!next) return;
 
   if (next.screen === "game" || next.screen === "winner_transition" || next.screen === "report") {
@@ -936,13 +747,6 @@ function handleStateSideEffects(prev, next, reviewSync) {
   }
 
   if (
-    reviewSync?.autoOpened &&
-    prev?.lastResolvedTurn !== next.lastResolvedTurn
-  ) {
-    playSound("place", 0.5);
-  }
-
-  if (
     app.hadLiveMatch &&
     next.screen === "lobby" &&
     next.roster.length === 0
@@ -955,8 +759,7 @@ function handleStateSideEffects(prev, next, reviewSync) {
 function update() {
   if (app.session) {
     const nextState = app.session.computeState();
-    const reviewSync = syncReviewState(nextState);
-    handleStateSideEffects(app.state, nextState, reviewSync);
+    handleStateSideEffects(app.state, nextState);
     app.state = nextState;
   }
 
@@ -1010,18 +813,9 @@ root.addEventListener("click", (event) => {
         playSound("turnConfirm", 0.42);
       }
       return;
-    case "open-review-modal":
-      if (!hasTurnReview(app.state)) return;
-      app.reviewState.open = true;
-      playSound("click", 0.35);
-      return;
     case "set-panel-view":
       if (!view) return;
       app.panelView = view;
-      return;
-    case "close-review-modal":
-      app.reviewState.open = false;
-      playSound("click", 0.3);
       return;
     case "select-uc":
       if (app.session?.selectUC(card)) {
@@ -1048,20 +842,6 @@ root.addEventListener("click", (event) => {
         playSound("turnConfirm", 0.45);
       }
       return;
-    case "viewer-prev":
-      app.reviewState.cardIndex = Math.max(0, app.reviewState.cardIndex - 1);
-      return;
-    case "viewer-next": {
-      if (!app.state) return;
-      const seat = localSeat(app.state);
-      if (!seat) return;
-      const cards = getViewerCards(app.state, seat);
-      app.reviewState.cardIndex = Math.min(
-        cards.length - 1,
-        app.reviewState.cardIndex + 1,
-      );
-      return;
-    }
   }
 });
 

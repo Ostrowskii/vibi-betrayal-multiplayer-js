@@ -397,6 +397,8 @@ button {
 .player-local .player-body {
   min-height: 0;
   margin-top: 0.3rem;
+  grid-template-rows: minmax(0, 1fr);
+  align-items: end;
 }
 
 .enemy-header {
@@ -529,12 +531,16 @@ button {
   min-height: 0;
   height: 100%;
   grid-template-rows: minmax(0, 1fr) auto;
-  gap: 0.34rem;
+  gap: 0.26rem;
+  align-content: end;
+  align-self: end;
 }
 
 .selection-stage {
   min-height: 0;
   height: 100%;
+  display: grid;
+  align-items: end;
 }
 
 .selection-footer {
@@ -550,15 +556,16 @@ button {
 
 .player-local .selection-group {
   min-height: 0;
-  height: 100%;
+  height: auto;
   padding: 0.32rem;
   gap: 0;
-  align-content: stretch;
+  align-content: end;
+  align-self: end;
 }
 
 .player-local .selection-group.is-rest,
 .player-local .selection-group.is-attack {
-  grid-template-rows: minmax(0, 1fr);
+  grid-template-rows: auto;
 }
 
 .selection-head {
@@ -585,8 +592,8 @@ button {
 
 .player-local .selection-strip {
   min-height: 0;
-  height: 100%;
-  align-content: start;
+  height: auto;
+  align-content: end;
   justify-items: stretch;
   gap: 0.28rem;
 }
@@ -1264,12 +1271,12 @@ button {
 
   .player-body {
     grid-template-columns: 1fr;
-    align-items: start;
+    align-items: end;
   }
 
   .selection-stack {
-    grid-template-columns: 0.9fr 1.1fr;
-    align-items: start;
+    grid-template-columns: 1fr;
+    align-items: end;
   }
 
   .player-local .selection-strip.is-rest {
