@@ -449,7 +449,13 @@ button {
 .player-local .selection-stack {
   min-height: 0;
   height: 100%;
-  gap: 0.48rem;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 0.34rem;
+}
+
+.selection-stage {
+  min-height: 0;
+  height: 100%;
 }
 
 .selection-group {
@@ -461,8 +467,15 @@ button {
 
 .player-local .selection-group {
   min-height: 0;
+  height: 100%;
   padding: 0.44rem;
-  gap: 0.48rem;
+  gap: 0;
+  align-content: stretch;
+}
+
+.player-local .selection-group.is-rest,
+.player-local .selection-group.is-attack {
+  grid-template-rows: minmax(0, 1fr);
 }
 
 .selection-head {
@@ -489,6 +502,8 @@ button {
 
 .player-local .selection-strip {
   min-height: 0;
+  height: 100%;
+  align-content: stretch;
   gap: 0.42rem;
 }
 
@@ -498,6 +513,16 @@ button {
 
 .selection-strip.is-attack {
   grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.player-local .selection-strip.is-rest {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
+}
+
+.player-local .selection-strip.is-attack {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
 }
 
 .card-button {
@@ -518,6 +543,7 @@ button {
 .player-local .card-button {
   padding: 0.36rem;
   gap: 0.26rem;
+  height: 100%;
 }
 
 .card-button img,
@@ -532,7 +558,7 @@ button {
 
 .player-local .card-button img {
   width: 100%;
-  height: clamp(5.2rem, 10.1dvh, 7rem);
+  height: clamp(5.8rem, 11.5dvh, 7.8rem);
   max-width: none;
   max-height: 100%;
 }
@@ -613,6 +639,15 @@ button {
   align-self: center;
 }
 
+.confirm-button-square {
+  width: 100%;
+  min-height: 3.35rem;
+  border-radius: 0.9rem;
+  padding: 0.4rem 0.3rem;
+  font-size: 0.94rem;
+  letter-spacing: 0.06em;
+}
+
 .review-button {
   border: 1px solid var(--line-soft);
   border-radius: 999px;
@@ -631,6 +666,87 @@ button {
 .center-stage {
   min-height: 0;
   padding: 0.4rem;
+}
+
+.enemy-focus {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 0.45rem;
+  height: 100%;
+  padding: 0.55rem;
+  border-radius: 0.95rem;
+  border: 1px solid var(--line-soft);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.enemy-focus-crest {
+  display: grid;
+  place-items: center;
+}
+
+.enemy-focus-crest img {
+  width: min(32vw, 5.4rem);
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.enemy-focus-copy {
+  display: grid;
+  gap: 0.18rem;
+  text-align: center;
+}
+
+.enemy-focus-name {
+  font-size: clamp(1.12rem, 2.7dvh, 1.6rem);
+  line-height: 0.92;
+}
+
+.enemy-focus-role {
+  color: var(--gold);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.enemy-focus-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.34rem;
+  min-height: 0;
+}
+
+.bottom-action-bar {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.34rem;
+}
+
+.bottom-tool {
+  display: grid;
+  place-items: center;
+  min-height: 3.35rem;
+  padding: 0.35rem;
+  border: 1px solid var(--line-soft);
+  border-radius: 0.9rem;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-main);
+}
+
+.bottom-tool.is-active {
+  border-color: rgba(240, 200, 122, 0.8);
+  box-shadow: inset 0 0 0 1px rgba(240, 200, 122, 0.3);
+}
+
+.bottom-tool img {
+  width: 1.7rem;
+  height: 1.7rem;
+  object-fit: contain;
+}
+
+.bottom-tool span {
+  font-size: 1rem;
+  font-weight: 700;
 }
 
 .turn-viewer {
@@ -996,12 +1112,12 @@ button {
     align-items: start;
   }
 
-  .selection-strip.is-rest {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+  .player-local .selection-strip.is-rest {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .selection-strip.is-attack {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+  .player-local .selection-strip.is-attack {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
 }
@@ -1069,7 +1185,12 @@ button {
   }
 
   .player-local .card-button img {
-    height: clamp(4.3rem, 8.7dvh, 5.7rem);
+    height: clamp(4.9rem, 9.8dvh, 6.3rem);
+  }
+
+  .bottom-tool,
+  .confirm-button-square {
+    min-height: 3rem;
   }
 
   .event-feed-list {

@@ -33,6 +33,7 @@ const app = {
     open: false,
     cardIndex: 0,
   },
+  panelView: "rest",
 };
 
 const audioPool = new Map();
@@ -242,8 +243,6 @@ function renderCardButton({ card, handType, player, seat, interactive }) {
 }
 
 function renderSelectionGroup({
-  title,
-  hint,
   cards,
   handType,
   player,
@@ -255,10 +254,6 @@ function renderSelectionGroup({
 
   return `
     <section class="selection-group ${kindClass}">
-      <div class="selection-head">
-        <span class="selection-kicker">${escapeHtml(title)}</span>
-        ${hint ? `<strong>${escapeHtml(hint)}</strong>` : ""}
-      </div>
       <div class="selection-strip ${kindClass} ${tone}">
         ${cards
           .map((card) =>
@@ -276,35 +271,63 @@ function renderSelectionGroup({
   `;
 }
 
+function renderEnemyFocus(state, seat) {
+  const player = state.players[seat];
+  const blockValue = player.tradeRouteBlockedThisTurn ? "Bloqueada" : "Livre";
+
+  return `
+    <section class="enemy-focus">
+      <div class="enemy-focus-crest">
+        <img src="${getCastleIcon(seat, false)}" alt="${seat}" />
+      </div>
+      <div class="enemy-focus-copy">
+        <div class="enemy-focus-name">${escapeHtml(player.name || "Aguardando...")}</div>
+        <div class="enemy-focus-role">Inimigo</div>
+      </div>
+      <div class="enemy-focus-metrics">
+        ${renderEnemyMetric("Confianca", `${player.castleTrust}/3`, player.castleTrust >= 3)}
+        ${renderEnemyMetric("Guarda", `${player.guardDamage}/6`)}
+        ${renderEnemyMetric("Rota", blockValue)}
+      </div>
+    </section>
+  `;
+}
+
 function renderOwnChoices(state, seat) {
   const player = state.players[seat];
   const interactive =
     state.screen === "game" &&
     state.phase === "phase_1_selection" &&
     !player.confirmed;
+  const { enemy } = perspectiveSeats(state);
+
+  let content = "";
+  if (app.panelView === "enemy") {
+    content = renderEnemyFocus(state, enemy);
+  } else if (app.panelView === "attack") {
+    content = renderSelectionGroup({
+      cards: UE_TYPES,
+      handType: "ue",
+      player,
+      seat,
+      interactive,
+      tone: "tone-attack",
+    });
+  } else {
+    content = renderSelectionGroup({
+      cards: UC_TYPES,
+      handType: "uc",
+      player,
+      seat,
+      interactive,
+      tone: "tone-rest",
+    });
+  }
 
   return `
     <div class="selection-stack">
-      ${renderSelectionGroup({
-        title: "Descanso",
-        hint: "",
-        cards: UC_TYPES,
-        handType: "uc",
-        player,
-        seat,
-        interactive,
-        tone: "tone-rest",
-      })}
-      ${renderSelectionGroup({
-        title: "Ataque",
-        hint: "",
-        cards: UE_TYPES,
-        handType: "ue",
-        player,
-        seat,
-        interactive,
-        tone: "tone-attack",
-      })}
+      <div class="selection-stage">${content}</div>
+      ${renderBottomActionBar(state, seat, enemy)}
     </div>
   `;
 }
@@ -312,11 +335,11 @@ function renderOwnChoices(state, seat) {
 function renderHeaderAction(state, seat) {
   const player = state.players[seat];
   if (state.phase === "phase_2_results") {
-    const buttonLabel = "Continuar";
+    const buttonLabel = "OK";
 
     return `
       <button
-        class="confirm-button confirm-button-inline"
+        class="confirm-button confirm-button-square"
         data-action="advance-turn"
         data-seat="${seat}"
       >
@@ -331,18 +354,52 @@ function renderHeaderAction(state, seat) {
     !player.confirmed &&
     player.selectedUC &&
     player.selectedUE;
-  const buttonLabel = player.confirmed ? "Aguardando" : "Confirmar";
+  const buttonLabel = player.confirmed ? "..." : "OK";
   const disabledAttr = canConfirm ? "" : "disabled";
 
   return `
     <button
-      class="confirm-button confirm-button-inline ${player.confirmed ? "is-waiting" : ""}"
+      class="confirm-button confirm-button-square ${player.confirmed ? "is-waiting" : ""}"
       data-action="confirm-selection"
       data-seat="${seat}"
       ${player.confirmed ? "disabled" : disabledAttr}
     >
       ${escapeHtml(buttonLabel)}
     </button>
+  `;
+}
+
+function renderBottomActionBar(state, seat, enemySeat) {
+  const current = app.panelView;
+
+  return `
+    <div class="bottom-action-bar">
+      <button
+        class="bottom-tool ${current === "enemy" ? "is-active" : ""}"
+        data-action="set-panel-view"
+        data-view="enemy"
+        aria-label="${escapeHtml(enemySeat)}"
+      >
+        <span>${escapeHtml(enemySeat)}</span>
+      </button>
+      <button
+        class="bottom-tool ${current === "rest" ? "is-active" : ""}"
+        data-action="set-panel-view"
+        data-view="rest"
+        aria-label="Descanso"
+      >
+        <img src="${ASSETS.iconRest}" alt="Descanso" />
+      </button>
+      <button
+        class="bottom-tool ${current === "attack" ? "is-active" : ""}"
+        data-action="set-panel-view"
+        data-view="attack"
+        aria-label="Ataque"
+      >
+        <img src="${ASSETS.iconForward}" alt="Ataque" />
+      </button>
+      ${renderHeaderAction(state, seat)}
+    </div>
   `;
 }
 
@@ -492,9 +549,7 @@ function renderPlayerPanel(state, seat, perspective) {
   const blockValue = player.tradeRouteBlockedThisTurn ? "Bloqueada" : "Livre";
   const roleLabel = isLocal ? "Voce" : "Inimigo";
   const showHeaderAction =
-    isLocal &&
-    state.screen === "game" &&
-    (state.phase === "phase_1_selection" || state.phase === "phase_2_results");
+    false;
   const showReviewButton = isLocal && state.screen === "game";
 
   if (!isLocal) {
@@ -509,7 +564,6 @@ function renderPlayerPanel(state, seat, perspective) {
               <div class="player-name">${escapeHtml(player.name || "Aguardando...")}</div>
               <div class="enemy-id-line">
                 <div class="player-seat">${roleLabel}</div>
-                <div class="player-subhead">${escapeHtml(seat)}</div>
               </div>
             </div>
           </div>
@@ -751,6 +805,7 @@ function joinRoom() {
   app.hadLiveMatch = false;
   app.lastPhase = null;
   app.lastScreen = null;
+  app.panelView = "rest";
   app.reviewState.key = "";
   app.reviewState.open = false;
   app.reviewState.cardIndex = 0;
@@ -768,6 +823,7 @@ function backToMenu() {
   app.hadLiveMatch = false;
   app.lastPhase = null;
   app.lastScreen = null;
+  app.panelView = "rest";
   app.reviewState.key = "";
   app.reviewState.open = false;
   app.reviewState.cardIndex = 0;
@@ -841,7 +897,7 @@ root.addEventListener("click", (event) => {
   const actionNode = event.target.closest("[data-action]");
   if (!actionNode) return;
 
-  const { action, card } = actionNode.dataset;
+  const { action, card, view } = actionNode.dataset;
 
   switch (action) {
     case "join-room":
@@ -864,6 +920,11 @@ root.addEventListener("click", (event) => {
       if (!hasTurnReview(app.state)) return;
       app.reviewState.open = true;
       playSound("click", 0.35);
+      return;
+    case "set-panel-view":
+      if (!view) return;
+      app.panelView = view;
+      playSound("click", 0.28);
       return;
     case "close-review-modal":
       app.reviewState.open = false;
