@@ -6,7 +6,7 @@
       data-seat="${i}"
       ${f||!a?`disabled`:``}
     >
-      <img src="${Ct(e,f)}" alt="${J(u)}" />
+      <img class="card-art" src="${Ct(e,f)}" alt="${J(u)}" />
       <div class="card-caption">
         <span class="card-title">${J(u)}</span>
         ${m?`<span class="card-inline-stack"><img src="${t.zzz}" alt="" aria-hidden="true" /><span>${J(m)}</span></span>`:``}

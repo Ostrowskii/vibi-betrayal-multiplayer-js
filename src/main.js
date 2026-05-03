@@ -226,7 +226,7 @@ function renderCardButton({ card, handType, player, seat, interactive }) {
       data-seat="${seat}"
       ${disabledAttr}
     >
-      <img src="${getCardArt(card, disabled)}" alt="${escapeHtml(label)}" />
+      <img class="card-art" src="${getCardArt(card, disabled)}" alt="${escapeHtml(label)}" />
       <div class="card-caption">
         <span class="card-title">${escapeHtml(label)}</span>
         ${
