@@ -658,47 +658,55 @@ button {
 }
 
 .card-caption {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.34rem;
+  position: absolute;
+  top: 0.28rem;
+  left: 0.28rem;
+  right: 0.28rem;
   min-width: 0;
+  padding: 0.22rem 0.55rem;
+  border-radius: 0.65rem;
+  background: rgba(10, 7, 5, 0.7);
+  display: grid;
+  place-items: center;
+  text-align: center;
+  pointer-events: none;
 }
 
 .card-title {
   min-height: 0;
-  flex: 1 1 auto;
+  width: 100%;
   font-size: 0.82rem;
   font-weight: 700;
   line-height: 1.05;
 }
 
 .card-inline-stack {
+  position: absolute;
+  right: 0.28rem;
+  bottom: 0.28rem;
   display: inline-flex;
   align-items: center;
-  gap: 0.18rem;
-  flex: 0 0 auto;
-  font-size: inherit;
+  gap: 0.22rem;
+  padding: 0.22rem 0.48rem;
+  border-radius: 0.65rem;
+  background: rgba(10, 7, 5, 0.7);
+  font-size: clamp(1.25rem, 2.55dvh, 1.56rem);
   font-weight: 700;
-  line-height: inherit;
+  line-height: 1;
   color: var(--gold-strong);
   white-space: nowrap;
+  pointer-events: none;
 }
 
 .card-inline-stack img {
   width: auto;
-  height: 1cap;
+  height: 1em;
   object-fit: contain;
   flex: 0 0 auto;
 }
 
 .player-local .card-title {
-  font-size: clamp(1.14rem, 2.35dvh, 1.42rem);
-  line-height: 1.02;
-}
-
-.player-local .card-inline-stack {
-  font-size: clamp(1.14rem, 2.35dvh, 1.42rem);
+  font-size: clamp(1.2rem, 2.45dvh, 1.48rem);
   line-height: 1.02;
 }
 
