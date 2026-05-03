@@ -468,7 +468,7 @@ button {
 .player-local .selection-group {
   min-height: 0;
   height: 100%;
-  padding: 0.44rem;
+  padding: 0.32rem;
   gap: 0;
   align-content: stretch;
 }
@@ -504,7 +504,7 @@ button {
   min-height: 0;
   height: 100%;
   align-content: stretch;
-  gap: 0.42rem;
+  gap: 0.28rem;
 }
 
 .selection-strip.is-rest {
@@ -538,12 +538,16 @@ button {
   gap: 0.18rem;
   align-content: start;
   text-align: left;
+  overflow: hidden;
 }
 
 .player-local .card-button {
-  padding: 0.36rem;
-  gap: 0.26rem;
+  padding: 0.28rem;
+  gap: 0.18rem;
   height: 100%;
+  min-height: 0;
+  grid-template-rows: minmax(0, 1fr) auto;
+  align-content: stretch;
 }
 
 .card-button img,
@@ -558,9 +562,12 @@ button {
 
 .player-local .card-button img {
   width: 100%;
-  height: clamp(5.8rem, 11.5dvh, 7.8rem);
+  height: 100%;
   max-width: none;
-  max-height: 100%;
+  max-height: none;
+  min-height: 0;
+  align-self: stretch;
+  justify-self: stretch;
 }
 
 .card-button.is-selected {
@@ -573,16 +580,39 @@ button {
   cursor: not-allowed;
 }
 
+.card-caption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.34rem;
+  min-width: 0;
+}
+
 .card-title {
-  min-height: 2.1em;
+  min-height: 0;
+  flex: 1 1 auto;
   font-size: 0.82rem;
-  line-height: 1.16;
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+.card-inline-stack {
+  flex: 0 0 auto;
+  font-size: inherit;
+  font-weight: 700;
+  line-height: inherit;
+  color: var(--gold-strong);
+  white-space: nowrap;
 }
 
 .player-local .card-title {
-  min-height: 2.28em;
-  font-size: clamp(0.94rem, 1.8dvh, 1.12rem);
-  line-height: 1.14;
+  font-size: clamp(1.14rem, 2.35dvh, 1.42rem);
+  line-height: 1.02;
+}
+
+.player-local .card-inline-stack {
+  font-size: clamp(1.14rem, 2.35dvh, 1.42rem);
+  line-height: 1.02;
 }
 
 .card-badge {
@@ -599,19 +629,13 @@ button {
   text-align: center;
 }
 
-.card-stack-badge {
-  position: absolute;
-  top: 0.26rem;
-  left: 0.26rem;
-  min-width: 1.8rem;
-  padding: 0.12rem 0.32rem;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 216, 164, 0.2);
-  color: var(--text-main);
-  background: rgba(10, 7, 5, 0.76);
-  font-size: 0.54rem;
-  font-weight: 700;
-  text-align: center;
+.player-local .card-badge {
+  top: 0.3rem;
+  right: 0.3rem;
+  min-width: 1.95rem;
+  padding: 0.16rem 0.44rem;
+  font-size: clamp(1rem, 2.05dvh, 1.22rem);
+  line-height: 1;
 }
 
 .confirm-button {
@@ -1182,10 +1206,6 @@ button {
   .event-feed,
   .spotlight-card {
     padding: 0.4rem;
-  }
-
-  .player-local .card-button img {
-    height: clamp(4.9rem, 9.8dvh, 6.3rem);
   }
 
   .bottom-tool,

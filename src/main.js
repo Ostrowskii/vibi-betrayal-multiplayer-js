@@ -231,12 +231,14 @@ function renderCardButton({ card, handType, player, seat, interactive }) {
       ${disabledAttr}
     >
       <img src="${getCardArt(card, disabled)}" alt="${escapeHtml(label)}" />
-      ${
-        exhaustionBadge
-          ? `<span class="card-stack-badge">${escapeHtml(exhaustionBadge)}</span>`
-          : ""
-      }
-      <span class="card-title">${escapeHtml(label)}</span>
+      <div class="card-caption">
+        <span class="card-title">${escapeHtml(label)}</span>
+        ${
+          exhaustionBadge
+            ? `<span class="card-inline-stack">${escapeHtml(exhaustionBadge)}</span>`
+            : ""
+        }
+      </div>
       ${badge ? `<span class="card-badge">${escapeHtml(badge)}</span>` : ""}
     </button>
   `;

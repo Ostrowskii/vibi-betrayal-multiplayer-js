@@ -7,8 +7,10 @@
       ${d||!i?`disabled`:``}
     >
       <img src="${wt(e,d)}" alt="${J(l)}" />
-      ${p?`<span class="card-stack-badge">${J(p)}</span>`:``}
-      <span class="card-title">${J(l)}</span>
+      <div class="card-caption">
+        <span class="card-title">${J(l)}</span>
+        ${p?`<span class="card-inline-stack">${J(p)}</span>`:``}
+      </div>
       ${f?`<span class="card-badge">${J(f)}</span>`:``}
     </button>
   `}function kt({cards:e,handType:t,player:n,seat:r,interactive:i,tone:a}){let o=t===`uc`?`is-rest`:`is-attack`;return`
