@@ -593,13 +593,11 @@ button {
 }
 
 .player-local .selection-strip.is-rest {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-auto-rows: minmax(0, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .player-local .selection-strip.is-attack {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  grid-auto-rows: minmax(0, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 .card-button {
@@ -623,16 +621,21 @@ button {
   gap: 0.18rem;
   height: 100%;
   min-height: 0;
-  grid-template-rows: minmax(0, 1fr) auto;
-  align-content: stretch;
+  grid-template-rows: minmax(0, 1fr);
+  place-items: center;
 }
 
 .card-art-shell {
   position: relative;
-  min-height: 0;
   height: 100%;
+  width: auto;
+  max-width: 100%;
+  max-height: 100%;
+  min-height: 0;
+  aspect-ratio: 1086 / 1448;
   display: grid;
-  align-self: stretch;
+  justify-self: center;
+  align-self: center;
 }
 
 .card-art-shell > .card-art,
@@ -648,8 +651,8 @@ button {
 .player-local .card-art-shell > .card-art {
   width: 100%;
   height: 100%;
-  max-width: none;
-  max-height: none;
+  max-width: 100%;
+  max-height: 100%;
   min-height: 0;
   align-self: stretch;
   justify-self: stretch;
@@ -732,7 +735,7 @@ button {
   text-align: center;
 }
 
-.player-local .card-badge {
+.card-art-shell .card-badge {
   top: 0.3rem;
   right: 0.3rem;
   min-width: 1.95rem;
@@ -1240,11 +1243,11 @@ button {
   }
 
   .player-local .selection-strip.is-rest {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .player-local .selection-strip.is-attack {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 
 }

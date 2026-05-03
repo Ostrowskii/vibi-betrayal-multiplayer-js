@@ -231,13 +231,13 @@ function renderCardButton({ card, handType, player, seat, interactive }) {
         <div class="card-caption">
           <span class="card-title">${escapeHtml(label)}</span>
         </div>
+        ${badge ? `<span class="card-badge">${escapeHtml(badge)}</span>` : ""}
         ${
           exhaustionBadge
             ? `<span class="card-inline-stack"><img src="${ASSETS.zzz}" alt="" aria-hidden="true" /><span>${escapeHtml(exhaustionBadge)}</span></span>`
             : ""
         }
       </div>
-      ${badge ? `<span class="card-badge">${escapeHtml(badge)}</span>` : ""}
     </button>
   `;
 }
