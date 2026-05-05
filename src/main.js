@@ -37,6 +37,74 @@ const app = {
 
 const audioPool = new Map();
 
+const FIRST_GAME_SCREEN_IMAGES = [
+  ASSETS.castle1,
+  ASSETS.castle2,
+  ASSETS.iconRest,
+  ASSETS.iconForward,
+  ASSETS.cardBack,
+  ASSETS.cardBackHidden,
+  ASSETS.cards.king.color,
+  ASSETS.cards.chef.color,
+  ASSETS.cards.guard.color,
+  ASSETS.cards.dummy.color,
+];
+
+function collectImageUrls(node, out = new Set()) {
+  if (typeof node === "string") {
+    if (/\.(png|jpe?g|gif|webp|svg)(\?.*)?$/i.test(node)) out.add(node);
+  } else if (node && typeof node === "object") {
+    for (const value of Object.values(node)) collectImageUrls(value, out);
+  }
+  return out;
+}
+
+const preloadedImageCache = new Map();
+
+function preloadImage(url) {
+  const cached = preloadedImageCache.get(url);
+  if (cached) return cached;
+  const promise = new Promise((resolve) => {
+    const img = new Image();
+    img.onload = img.onerror = () => resolve();
+    img.src = url;
+  });
+  preloadedImageCache.set(url, promise);
+  return promise;
+}
+
+function preloadImages(urls) {
+  return Promise.all(urls.map(preloadImage));
+}
+
+function scheduleIdle(callback) {
+  if (typeof window.requestIdleCallback === "function") {
+    window.requestIdleCallback(callback, { timeout: 4000 });
+  } else {
+    setTimeout(callback, 50);
+  }
+}
+
+let assetPreloadStarted = false;
+
+function startAssetPreload() {
+  if (assetPreloadStarted) return;
+  assetPreloadStarted = true;
+
+  preloadImages(FIRST_GAME_SCREEN_IMAGES).then(() => {
+    const remaining = [...collectImageUrls(ASSETS)].filter(
+      (url) => !preloadedImageCache.has(url),
+    );
+    let index = 0;
+    const pump = () => {
+      if (index >= remaining.length) return;
+      const url = remaining[index++];
+      preloadImage(url).then(() => scheduleIdle(pump));
+    };
+    scheduleIdle(pump);
+  });
+}
+
 function captureActiveField() {
   const active = document.activeElement;
   if (!active || active.tagName !== "INPUT") return null;
@@ -776,6 +844,7 @@ function openServerList() {
   if (!app.selectedServerId && SERVER_CHOICES[0]) {
     app.selectedServerId = SERVER_CHOICES[0].id;
   }
+  startAssetPreload();
   playSound("click", 0.35);
 }
 
