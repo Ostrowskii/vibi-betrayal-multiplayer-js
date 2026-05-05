@@ -164,8 +164,8 @@ function setWinner(state, playerId, victoryType, text) {
   pushLog(state, text);
 }
 
-function applyTradeBlockFromInvader(state, defenderId) {
-  state.players[defenderId].tradeRouteBlockedNextTurn = true;
+function applyTradeBlockFromInvader(state, attackerId) {
+  state.players[attackerId].tradeRouteBlockedNextTurn = true;
 }
 
 function setPhaseResults(state) {
@@ -335,7 +335,7 @@ function applyInvader(state, attackerId, defenderId) {
   const guardBefore = defender.guardDamage;
 
   attacker.ues.invader.available = Math.max(0, attacker.ues.invader.available - 1);
-  applyTradeBlockFromInvader(state, defenderId);
+  applyTradeBlockFromInvader(state, attackerId);
 
   if (defendingCard === "guard") {
     defender.ucs.guard.status = "dead";
@@ -572,6 +572,23 @@ function applyExhaustion(state) {
   pushLog(state, "Contadores de exaustão atualizados.");
 }
 
+function captureTurnSnapshot(state) {
+  state.lastTurnSnapshot = {
+    turnNumber: state.turnNumber,
+    players: {
+      C1: {
+        selectedUC: state.players.C1.selectedUC,
+        selectedUE: state.players.C1.selectedUE,
+      },
+      C2: {
+        selectedUC: state.players.C2.selectedUC,
+        selectedUE: state.players.C2.selectedUE,
+      },
+    },
+    turnView: structuredClone(state.turnView),
+  };
+}
+
 function resolveTurn(state) {
   prepareTurnView(state);
   clearBoard(state);
@@ -588,6 +605,7 @@ function resolveTurn(state) {
     if (!state.winner) {
       updatePoisonAvailability(state);
       pushLog(state, "Resultados do turno prontos.");
+      captureTurnSnapshot(state);
       state.turnNumber += 1;
       startTurn(state, {
         preserveTurnView: true,

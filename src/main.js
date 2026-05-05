@@ -31,6 +31,8 @@ const app = {
   lastScreen: null,
   hadLiveMatch: false,
   panelView: "rest",
+  viewingTurn: null,
+  localPhaseView: null,
 };
 
 const audioPool = new Map();
@@ -122,9 +124,7 @@ function getCardArt(card, disabled = false) {
   return disabled ? set.gray : set.color;
 }
 
-function cardCountBadge(player, card) {
-  if (card === "invader") return `x${player.ues.invader.available}`;
-  if (card === "tribute") return `x${player.ues.tribute.available}`;
+function cardCountBadge() {
   return "";
 }
 
@@ -279,14 +279,69 @@ function renderStageChoiceButton({ player, handType, view, icon, ariaLabel }) {
   `;
 }
 
+function renderHiddenEnemySlot() {
+  return `
+    <div class="center-slot stage-hidden-slot" aria-hidden="true">
+      <img class="stage-slot-art" src="${ASSETS.cardBackHidden}" alt="" />
+    </div>
+  `;
+}
+
+function renderRevealSlot(card, handType) {
+  if (!card) {
+    return `<div class="center-slot stage-empty-slot" aria-hidden="true"></div>`;
+  }
+  const label = handType === "uc"
+    ? UC_LABELS[normalizeUCType(card)]
+    : UE_LABELS[card];
+  return `
+    <div class="center-slot stage-reveal-slot">
+      <img class="stage-slot-art" src="${getCardArt(card, false)}" alt="${escapeHtml(label ?? "")}" />
+    </div>
+  `;
+}
+
+function renderRevealStage(state, self) {
+  const enemy = self === "C1" ? "C2" : "C1";
+  const snap = state.lastTurnSnapshot;
+  const selfSnap = snap.players[self];
+  const enemySnap = snap.players[enemy];
+
+  return `
+    <section class="center-stage decision-stage is-reveal">
+      <div class="decision-row is-enemy">
+        ${renderRevealSlot(enemySnap.selectedUE, "ue")}
+        ${renderRevealSlot(enemySnap.selectedUC, "uc")}
+      </div>
+      <div class="decision-row is-self">
+        ${renderRevealSlot(selfSnap.selectedUE, "ue")}
+        ${renderRevealSlot(selfSnap.selectedUC, "uc")}
+      </div>
+    </section>
+  `;
+}
+
 function renderCenterStage(state, self) {
+  if (app.localPhaseView === "reveal" && state.lastTurnSnapshot) {
+    return renderRevealStage(state, self);
+  }
+
   const player = state.players[self];
+  const enemy = self === "C1" ? "C2" : "C1";
+  const enemyPlayer = state.players[enemy];
+
+  const enemySlotUE = enemyPlayer.selectedUE
+    ? renderHiddenEnemySlot()
+    : `<div class="center-slot stage-empty-slot" aria-hidden="true"></div>`;
+  const enemySlotUC = enemyPlayer.selectedUC
+    ? renderHiddenEnemySlot()
+    : `<div class="center-slot stage-empty-slot" aria-hidden="true"></div>`;
 
   return `
     <section class="center-stage decision-stage">
       <div class="decision-row is-enemy">
-        <div class="center-slot stage-empty-slot" aria-hidden="true"></div>
-        <div class="center-slot stage-empty-slot" aria-hidden="true"></div>
+        ${enemySlotUE}
+        ${enemySlotUC}
       </div>
       <div class="decision-row is-self">
         ${renderStageChoiceButton({
@@ -310,14 +365,17 @@ function renderCenterStage(state, self) {
 
 function renderOwnChoices(state, seat) {
   const player = state.players[seat];
+  const inReveal = app.localPhaseView === "reveal";
   const interactive =
+    !inReveal &&
     state.screen === "game" &&
     state.phase === "phase_1_selection" &&
     !player.confirmed;
   const currentView = app.panelView === "attack" ? "attack" : "rest";
 
-  const content =
-    currentView === "attack"
+  const content = inReveal
+    ? ""
+    : currentView === "attack"
       ? renderSelectionGroup({
         cards: visibleAttackCards(),
         handType: "ue",
@@ -336,7 +394,7 @@ function renderOwnChoices(state, seat) {
       });
 
   return `
-    <div class="selection-stack">
+    <div class="selection-stack ${inReveal ? "is-reveal" : ""}">
       <div class="selection-stage">${content}</div>
       <div class="selection-footer">
         ${renderHeaderAction(state, seat)}
@@ -347,6 +405,17 @@ function renderOwnChoices(state, seat) {
 
 function renderHeaderAction(state, seat) {
   const player = state.players[seat];
+  if (app.localPhaseView === "reveal") {
+    return `
+      <button
+        class="confirm-button confirm-button-square"
+        data-action="advance-local-view"
+        data-seat="${seat}"
+      >
+        Próximo turno
+      </button>
+    `;
+  }
   if (state.phase === "phase_2_results") {
     const buttonLabel = "OK";
 
@@ -605,9 +674,14 @@ function renderServerList() {
       <div class="menu-shell">
         <img class="menu-title" src="${ASSETS.title}" alt="Betrayal" />
         <div class="menu-card server-menu-card">
-          <div class="menu-copy">
-            <span class="menu-kicker">lista fixa</span>
-            <h1>Servidores.</h1>
+          <div class="server-menu-header">
+            <div class="menu-copy">
+              <span class="menu-kicker">lista fixa</span>
+              <h1>Servidores.</h1>
+            </div>
+            <button class="menu-button server-connect-inline" data-action="connect-selected-server" ${
+              selected ? "" : "disabled"
+            }>Conectar</button>
           </div>
           <div class="server-list-shell">
             ${entries
@@ -632,9 +706,6 @@ function renderServerList() {
           }
           <div class="server-menu-actions">
             <button class="menu-button is-secondary" data-action="back-to-user-menu">Voltar</button>
-            <button class="menu-button" data-action="connect-selected-server" ${
-              selected ? "" : "disabled"
-            }>Conectar</button>
           </div>
         </div>
       </div>
@@ -732,6 +803,24 @@ function handleStateSideEffects(prev, next) {
     app.hadLiveMatch = true;
   }
 
+  if (next.screen === "game") {
+    if (app.viewingTurn === null) {
+      app.viewingTurn = next.turnNumber;
+      app.localPhaseView = "selection";
+    } else if (
+      next.lastTurnSnapshot &&
+      next.lastTurnSnapshot.turnNumber === app.viewingTurn &&
+      next.turnNumber > app.viewingTurn &&
+      app.localPhaseView !== "reveal"
+    ) {
+      app.localPhaseView = "reveal";
+      playSound("place", 0.5);
+    }
+  } else {
+    app.viewingTurn = null;
+    app.localPhaseView = null;
+  }
+
   if (prev?.phase !== next.phase) {
     if (next.phase === "phase_0_start_effects") playSound("turnStart", 0.45);
     if (next.phase === "phase_2_results") {
@@ -810,6 +899,13 @@ root.addEventListener("click", (event) => {
       return;
     case "advance-turn":
       if (app.session?.advanceTurn()) {
+        playSound("turnConfirm", 0.42);
+      }
+      return;
+    case "advance-local-view":
+      if (app.localPhaseView === "reveal" && app.state) {
+        app.viewingTurn = app.state.turnNumber;
+        app.localPhaseView = "selection";
         playSound("turnConfirm", 0.42);
       }
       return;

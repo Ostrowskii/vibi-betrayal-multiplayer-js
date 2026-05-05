@@ -81,6 +81,7 @@ export function createInitialState() {
     board: createBoardState(),
     turnView: createTurnView(),
     lastResolvedTurn: 0,
+    lastTurnSnapshot: null,
     winner: null,
     victoryType: null,
     reportAction: null,

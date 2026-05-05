@@ -4,6 +4,7 @@ export const ASSETS = {
   background: asset("../assets/image_background.png"),
   title: asset("../assets/image_betrayal3.png"),
   cardBack: asset("../assets/image_card.png"),
+  cardBackHidden: asset("../assets/extra/fundo3.png"),
   textCastle: asset("../assets/text_castle.png"),
   textCastleGray: asset("../assets/text_castle_gray.png"),
   textStrategy: asset("../assets/text_strategy.png"),
