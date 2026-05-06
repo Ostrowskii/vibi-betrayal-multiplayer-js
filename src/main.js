@@ -33,9 +33,14 @@ const app = {
   panelView: "rest",
   viewingTurn: null,
   localPhaseView: null,
+  metricAnimations: null,
 };
 
 const audioPool = new Map();
+const METRIC_CONFIG = [
+  { key: "castleTrust", label: "Confianca", max: 3, className: "is-trust" },
+  { key: "guardDamage", label: "Guard", max: 6, className: "is-guard" },
+];
 
 const FIRST_GAME_SCREEN_IMAGES = [
   ASSETS.castle1,
@@ -191,6 +196,37 @@ function getCardArt(card, disabled = false) {
   const set = ASSETS.cards[key];
   if (!set) return ASSETS.cardBack;
   return disabled ? set.gray : set.color;
+}
+
+function pct(value, max) {
+  const safeMax = Math.max(1, max);
+  const safeValue = Math.max(0, Math.min(safeMax, value));
+  return `${((safeValue / safeMax) * 100).toFixed(3)}%`;
+}
+
+function buildMetricAnimations(prevState, nextState) {
+  if (!nextState?.players) return null;
+  const seats = ["C1", "C2"];
+  const animations = {};
+
+  for (const seat of seats) {
+    const nextPlayer = nextState.players[seat];
+    const prevPlayer = prevState?.players?.[seat] ?? nextPlayer;
+    animations[seat] = {};
+
+    for (const metric of METRIC_CONFIG) {
+      const current = nextPlayer[metric.key] ?? 0;
+      const prev = prevPlayer[metric.key] ?? current;
+      animations[seat][metric.key] = {
+        prev,
+        current,
+        max: metric.max,
+        isIncreasing: current > prev,
+      };
+    }
+  }
+
+  return animations;
 }
 
 function cardCountBadge() {
@@ -521,19 +557,49 @@ function renderHeaderAction(state, seat) {
   `;
 }
 
-function renderEnemyMetric(label, value, accent = false) {
+function renderMetricDividers(max) {
+  return Array.from({ length: max - 1 }, (_, index) => {
+    const offset = (((index + 1) / max) * 100).toFixed(3);
+    return `<span class="status-track-divider" style="left: ${offset}%"></span>`;
+  }).join("");
+}
+
+function renderStatusMetric(seat, player, metric) {
+  const animation = app.metricAnimations?.[seat]?.[metric.key] ?? {
+    prev: player[metric.key] ?? 0,
+    current: player[metric.key] ?? 0,
+    max: metric.max,
+    isIncreasing: false,
+  };
+  const fromPct = pct(animation.isIncreasing ? animation.prev : animation.current, metric.max);
+  const toPct = pct(animation.current, metric.max);
+  const maxedClass = animation.current >= metric.max ? "is-maxed" : "";
+  const animClass = animation.isIncreasing ? "is-growing" : "";
+
   return `
-    <div class="enemy-metric ${accent ? "is-maxed" : ""}">
-      <span class="enemy-metric-label">${escapeHtml(label)}</span>
-      <strong class="enemy-metric-value">${escapeHtml(value)}</strong>
+    <div class="enemy-metric status-metric ${metric.className} ${maxedClass}">
+      <div class="status-metric-head">
+        <span class="enemy-metric-label status-metric-label">${escapeHtml(metric.label)}</span>
+        <strong class="enemy-metric-value status-metric-value">${animation.current}/${metric.max}</strong>
+      </div>
+      <div
+        class="status-track ${animClass}"
+        style="--status-fill-from: ${fromPct}; --status-fill-to: ${toPct};"
+      >
+        <span class="status-track-fill"></span>
+        ${renderMetricDividers(metric.max)}
+      </div>
     </div>
   `;
+}
+
+function renderPlayerMetrics(player, seat) {
+  return METRIC_CONFIG.map((metric) => renderStatusMetric(seat, player, metric)).join("");
 }
 
 function renderPlayerPanel(state, seat, perspective) {
   const player = state.players[seat];
   const isLocal = perspective === "self";
-  const blockValue = player.tradeRouteBlockedThisTurn ? "Bloqueada" : "Livre";
   const roleLabel = isLocal ? "Voce" : "Inimigo";
   const variantClass = isLocal ? "player-self-info" : "player-enemy";
 
@@ -552,9 +618,7 @@ function renderPlayerPanel(state, seat, perspective) {
           </div>
         </div>
         <div class="player-meta enemy-meta">
-          ${renderEnemyMetric("Confianca", `${player.castleTrust}/3`, player.castleTrust >= 3)}
-          ${renderEnemyMetric("Guard", `${player.guardDamage}/6`)}
-          ${renderEnemyMetric("Rota", blockValue)}
+          ${renderPlayerMetrics(player, seat)}
         </div>
       </div>
     </section>
@@ -800,6 +864,7 @@ function joinRoom() {
   app.lastScreen = null;
   app.panelView = "rest";
   app.state = null;
+  app.metricAnimations = null;
   app.menuPage = "user";
   app.session = new MatchSession({ room, user });
   playSound("click", 0.45);
@@ -815,6 +880,7 @@ function backToMenu() {
   app.lastPhase = null;
   app.lastScreen = null;
   app.panelView = "rest";
+  app.metricAnimations = null;
   app.menuPage = "user";
 }
 
@@ -903,6 +969,7 @@ function handleStateSideEffects(prev, next) {
 function update() {
   if (app.session) {
     const nextState = app.session.computeState();
+    app.metricAnimations = buildMetricAnimations(app.state, nextState);
     handleStateSideEffects(app.state, nextState);
     app.state = nextState;
   }

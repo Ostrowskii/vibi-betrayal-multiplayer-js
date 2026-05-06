@@ -13,8 +13,9 @@
   --pine: #21443c;
   --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
   --enemy-panel-height: clamp(4.9rem, 10dvh, 6.5rem);
-  --center-slot-height: 145px;
-  --center-slot-width: calc(var(--center-slot-height) * 1086 / 1448);
+  --center-stage-max-height: 60dvh;
+  --center-stage-gap: 0.34rem;
+  --center-stage-width-scale: 1.5;
   --card-art-size: 5.15rem;
   --decision-art-size: 6.8rem;
   font-family: Baskerville, "Palatino Linotype", "Book Antiqua", serif;
@@ -325,19 +326,21 @@ button {
   z-index: 1;
   display: grid;
   grid-template-rows:
-    var(--enemy-panel-height)
     auto
-    var(--enemy-panel-height)
+    auto
+    auto
     minmax(0, 1fr);
   gap: 0.42rem;
   height: 100dvh;
-  aspect-ratio: 9 / 16;
-  max-width: 100vw;
+  min-height: 100dvh;
+  width: min(100%, 42rem);
+  max-width: 42rem;
   margin: 0 auto;
   padding: 0.45rem;
   border-radius: 1.4rem;
   background: rgba(19, 14, 10, 0.4);
   backdrop-filter: blur(6px);
+  overflow: hidden;
 }
 
 .player-panel,
@@ -368,6 +371,7 @@ button {
   align-items: end;
   height: 100%;
   grid-template-rows: none;
+  overflow: hidden;
 }
 
 .player-hand .selection-stack {
@@ -466,7 +470,7 @@ button {
 }
 
 .enemy-header {
-  grid-template-columns: minmax(0, 0.62fr) minmax(0, 1.38fr);
+  grid-template-columns: minmax(0, 0.56fr) minmax(0, 1.44fr);
   gap: 0.28rem;
   height: 100%;
 }
@@ -533,34 +537,29 @@ button {
 
 .enemy-meta {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.2rem;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.34rem;
   width: 100%;
-  height: 100%;
   align-self: stretch;
 }
 
 .enemy-metric {
   display: grid;
-  align-content: center;
-  justify-items: center;
-  gap: 0.12rem;
-  padding: 0.26rem 0.18rem 0.22rem;
+  gap: 0.18rem;
+  padding: 0;
   min-width: 0;
-  border: 1px solid var(--line-soft);
-  border-radius: 0.72rem;
-  background: rgba(255, 255, 255, 0.05);
-  text-align: center;
+  border: 0;
+  background: transparent;
+  text-align: left;
 }
 
 .enemy-metric.is-maxed {
-  border-color: rgba(240, 200, 122, 0.42);
-  background: rgba(240, 200, 122, 0.08);
+  background: transparent;
 }
 
 .enemy-metric-label {
   color: var(--text-muted);
-  font-size: clamp(0.46rem, 1dvh, 0.62rem);
+  font-size: clamp(0.52rem, 1.05dvh, 0.68rem);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   line-height: 1;
@@ -568,12 +567,71 @@ button {
 
 .enemy-metric-value {
   color: var(--text-main);
-  font-size: clamp(1.1rem, 2.6dvh, 1.58rem);
-  line-height: 0.92;
+  font-size: clamp(0.84rem, 1.7dvh, 1rem);
+  line-height: 1;
 }
 
 .enemy-metric.is-maxed .enemy-metric-value {
   color: var(--gold-strong);
+}
+
+.status-metric-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.status-track {
+  position: relative;
+  height: 0.78rem;
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+}
+
+.status-track-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--status-fill-to);
+  border-radius: inherit;
+  background: linear-gradient(180deg, #ffd992, #dfab54);
+}
+
+.status-metric.is-guard .status-track-fill {
+  background: linear-gradient(180deg, #ffe4b3, #c68b47);
+}
+
+.status-metric.is-maxed .status-track {
+  border-color: rgba(240, 200, 122, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(240, 200, 122, 0.18);
+}
+
+.status-track-divider {
+  position: absolute;
+  top: 15%;
+  bottom: 15%;
+  width: 1px;
+  background: rgba(20, 11, 7, 0.72);
+  transform: translateX(-50%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.status-track.is-growing .status-track-fill {
+  animation: status-track-grow 280ms ease-out both;
+}
+
+@keyframes status-track-grow {
+  from {
+    width: var(--status-fill-from);
+  }
+
+  to {
+    width: var(--status-fill-to);
+  }
 }
 
 .turn-viewer,
@@ -883,10 +941,23 @@ button {
 }
 
 .center-stage {
+  --center-stage-inline-pad: 0.4rem;
+  --center-stage-block-pad: 0;
+  --center-slot-height-target: calc(var(--center-stage-max-height) / 2);
+  --center-slot-height-width-limit: calc(
+    (100vw - 2rem - var(--center-stage-gap) - (var(--center-stage-inline-pad) * 2))
+    / var(--center-stage-width-scale)
+  );
+  --center-slot-height: min(var(--center-slot-height-target), var(--center-slot-height-width-limit));
+  --center-slot-width: calc(var(--center-slot-height) * 0.75);
   min-height: 0;
-  width: min(100%, 500px);
-  max-width: 500px;
-  padding: 0 0.4rem;
+  width: calc(
+    (var(--center-slot-width) * 2)
+    + var(--center-stage-gap)
+    + (var(--center-stage-inline-pad) * 2)
+  );
+  max-width: 100%;
+  padding: var(--center-stage-block-pad) var(--center-stage-inline-pad);
   justify-self: center;
 }
 
@@ -898,7 +969,7 @@ button {
 
 .decision-row {
   display: flex;
-  gap: 0.34rem;
+  gap: var(--center-stage-gap);
 }
 
 .decision-row.is-enemy {
@@ -1423,11 +1494,11 @@ button {
   }
 
   .enemy-metric-value {
-    font-size: clamp(0.92rem, 2.05dvh, 1.22rem);
+    font-size: clamp(0.76rem, 1.55dvh, 0.94rem);
   }
 
   .enemy-metric-label {
-    font-size: clamp(0.4rem, 0.78dvh, 0.52rem);
+    font-size: clamp(0.42rem, 0.82dvh, 0.54rem);
   }
 
   .selection-group,
