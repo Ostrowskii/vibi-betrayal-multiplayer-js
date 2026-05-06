@@ -14,8 +14,10 @@
   --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
   --enemy-panel-height: clamp(4.9rem, 10dvh, 6.5rem);
   --center-stage-max-height: 60dvh;
-  --center-stage-gap: 0.34rem;
-  --center-stage-width-scale: 1.5;
+  --center-stage-ratio: 0.8128965517;
+  --center-stage-gap-pct: 2.3076262%;
+  --center-stage-inline-pad-pct: 2.7148545%;
+  --center-slot-width-pct: 46.1355731%;
   --card-art-size: 5.15rem;
   --decision-art-size: 6.8rem;
   font-family: Baskerville, "Palatino Linotype", "Book Antiqua", serif;
@@ -614,7 +616,7 @@ button {
   top: 15%;
   bottom: 15%;
   width: 1px;
-  background: rgba(20, 11, 7, 0.72);
+  background: rgba(255, 236, 201, 0.34);
   transform: translateX(-50%);
   z-index: 1;
   pointer-events: none;
@@ -941,35 +943,24 @@ button {
 }
 
 .center-stage {
-  --center-stage-inline-pad: 0.4rem;
-  --center-stage-block-pad: 0;
-  --center-slot-height-target: calc(var(--center-stage-max-height) / 2);
-  --center-slot-height-width-limit: calc(
-    (100vw - 2rem - var(--center-stage-gap) - (var(--center-stage-inline-pad) * 2))
-    / var(--center-stage-width-scale)
-  );
-  --center-slot-height: min(var(--center-slot-height-target), var(--center-slot-height-width-limit));
-  --center-slot-width: calc(var(--center-slot-height) * 0.75);
   min-height: 0;
-  width: calc(
-    (var(--center-slot-width) * 2)
-    + var(--center-stage-gap)
-    + (var(--center-stage-inline-pad) * 2)
-  );
-  max-width: 100%;
-  padding: var(--center-stage-block-pad) var(--center-stage-inline-pad);
+  width: min(100%, calc(var(--center-stage-max-height) * var(--center-stage-ratio)));
+  max-height: var(--center-stage-max-height);
+  aspect-ratio: 235.74 / 290;
+  padding: 0 var(--center-stage-inline-pad-pct);
   justify-self: center;
 }
 
 .decision-stage {
   display: grid;
-  grid-template-rows: repeat(2, var(--center-slot-height));
+  height: 100%;
+  grid-template-rows: repeat(2, 1fr);
   gap: 0;
 }
 
 .decision-row {
   display: flex;
-  gap: var(--center-stage-gap);
+  gap: var(--center-stage-gap-pct);
 }
 
 .decision-row.is-enemy {
@@ -981,8 +972,9 @@ button {
 }
 
 .center-slot {
-  width: var(--center-slot-width);
-  height: var(--center-slot-height);
+  width: var(--center-slot-width-pct);
+  aspect-ratio: 1086 / 1448;
+  height: auto;
   min-width: 0;
   min-height: 0;
   border: 0;
@@ -1458,8 +1450,7 @@ button {
     padding: 0.34rem;
   }
 
-  .player-panel,
-  .center-stage {
+  .player-panel {
     padding: 0.45rem;
   }
 
