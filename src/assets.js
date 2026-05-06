@@ -5,6 +5,7 @@ export const ASSETS = {
   title: asset("../assets/image_betrayal3.png"),
   cardBack: asset("../assets/image_card.png"),
   cardBackHidden: asset("../assets/extra/card_back_hidden.png"),
+  cardBackHiddenRest: asset("../assets/extra/card_back_rest.png"),
   textCastle: asset("../assets/text_castle.png"),
   textCastleGray: asset("../assets/text_castle_gray.png"),
   textStrategy: asset("../assets/text_strategy.png"),

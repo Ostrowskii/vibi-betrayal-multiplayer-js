@@ -44,6 +44,7 @@ const FIRST_GAME_SCREEN_IMAGES = [
   ASSETS.iconForward,
   ASSETS.cardBack,
   ASSETS.cardBackHidden,
+  ASSETS.cardBackHiddenRest,
   ASSETS.cards.king.color,
   ASSETS.cards.chef.color,
   ASSETS.cards.guard.color,
@@ -347,10 +348,11 @@ function renderStageChoiceButton({ player, handType, view, icon, ariaLabel }) {
   `;
 }
 
-function renderHiddenEnemySlot() {
+function renderHiddenEnemySlot(handType) {
+  const src = handType === "uc" ? ASSETS.cardBackHiddenRest : ASSETS.cardBackHidden;
   return `
     <div class="center-slot stage-hidden-slot" aria-hidden="true">
-      <img class="stage-slot-art" src="${ASSETS.cardBackHidden}" alt="" />
+      <img class="stage-slot-art" src="${src}" alt="" />
     </div>
   `;
 }
@@ -399,10 +401,10 @@ function renderCenterStage(state, self) {
   const enemyPlayer = state.players[enemy];
 
   const enemySlotUE = enemyPlayer.selectedUE
-    ? renderHiddenEnemySlot()
+    ? renderHiddenEnemySlot("ue")
     : `<div class="center-slot stage-empty-slot" aria-hidden="true"></div>`;
   const enemySlotUC = enemyPlayer.selectedUC
-    ? renderHiddenEnemySlot()
+    ? renderHiddenEnemySlot("uc")
     : `<div class="center-slot stage-empty-slot" aria-hidden="true"></div>`;
 
   return `
