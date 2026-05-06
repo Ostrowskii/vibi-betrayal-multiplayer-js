@@ -775,7 +775,8 @@ function applyExhaustion(state) {
   pushLog(state, "Contadores de exaustão atualizados.");
 }
 
-function captureTurnSnapshot(state) {
+function captureTurnSnapshot(state, resolvedAttackers = []) {
+  const resolvedSet = new Set(resolvedAttackers);
   state.lastTurnSnapshot = {
     turnNumber: state.turnNumber,
     players: {
@@ -790,6 +791,10 @@ function captureTurnSnapshot(state) {
     },
     turnView: structuredClone(state.turnView),
     reportBySeat: structuredClone(state.turnReport ?? createTurnReport()),
+    resolvedBySeat: {
+      C1: resolvedSet.has("C1"),
+      C2: resolvedSet.has("C2"),
+    },
     winner: state.winner,
     victoryType: state.victoryType,
   };
@@ -816,7 +821,7 @@ function resolveTurn(state) {
       finalizeTurnReport(state, resolvedAttackers);
       updatePoisonAvailability(state);
       pushLog(state, "Resultados do turno prontos.");
-      captureTurnSnapshot(state);
+      captureTurnSnapshot(state, resolvedAttackers);
       state.turnNumber += 1;
       startTurn(state, {
         preserveTurnView: true,
@@ -827,7 +832,7 @@ function resolveTurn(state) {
   }
 
   finalizeTurnReport(state, resolvedAttackers);
-  captureTurnSnapshot(state);
+  captureTurnSnapshot(state, resolvedAttackers);
   setPhaseResults(state);
   pushLog(state, "O turno terminou com uma vitória.");
 }

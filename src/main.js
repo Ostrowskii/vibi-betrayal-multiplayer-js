@@ -430,6 +430,22 @@ function getTurnSummary(state, seat) {
   };
 }
 
+function shouldRevealEnemyRestCard(state, self) {
+  const snap = state.lastTurnSnapshot;
+  if (!snap?.resolvedBySeat?.[self]) return false;
+
+  const enemy = self === "C1" ? "C2" : "C1";
+  const selfUE = snap.players?.[self]?.selectedUE ?? null;
+  const enemyUC = normalizeUCType(snap.players?.[enemy]?.selectedUC);
+
+  if (!selfUE || !enemyUC) return false;
+  if (selfUE === "spy") return true;
+  if (selfUE === "assassin" && enemyUC === "king") return true;
+  if (selfUE === "poisoned_tribute" && enemyUC === "chef") return true;
+  if (selfUE === "invader" && enemyUC === "guard") return true;
+  return false;
+}
+
 function renderRoundReport(state, seat) {
   const summary = getTurnSummary(state, seat);
 
@@ -457,13 +473,16 @@ function renderRevealStage(state, self) {
   const enemySnap = snap.players[enemy];
   const selfPlayer = state.players[self];
   const enemyPlayer = state.players[enemy];
+  const enemyRestSlot = shouldRevealEnemyRestCard(state, self)
+    ? renderRevealSlot(enemySnap.selectedUC, "uc")
+    : renderHiddenEnemySlot("uc");
 
   return `
     <section class="center-stage decision-stage is-reveal">
       <div class="stage-lane stage-lane-enemy">
         <div class="decision-row stage-board-row is-enemy">
           ${renderRevealSlot(enemySnap.selectedUE, "ue")}
-          ${renderRevealSlot(enemySnap.selectedUC, "uc")}
+          ${enemyRestSlot}
         </div>
         ${renderStageSidebar(enemyPlayer, enemy, "enemy")}
       </div>
