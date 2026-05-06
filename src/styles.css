@@ -669,6 +669,17 @@ button {
   display: grid;
 }
 
+.selection-actions {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: stretch;
+  gap: 0.38rem;
+}
+
+.selection-actions.is-single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .selection-group {
   padding: 0.55rem;
   border-radius: 0.85rem;
@@ -911,6 +922,15 @@ button {
   background: linear-gradient(180deg, #4d695c, #2d453d);
 }
 
+.confirm-button.is-incomplete {
+  color: rgba(248, 237, 216, 0.82);
+  background: linear-gradient(180deg, #86817b, #5c5650);
+}
+
+.confirm-button.is-incomplete:disabled {
+  opacity: 1;
+}
+
 .confirm-button-inline {
   padding-inline: 0.95rem;
   align-self: center;
@@ -923,6 +943,29 @@ button {
   padding: 0.4rem 0.3rem;
   font-size: 0.94rem;
   letter-spacing: 0.06em;
+}
+
+.swap-button {
+  min-height: 3.35rem;
+  aspect-ratio: 1 / 1;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  display: grid;
+  place-items: center;
+}
+
+.swap-button img {
+  width: auto;
+  height: 100%;
+  max-height: 3.35rem;
+  display: block;
+  object-fit: contain;
+}
+
+.swap-button:disabled {
+  cursor: default;
+  opacity: 0.62;
 }
 
 .review-button {
@@ -1567,7 +1610,8 @@ button {
   }
 
   .bottom-tool,
-  .confirm-button-square {
+  .confirm-button-square,
+  .swap-button {
     min-height: 3rem;
   }
 

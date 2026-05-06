@@ -93,31 +93,46 @@
         ${Gt(e,t)}
       </div>
     </div>
-  `}function Gt(e,t){let n=e.players[t];if(q.localPhaseView===`reveal`)return`
-      <button
-        class="confirm-button confirm-button-square"
-        data-action="advance-local-view"
-        data-seat="${t}"
-      >
-        Próximo turno
-      </button>
+  `}function Gt(e,n){let r=e.players[n];if(q.localPhaseView===`reveal`)return`
+      <div class="selection-actions is-single">
+        <button
+          class="confirm-button confirm-button-square"
+          data-action="advance-local-view"
+          data-seat="${n}"
+        >
+          Próximo turno
+        </button>
+      </div>
     `;if(e.phase===`phase_2_results`)return`
+      <div class="selection-actions is-single">
+        <button
+          class="confirm-button confirm-button-square"
+          data-action="advance-turn"
+          data-seat="${n}"
+        >
+          ${Y(`OK`)}
+        </button>
+      </div>
+    `;let i=e.screen===`game`&&e.phase===`phase_1_selection`&&!r.confirmed&&r.selectedUC&&r.selectedUE,a=r.confirmed?`...`:`OK`,o=i?``:`disabled`,s=r.confirmed?`is-waiting`:i?``:`is-incomplete`;return`
+    <div class="selection-actions">
       <button
-        class="confirm-button confirm-button-square"
-        data-action="advance-turn"
-        data-seat="${t}"
+        class="swap-button"
+        data-action="set-panel-view"
+        data-view="${q.panelView===`attack`?`rest`:`attack`}"
+        aria-label="Trocar entre ataque e descanso"
+        ${r.confirmed?`disabled`:``}
       >
-        ${Y(`OK`)}
+        <img src="${t.iconSwap}" alt="" aria-hidden="true" />
       </button>
-    `;let r=e.screen===`game`&&e.phase===`phase_1_selection`&&!n.confirmed&&n.selectedUC&&n.selectedUE,i=n.confirmed?`...`:`OK`,a=r?``:`disabled`;return`
-    <button
-      class="confirm-button confirm-button-square ${n.confirmed?`is-waiting`:``}"
-      data-action="confirm-selection"
-      data-seat="${t}"
-      ${n.confirmed?`disabled`:a}
-    >
-      ${Y(i)}
-    </button>
+      <button
+        class="confirm-button confirm-button-square ${s}"
+        data-action="confirm-selection"
+        data-seat="${n}"
+        ${r.confirmed?`disabled`:o}
+      >
+        ${Y(a)}
+      </button>
+    </div>
   `}function Kt(e){return Array.from({length:e-1},(t,n)=>`<span class="status-track-divider" style="left: ${((n+1)/e*100).toFixed(3)}%"></span>`).join(``)}function qt(e,t,n){return q.metricAnimations?.[e]?.[n.key]??{prev:t[n.key]??0,current:t[n.key]??0,max:n.max,isIncreasing:!1}}function Jt(e,t,n,r){let i=qt(e,t,n),a=Mt(i.isIncreasing?i.prev:i.current,n.max),o=Mt(i.current,n.max),s=i.current>=n.max?`is-maxed`:``,c=i.isIncreasing?`is-growing`:``;return`
     <div class="stage-metric status-metric ${n.className} ${s} is-${r}">
       <div class="stage-metric-label">${Y(n.label)}</div>

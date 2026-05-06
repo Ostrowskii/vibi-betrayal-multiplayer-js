@@ -527,26 +527,30 @@ function renderHeaderAction(state, seat) {
   const player = state.players[seat];
   if (app.localPhaseView === "reveal") {
     return `
-      <button
-        class="confirm-button confirm-button-square"
-        data-action="advance-local-view"
-        data-seat="${seat}"
-      >
-        Próximo turno
-      </button>
+      <div class="selection-actions is-single">
+        <button
+          class="confirm-button confirm-button-square"
+          data-action="advance-local-view"
+          data-seat="${seat}"
+        >
+          Próximo turno
+        </button>
+      </div>
     `;
   }
   if (state.phase === "phase_2_results") {
     const buttonLabel = "OK";
 
     return `
-      <button
-        class="confirm-button confirm-button-square"
-        data-action="advance-turn"
-        data-seat="${seat}"
-      >
-        ${escapeHtml(buttonLabel)}
-      </button>
+      <div class="selection-actions is-single">
+        <button
+          class="confirm-button confirm-button-square"
+          data-action="advance-turn"
+          data-seat="${seat}"
+        >
+          ${escapeHtml(buttonLabel)}
+        </button>
+      </div>
     `;
   }
 
@@ -558,16 +562,30 @@ function renderHeaderAction(state, seat) {
     player.selectedUE;
   const buttonLabel = player.confirmed ? "..." : "OK";
   const disabledAttr = canConfirm ? "" : "disabled";
+  const confirmStateClass = player.confirmed ? "is-waiting" : canConfirm ? "" : "is-incomplete";
+  const swapView = app.panelView === "attack" ? "rest" : "attack";
+  const swapDisabledAttr = player.confirmed ? "disabled" : "";
 
   return `
-    <button
-      class="confirm-button confirm-button-square ${player.confirmed ? "is-waiting" : ""}"
-      data-action="confirm-selection"
-      data-seat="${seat}"
-      ${player.confirmed ? "disabled" : disabledAttr}
-    >
-      ${escapeHtml(buttonLabel)}
-    </button>
+    <div class="selection-actions">
+      <button
+        class="swap-button"
+        data-action="set-panel-view"
+        data-view="${swapView}"
+        aria-label="Trocar entre ataque e descanso"
+        ${swapDisabledAttr}
+      >
+        <img src="${ASSETS.iconSwap}" alt="" aria-hidden="true" />
+      </button>
+      <button
+        class="confirm-button confirm-button-square ${confirmStateClass}"
+        data-action="confirm-selection"
+        data-seat="${seat}"
+        ${player.confirmed ? "disabled" : disabledAttr}
+      >
+        ${escapeHtml(buttonLabel)}
+      </button>
+    </div>
   `;
 }
 
