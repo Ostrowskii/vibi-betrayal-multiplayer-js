@@ -790,8 +790,12 @@ function renderBoardScreen(state) {
     <div class="screen board-screen">
       <div class="board-backdrop"></div>
       <div class="board-shell">
-        ${renderCenterStage(state, self)}
-        ${renderLocalHand(state, self)}
+        <div class="board-zone">
+          ${renderCenterStage(state, self)}
+        </div>
+        <div class="hand-zone">
+          ${renderLocalHand(state, self)}
+        </div>
       </div>
       ${overlays.join("")}
     </div>

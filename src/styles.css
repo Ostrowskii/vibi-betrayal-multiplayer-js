@@ -13,6 +13,7 @@
   --pine: #21443c;
   --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
   --enemy-panel-height: clamp(4.9rem, 10dvh, 6.5rem);
+  --board-shell-gap: 0.42rem;
   --center-stage-max-height: 60dvh;
   --center-stage-ratio: 1.724137931;
   --center-row-width-pct: 45.7562%;
@@ -328,8 +329,10 @@ button {
   z-index: 1;
   display: grid;
   justify-items: center;
-  grid-template-rows: auto minmax(0, 1fr);
-  gap: 0.42rem;
+  grid-template-rows:
+    minmax(0, calc((100% - var(--board-shell-gap)) * 0.75))
+    minmax(0, calc((100% - var(--board-shell-gap)) * 0.25));
+  gap: var(--board-shell-gap);
   height: 100dvh;
   min-height: 100dvh;
   width: 100%;
@@ -339,6 +342,24 @@ button {
   background: rgba(19, 14, 10, 0.4);
   backdrop-filter: blur(6px);
   overflow: hidden;
+}
+
+.board-zone,
+.hand-zone {
+  width: 100%;
+  min-height: 0;
+  background: transparent;
+}
+
+.board-zone {
+  display: grid;
+  place-items: center;
+}
+
+.hand-zone {
+  display: grid;
+  align-items: end;
+  justify-items: center;
 }
 
 .player-panel,
@@ -1573,12 +1594,12 @@ button {
 @media (min-width: 900px) {
   :root {
     --enemy-panel-height: clamp(5.2rem, 10dvh, 6.8rem);
+    --board-shell-gap: 0.8rem;
     --card-art-size: 5.8rem;
     --decision-art-size: 8.1rem;
   }
 
   .board-shell {
-    gap: 0.8rem;
     padding: 0.8rem;
   }
 
@@ -1605,12 +1626,12 @@ button {
 @media (max-height: 760px) {
   :root {
     --enemy-panel-height: clamp(4.4rem, 10dvh, 5.3rem);
+    --board-shell-gap: 0.3rem;
     --card-art-size: 4.35rem;
     --decision-art-size: 5.6rem;
   }
 
   .board-shell {
-    gap: 0.3rem;
     padding: 0.34rem;
   }
 

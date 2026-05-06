@@ -203,8 +203,12 @@
     <div class="screen board-screen">
       <div class="board-backdrop"></div>
       <div class="board-shell">
-        ${$t(e,t)}
-        ${on(e,t)}
+        <div class="board-zone">
+          ${$t(e,t)}
+        </div>
+        <div class="hand-zone">
+          ${on(e,t)}
+        </div>
       </div>
       ${n.join(``)}
     </div>
