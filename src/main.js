@@ -34,6 +34,7 @@ const app = {
   viewingTurn: null,
   localPhaseView: null,
   metricAnimations: null,
+  finalBoardReview: false,
 };
 
 const audioPool = new Map();
@@ -407,6 +408,48 @@ function renderRevealSlot(card, handType) {
   `;
 }
 
+function isFinalBoardReview(state) {
+  return Boolean(
+    app.finalBoardReview &&
+      state?.screen === "report" &&
+      state.lastTurnSnapshot,
+  );
+}
+
+function isSummaryView(state) {
+  return Boolean(
+    state?.lastTurnSnapshot &&
+      (app.localPhaseView === "reveal" || isFinalBoardReview(state)),
+  );
+}
+
+function getTurnSummary(state, seat) {
+  return state.lastTurnSnapshot?.reportBySeat?.[seat] ?? {
+    enemyLine: "O inimigo não causou um efeito que precisasse ser relatado.",
+    selfLine: "Sua jogada não causou um efeito que precisasse ser relatado.",
+  };
+}
+
+function renderRoundReport(state, seat) {
+  const summary = getTurnSummary(state, seat);
+
+  return `
+    <section class="round-report">
+      <div class="round-report-kicker">Ultima rodada</div>
+      <div class="round-report-list">
+        <div class="round-report-item">
+          <strong>Inimigo</strong>
+          <p>${escapeHtml(summary.enemyLine)}</p>
+        </div>
+        <div class="round-report-item">
+          <strong>Voce</strong>
+          <p>${escapeHtml(summary.selfLine)}</p>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
 function renderRevealStage(state, self) {
   const enemy = self === "C1" ? "C2" : "C1";
   const snap = state.lastTurnSnapshot;
@@ -436,7 +479,7 @@ function renderRevealStage(state, self) {
 }
 
 function renderCenterStage(state, self) {
-  if (app.localPhaseView === "reveal" && state.lastTurnSnapshot) {
+  if (isSummaryView(state)) {
     return renderRevealStage(state, self);
   }
 
@@ -485,16 +528,16 @@ function renderCenterStage(state, self) {
 
 function renderOwnChoices(state, seat) {
   const player = state.players[seat];
-  const inReveal = app.localPhaseView === "reveal";
+  const summaryView = isSummaryView(state);
   const interactive =
-    !inReveal &&
+    !summaryView &&
     state.screen === "game" &&
     state.phase === "phase_1_selection" &&
     !player.confirmed;
   const currentView = app.panelView === "attack" ? "attack" : "rest";
 
-  const content = inReveal
-    ? ""
+  const content = summaryView
+    ? renderRoundReport(state, seat)
     : currentView === "attack"
       ? renderSelectionGroup({
         cards: visibleAttackCards(),
@@ -514,8 +557,8 @@ function renderOwnChoices(state, seat) {
       });
 
   return `
-    <div class="selection-stack ${inReveal ? "is-reveal" : ""}">
-      <div class="selection-stage">${content}</div>
+    <div class="selection-stack ${summaryView ? "is-reveal" : ""}">
+      <div class="selection-stage ${summaryView ? "is-summary" : ""}">${content}</div>
       <div class="selection-footer">
         ${renderHeaderAction(state, seat)}
       </div>
@@ -525,6 +568,18 @@ function renderOwnChoices(state, seat) {
 
 function renderHeaderAction(state, seat) {
   const player = state.players[seat];
+  if (isFinalBoardReview(state)) {
+    return `
+      <div class="selection-actions is-single">
+        <button
+          class="confirm-button confirm-button-square"
+          data-action="back-to-servers"
+        >
+          Voltar para servidores
+        </button>
+      </div>
+    `;
+  }
   if (app.localPhaseView === "reveal") {
     return `
       <div class="selection-actions is-single">
@@ -688,15 +743,15 @@ function renderReportOverlay(state) {
   return `
     <div class="overlay overlay-report">
       <div class="report-shell">
-        <h2>Relatorio Final</h2>
+        <h2>Fim da Partida</h2>
         <div class="report-row"><span>Turnos</span><strong>${state.turnNumber}</strong></div>
         <div class="report-row"><span>Vencedor</span><strong>${escapeHtml(winnerName)}</strong></div>
         <div class="report-row"><span>Tipo</span><strong>${escapeHtml(
           getVictoryLabel(state.victoryType),
         )}</strong></div>
         <div class="report-actions">
-          <button data-action="report-menu">Menu principal</button>
-          <button class="is-accent" data-action="report-restart">Restart na mesma sala</button>
+          <button class="is-accent" data-action="report-restart">Outra partida</button>
+          <button data-action="open-final-board">Ver tabuleiro</button>
         </div>
       </div>
     </div>
@@ -708,7 +763,9 @@ function renderBoardScreen(state) {
   const overlays = [];
 
   if (state.screen === "winner_transition") overlays.push(renderWinnerOverlay(state));
-  if (state.screen === "report") overlays.push(renderReportOverlay(state));
+  if (state.screen === "report" && !isFinalBoardReview(state)) {
+    overlays.push(renderReportOverlay(state));
+  }
 
   return `
     <div class="screen board-screen">
@@ -897,6 +954,7 @@ function joinRoom() {
   app.panelView = "rest";
   app.state = null;
   app.metricAnimations = null;
+  app.finalBoardReview = false;
   app.menuPage = "user";
   app.session = new MatchSession({ room, user });
   playSound("click", 0.45);
@@ -913,7 +971,29 @@ function backToMenu() {
   app.lastScreen = null;
   app.panelView = "rest";
   app.metricAnimations = null;
+  app.finalBoardReview = false;
   app.menuPage = "user";
+}
+
+function backToServers() {
+  if (app.session) {
+    app.session.close();
+  }
+  app.session = null;
+  app.state = null;
+  app.hadLiveMatch = false;
+  app.lastPhase = null;
+  app.lastScreen = null;
+  app.panelView = "rest";
+  app.viewingTurn = null;
+  app.localPhaseView = null;
+  app.metricAnimations = null;
+  app.finalBoardReview = false;
+  app.notice = "";
+  app.menuPage = "servers";
+  if (!app.selectedServerId && SERVER_CHOICES[0]) {
+    app.selectedServerId = SERVER_CHOICES[0].id;
+  }
 }
 
 function openServerList() {
@@ -934,6 +1014,7 @@ function openServerList() {
 
 function backToUserMenu() {
   app.notice = "";
+  app.finalBoardReview = false;
   app.menuPage = "user";
   playSound("click", 0.35);
 }
@@ -972,6 +1053,10 @@ function handleStateSideEffects(prev, next) {
   } else {
     app.viewingTurn = null;
     app.localPhaseView = null;
+  }
+
+  if (next.screen !== "report") {
+    app.finalBoardReview = false;
   }
 
   if (prev?.phase !== next.phase) {
@@ -1048,6 +1133,10 @@ root.addEventListener("click", (event) => {
     case "back-to-menu":
       backToMenu();
       return;
+    case "back-to-servers":
+      backToServers();
+      playSound("click", 0.45);
+      return;
     case "confirm-selection":
       app.session?.confirmSelection();
       return;
@@ -1061,6 +1150,12 @@ root.addEventListener("click", (event) => {
         app.viewingTurn = app.state.turnNumber;
         app.localPhaseView = "selection";
         playSound("turnConfirm", 0.42);
+      }
+      return;
+    case "open-final-board":
+      if (app.state?.screen === "report" && app.state.lastTurnSnapshot) {
+        app.finalBoardReview = true;
+        playSound("click", 0.42);
       }
       return;
     case "set-panel-view":

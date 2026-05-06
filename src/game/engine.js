@@ -177,6 +177,60 @@ function opposingSeat(seat) {
   return seat === "C1" ? "C2" : "C1";
 }
 
+function createTurnReport() {
+  return {
+    C1: {
+      selfLine: "",
+      enemyLine: "",
+    },
+    C2: {
+      selfLine: "",
+      enemyLine: "",
+    },
+  };
+}
+
+function ensureTurnReport(state) {
+  if (!state.turnReport) {
+    state.turnReport = createTurnReport();
+  }
+  return state.turnReport;
+}
+
+function setTurnReportLine(state, seat, bucket, text) {
+  ensureTurnReport(state)[seat][bucket] = text;
+}
+
+function appendTurnReportLine(state, seat, bucket, text) {
+  if (!text) return;
+  const report = ensureTurnReport(state);
+  const current = report[seat][bucket];
+  report[seat][bucket] = current ? `${current} ${text}` : text;
+}
+
+function finalizeTurnReport(state, resolvedAttackers) {
+  const report = ensureTurnReport(state);
+  const resolvedSet = new Set(resolvedAttackers);
+
+  for (const seat of PLAYER_IDS) {
+    const enemySeat = opposingSeat(seat);
+
+    if (!report[seat].selfLine) {
+      report[seat].selfLine =
+        state.winner && !resolvedSet.has(seat)
+          ? "Sua estratégia não chegou a resolver porque a partida acabou antes."
+          : "Sua jogada não causou um efeito que precisasse ser relatado.";
+    }
+
+    if (!report[seat].enemyLine) {
+      report[seat].enemyLine =
+        state.winner && !resolvedSet.has(enemySeat)
+          ? "O inimigo não chegou a resolver a própria estratégia porque o turno terminou antes."
+          : "O inimigo não causou um efeito que precisasse ser relatado.";
+    }
+  }
+}
+
 function pushAssassinCards(state, attackerId, defenderId, killedKing) {
   const attackerText = killedKing
     ? "Você enviou um assassino e matou o King inimigo."
@@ -194,6 +248,23 @@ function applyAssassin(state, attackerId, defenderId) {
   const defender = state.players[defenderId];
   const defendingCard = normalizeUCType(defender.selectedUC);
   const killedKing = defendingCard === "king";
+
+  setTurnReportLine(
+    state,
+    attackerId,
+    "selfLine",
+    killedKing
+      ? "Você enviou Assassino e matou o King inimigo enquanto ele descansava."
+      : "Você enviou Assassino, mas ele foi executado antes de alcançar o King.",
+  );
+  setTurnReportLine(
+    state,
+    defenderId,
+    "enemyLine",
+    killedKing
+      ? "O inimigo enviou Assassino e matou o seu King enquanto ele descansava."
+      : "O inimigo enviou Assassino, mas ele foi executado antes de alcançar o seu King.",
+  );
 
   pushAssassinCards(state, attackerId, defenderId, killedKing);
 
@@ -229,6 +300,18 @@ function applySpy(state, attackerId, defenderId) {
   );
 
   if (defendingCard === "dummy") {
+    setTurnReportLine(
+      state,
+      attackerId,
+      "selfLine",
+      "Você enviou Spy, mas ele caiu no Dummy e foi preso.",
+    );
+    setTurnReportLine(
+      state,
+      defenderId,
+      "enemyLine",
+      "O inimigo enviou Spy, mas ele caiu no seu Dummy e foi preso.",
+    );
     pushPublicCard(
       state,
       attackerId,
@@ -255,6 +338,18 @@ function applySpy(state, attackerId, defenderId) {
     return;
   }
 
+  setTurnReportLine(
+    state,
+    attackerId,
+    "selfLine",
+    `Você enviou Spy e descobriu que o inimigo descansou com ${UC_LABELS[defendingCard]}.`,
+  );
+  setTurnReportLine(
+    state,
+    defenderId,
+    "enemyLine",
+    `O inimigo enviou Spy e descobriu que você descansou com ${UC_LABELS[defendingCard]}.`,
+  );
   pushPrivateCard(
     state,
     attackerId,
@@ -338,6 +433,18 @@ function applyInvader(state, attackerId, defenderId) {
   applyTradeBlockFromInvader(state, attackerId);
 
   if (defendingCard === "guard") {
+    setTurnReportLine(
+      state,
+      attackerId,
+      "selfLine",
+      "Você enviou Invasor e encontrou o Guard inimigo descansando. O Guard morreu.",
+    );
+    setTurnReportLine(
+      state,
+      defenderId,
+      "enemyLine",
+      "O inimigo enviou Invasor e encontrou seu Guard descansando. O Guard morreu.",
+    );
     defender.ucs.guard.status = "dead";
     pushInvaderCards(state, attackerId, defenderId, defendingCard, guardBefore, null);
     pushLog(state, `${attacker.name} derrubou o Guard de ${defender.name}.`);
@@ -346,21 +453,47 @@ function applyInvader(state, attackerId, defenderId) {
 
   if (defender.ucs.guard.status !== "dead") {
     defender.guardDamage += 2;
+    const guardAfter = defender.guardDamage;
+    const deathSuffix = guardAfter >= 6 ? " O Guard morreu com esse dano." : "";
+    setTurnReportLine(
+      state,
+      attackerId,
+      "selfLine",
+      `Você enviou Invasor. O Guard inimigo defendeu e foi de ${guardBefore} para ${guardAfter} de dano.${deathSuffix}`,
+    );
+    setTurnReportLine(
+      state,
+      defenderId,
+      "enemyLine",
+      `O inimigo enviou Invasor. Seu Guard defendeu e foi de ${guardBefore} para ${guardAfter} de dano.${deathSuffix}`,
+    );
     pushInvaderCards(
       state,
       attackerId,
       defenderId,
       defendingCard,
       guardBefore,
-      defender.guardDamage,
+      guardAfter,
     );
-    if (defender.guardDamage >= 6) {
+    if (guardAfter >= 6) {
       defender.ucs.guard.status = "dead";
       pushLog(state, `O Guard de ${defender.name} caiu por excesso de dano.`);
     }
     return;
   }
 
+  setTurnReportLine(
+    state,
+    attackerId,
+    "selfLine",
+    "Você enviou Invasor enquanto o Guard inimigo já estava morto. O King foi capturado.",
+  );
+  setTurnReportLine(
+    state,
+    defenderId,
+    "enemyLine",
+    "O inimigo enviou Invasor enquanto seu Guard já estava morto. O King foi capturado.",
+  );
   defender.ucs.king.status = "dead";
   pushInvaderCards(state, attackerId, defenderId, defendingCard, guardBefore, null);
   setWinner(
@@ -379,6 +512,18 @@ function applyTribute(state, attackerId, defenderId) {
   attacker.ues.tribute.available = Math.max(0, attacker.ues.tribute.available - 1);
   defender.ues.tribute.available += 1;
   defender.castleTrust = Math.min(3, defender.castleTrust + 1);
+
+  const attackerLine =
+    defender.castleTrust > trustBefore
+      ? `Você enviou Tributo e ganhou 1 confiança com o inimigo (${trustBefore} -> ${defender.castleTrust}).`
+      : `Você enviou Tributo e manteve a confiança do inimigo no máximo (${defender.castleTrust}).`;
+  const defenderLine =
+    defender.castleTrust > trustBefore
+      ? `O inimigo enviou Tributo e ganhou 1 confiança com você (${trustBefore} -> ${defender.castleTrust}).`
+      : `O inimigo enviou Tributo, mas a sua confiança nele já estava no máximo (${defender.castleTrust}).`;
+
+  setTurnReportLine(state, attackerId, "selfLine", attackerLine);
+  setTurnReportLine(state, defenderId, "enemyLine", defenderLine);
 
   pushPublicCard(
     state,
@@ -407,6 +552,18 @@ function applyPoisonedTribute(state, attackerId, defenderId) {
   const trustBefore = defender.castleTrust;
 
   if (defendingCard === "chef") {
+    setTurnReportLine(
+      state,
+      attackerId,
+      "selfLine",
+      "Você enviou Tributo Envenenado e pegou o Cook inimigo descansando. O King foi envenenado.",
+    );
+    setTurnReportLine(
+      state,
+      defenderId,
+      "enemyLine",
+      "O inimigo enviou Tributo Envenenado e pegou seu Cook descansando. O King foi envenenado.",
+    );
     pushPublicCard(
       state,
       attackerId,
@@ -432,6 +589,28 @@ function applyPoisonedTribute(state, attackerId, defenderId) {
 
   defender.castleTrust = Math.max(0, defender.castleTrust - 1);
   attacker.ues.poisoned_tribute.status = "disabled";
+
+  const poisonBlockReason =
+    defender.ucs.chef.status === "dead"
+      ? "o Cook inimigo já estava morto"
+      : "o Cook inimigo não estava descansando";
+  const defendBlockReason =
+    defender.ucs.chef.status === "dead"
+      ? "seu Cook já estava morto"
+      : "seu Cook não estava descansando";
+
+  setTurnReportLine(
+    state,
+    attackerId,
+    "selfLine",
+    `Você enviou Tributo Envenenado, mas ${poisonBlockReason}. A confiança caiu de ${trustBefore} para ${defender.castleTrust}.`,
+  );
+  setTurnReportLine(
+    state,
+    defenderId,
+    "enemyLine",
+    `O inimigo enviou Tributo Envenenado, mas ${defendBlockReason}. Sua confiança caiu de ${trustBefore} para ${defender.castleTrust}.`,
+  );
 
   pushPublicCard(
     state,
@@ -541,6 +720,18 @@ function applyExhaustion(state) {
       player.ucs.chef.exhaustion = 0;
       king.exhaustion = 0;
       king.madnessStage = 1;
+      appendTurnReportLine(
+        state,
+        seat,
+        "selfLine",
+        "Seu King chegou ao limite de exaustão, matou o próprio Cook e zerou a loucura.",
+      );
+      appendTurnReportLine(
+        state,
+        opposingSeat(seat),
+        "enemyLine",
+        "O King inimigo chegou ao limite de exaustão, matou o próprio Cook e zerou a loucura.",
+      );
       pushKingMadnessResetCards(state, seat);
       pushLog(
         state,
@@ -559,6 +750,18 @@ function applyExhaustion(state) {
     const enemy = state.players[enemySeat];
 
     player.ucs.king.status = "dead";
+    appendTurnReportLine(
+      state,
+      seat,
+      "selfLine",
+      "Seu King enlouqueceu ao chegar ao próximo limite de exaustão e você perdeu a partida.",
+    );
+    appendTurnReportLine(
+      state,
+      enemySeat,
+      "enemyLine",
+      "O King inimigo enlouqueceu ao chegar ao próximo limite de exaustão e entregou a vitória para você.",
+    );
     pushKingMadnessLossCards(state, seat);
     setWinner(
       state,
@@ -586,23 +789,31 @@ function captureTurnSnapshot(state) {
       },
     },
     turnView: structuredClone(state.turnView),
+    reportBySeat: structuredClone(state.turnReport ?? createTurnReport()),
+    winner: state.winner,
+    victoryType: state.victoryType,
   };
 }
 
 function resolveTurn(state) {
   prepareTurnView(state);
+  state.turnReport = createTurnReport();
   clearBoard(state);
   state.lastResolvedTurn = state.turnNumber;
+  const resolvedAttackers = [];
 
   resolveInteraction(state, "C1", "C2");
+  resolvedAttackers.push("C1");
 
   if (!state.winner) {
     resolveInteraction(state, "C2", "C1");
+    resolvedAttackers.push("C2");
   }
 
   if (!state.winner) {
     applyExhaustion(state);
     if (!state.winner) {
+      finalizeTurnReport(state, resolvedAttackers);
       updatePoisonAvailability(state);
       pushLog(state, "Resultados do turno prontos.");
       captureTurnSnapshot(state);
@@ -615,6 +826,8 @@ function resolveTurn(state) {
     }
   }
 
+  finalizeTurnReport(state, resolvedAttackers);
+  captureTurnSnapshot(state);
   setPhaseResults(state);
   pushLog(state, "O turno terminou com uma vitória.");
 }
