@@ -14,10 +14,10 @@
   --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
   --enemy-panel-height: clamp(4.9rem, 10dvh, 6.5rem);
   --center-stage-max-height: 60dvh;
-  --center-stage-ratio: 0.8128965517;
-  --center-stage-gap-pct: 2.3076262%;
-  --center-stage-inline-pad-pct: 2.7148545%;
-  --center-slot-width-pct: 46.1355731%;
+  --center-stage-ratio: 1.724137931;
+  --center-stage-gap-pct: 1.088%;
+  --center-stage-inline-pad-pct: 1.28%;
+  --center-slot-width-pct: 21.75%;
   --card-art-size: 5.15rem;
   --decision-art-size: 6.8rem;
   font-family: Baskerville, "Palatino Linotype", "Book Antiqua", serif;
@@ -327,6 +327,7 @@ button {
   position: relative;
   z-index: 1;
   display: grid;
+  justify-items: center;
   grid-template-rows:
     auto
     auto
@@ -335,8 +336,7 @@ button {
   gap: 0.42rem;
   height: 100dvh;
   min-height: 100dvh;
-  width: min(100%, 42rem);
-  max-width: 42rem;
+  width: 100%;
   margin: 0 auto;
   padding: 0.45rem;
   border-radius: 1.4rem;
@@ -372,6 +372,7 @@ button {
   display: flex;
   align-items: end;
   height: 100%;
+  width: min(100%, 42rem);
   grid-template-rows: none;
   overflow: hidden;
 }
@@ -383,6 +384,7 @@ button {
 .player-panel {
   padding: 0.55rem;
   min-height: 0;
+  width: min(100%, 42rem);
 }
 
 .player-enemy {
@@ -946,7 +948,7 @@ button {
   min-height: 0;
   width: min(100%, calc(var(--center-stage-max-height) * var(--center-stage-ratio)));
   max-height: var(--center-stage-max-height);
-  aspect-ratio: 235.74 / 290;
+  aspect-ratio: 500 / 290;
   padding: 0 var(--center-stage-inline-pad-pct);
   justify-self: center;
 }
