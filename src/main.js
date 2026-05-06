@@ -533,34 +533,10 @@ function renderPlayerPanel(state, seat, perspective) {
   const isLocal = perspective === "self";
   const blockValue = player.tradeRouteBlockedThisTurn ? "Bloqueada" : "Livre";
   const roleLabel = isLocal ? "Voce" : "Inimigo";
-
-  if (!isLocal) {
-    return `
-      <section class="player-panel player-enemy">
-        <div class="player-header enemy-header">
-          <div class="enemy-identity">
-            <div class="player-crest enemy-crest">
-              <img src="${getCastleIcon(seat, false)}" alt="${seat}" />
-            </div>
-            <div class="player-heading enemy-heading">
-              <div class="player-name">${escapeHtml(player.name || "Aguardando...")}</div>
-              <div class="enemy-id-line">
-                <div class="player-seat">${roleLabel}</div>
-              </div>
-            </div>
-          </div>
-          <div class="player-meta enemy-meta">
-            ${renderEnemyMetric("Confianca", `${player.castleTrust}/3`, player.castleTrust >= 3)}
-            ${renderEnemyMetric("Guard", `${player.guardDamage}/6`)}
-            ${renderEnemyMetric("Rota", blockValue)}
-          </div>
-        </div>
-      </section>
-    `;
-  }
+  const variantClass = isLocal ? "player-self-info" : "player-enemy";
 
   return `
-    <section class="player-panel player-local">
+    <section class="player-panel ${variantClass}">
       <div class="player-header enemy-header">
         <div class="enemy-identity">
           <div class="player-crest enemy-crest">
@@ -579,7 +555,14 @@ function renderPlayerPanel(state, seat, perspective) {
           ${renderEnemyMetric("Rota", blockValue)}
         </div>
       </div>
-      <div class="player-body">${renderOwnChoices(state, seat)}</div>
+    </section>
+  `;
+}
+
+function renderLocalHand(state, seat) {
+  return `
+    <section class="player-hand player-local">
+      ${renderOwnChoices(state, seat)}
     </section>
   `;
 }
@@ -634,6 +617,7 @@ function renderBoardScreen(state) {
         ${renderPlayerPanel(state, enemy, "enemy")}
         ${renderCenterStage(state, self)}
         ${renderPlayerPanel(state, self, "self")}
+        ${renderLocalHand(state, self)}
       </div>
       ${overlays.join("")}
     </div>

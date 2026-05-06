@@ -324,7 +324,11 @@ button {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-rows: var(--enemy-panel-height) auto minmax(0, 1fr);
+  grid-template-rows:
+    var(--enemy-panel-height)
+    auto
+    var(--enemy-panel-height)
+    minmax(0, 1fr);
   gap: 0.42rem;
   height: 100dvh;
   aspect-ratio: 9 / 16;
@@ -337,7 +341,6 @@ button {
 }
 
 .player-panel,
-.center-stage,
 .report-shell,
 .winner-shell {
   border: 1px solid var(--line-soft);
@@ -345,6 +348,30 @@ button {
   background: var(--bg-panel);
   box-shadow: var(--shadow);
   backdrop-filter: blur(12px);
+}
+
+.center-stage {
+  border: 1px solid var(--line-soft);
+  border-radius: 1.25rem;
+  background: rgba(26, 16, 11, 0.4);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(8px);
+}
+
+.player-self-info {
+  align-self: stretch;
+}
+
+.player-hand.player-local {
+  min-height: 0;
+  display: flex;
+  align-items: end;
+  height: 100%;
+  grid-template-rows: none;
+}
+
+.player-hand .selection-stack {
+  width: 100%;
 }
 
 .player-panel {
@@ -887,26 +914,24 @@ button {
   height: var(--center-slot-height);
   min-width: 0;
   min-height: 0;
-  border-radius: 0.95rem;
-  border: 1px solid var(--line-soft);
+  border: 0;
+  background: transparent;
   overflow: hidden;
 }
 
-.stage-empty-slot {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
-}
-
+.stage-empty-slot,
 .stage-hidden-slot,
 .stage-reveal-slot {
-  background: rgba(10, 7, 5, 0.55);
+  background: transparent;
+  border: 0;
 }
 
 .stage-slot-art {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   display: block;
+  border-radius: 0.55rem;
 }
 
 .stage-choice-button {
