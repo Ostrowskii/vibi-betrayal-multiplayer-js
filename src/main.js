@@ -412,16 +412,24 @@ function renderRevealStage(state, self) {
   const snap = state.lastTurnSnapshot;
   const selfSnap = snap.players[self];
   const enemySnap = snap.players[enemy];
+  const selfPlayer = state.players[self];
+  const enemyPlayer = state.players[enemy];
 
   return `
     <section class="center-stage decision-stage is-reveal">
-      <div class="decision-row is-enemy">
-        ${renderRevealSlot(enemySnap.selectedUE, "ue")}
-        ${renderRevealSlot(enemySnap.selectedUC, "uc")}
+      <div class="stage-lane stage-lane-enemy">
+        <div class="decision-row stage-board-row is-enemy">
+          ${renderRevealSlot(enemySnap.selectedUE, "ue")}
+          ${renderRevealSlot(enemySnap.selectedUC, "uc")}
+        </div>
+        ${renderStageSidebar(enemyPlayer, enemy, "enemy")}
       </div>
-      <div class="decision-row is-self">
-        ${renderRevealSlot(selfSnap.selectedUE, "ue")}
-        ${renderRevealSlot(selfSnap.selectedUC, "uc")}
+      <div class="stage-lane stage-lane-self">
+        ${renderStageSidebar(selfPlayer, self, "self")}
+        <div class="decision-row stage-board-row is-self">
+          ${renderRevealSlot(selfSnap.selectedUE, "ue")}
+          ${renderRevealSlot(selfSnap.selectedUC, "uc")}
+        </div>
       </div>
     </section>
   `;
@@ -445,25 +453,31 @@ function renderCenterStage(state, self) {
 
   return `
     <section class="center-stage decision-stage">
-      <div class="decision-row is-enemy">
-        ${enemySlotUE}
-        ${enemySlotUC}
+      <div class="stage-lane stage-lane-enemy">
+        <div class="decision-row stage-board-row is-enemy">
+          ${enemySlotUE}
+          ${enemySlotUC}
+        </div>
+        ${renderStageSidebar(enemyPlayer, enemy, "enemy")}
       </div>
-      <div class="decision-row is-self">
-        ${renderStageChoiceButton({
-          player,
-          handType: "ue",
-          view: "attack",
-          icon: ASSETS.iconForward,
-          ariaLabel: "Abrir visualização de ataque",
-        })}
-        ${renderStageChoiceButton({
-          player,
-          handType: "uc",
-          view: "rest",
-          icon: ASSETS.iconRest,
-          ariaLabel: "Abrir visualização de descanso",
-        })}
+      <div class="stage-lane stage-lane-self">
+        ${renderStageSidebar(player, self, "self")}
+        <div class="decision-row stage-board-row is-self">
+          ${renderStageChoiceButton({
+            player,
+            handType: "ue",
+            view: "attack",
+            icon: ASSETS.iconForward,
+            ariaLabel: "Abrir visualização de ataque",
+          })}
+          ${renderStageChoiceButton({
+            player,
+            handType: "uc",
+            view: "rest",
+            icon: ASSETS.iconRest,
+            ariaLabel: "Abrir visualização de descanso",
+          })}
+        </div>
       </div>
     </section>
   `;
@@ -564,13 +578,17 @@ function renderMetricDividers(max) {
   }).join("");
 }
 
-function renderStatusMetric(seat, player, metric) {
-  const animation = app.metricAnimations?.[seat]?.[metric.key] ?? {
+function getMetricAnimation(seat, player, metric) {
+  return app.metricAnimations?.[seat]?.[metric.key] ?? {
     prev: player[metric.key] ?? 0,
     current: player[metric.key] ?? 0,
     max: metric.max,
     isIncreasing: false,
   };
+}
+
+function renderStatusMetric(seat, player, metric) {
+  const animation = getMetricAnimation(seat, player, metric);
   const fromPct = pct(animation.isIncreasing ? animation.prev : animation.current, metric.max);
   const toPct = pct(animation.current, metric.max);
   const maxedClass = animation.current >= metric.max ? "is-maxed" : "";
@@ -593,35 +611,33 @@ function renderStatusMetric(seat, player, metric) {
   `;
 }
 
-function renderPlayerMetrics(player, seat) {
-  return METRIC_CONFIG.map((metric) => renderStatusMetric(seat, player, metric)).join("");
-}
-
-function renderPlayerPanel(state, seat, perspective) {
-  const player = state.players[seat];
-  const isLocal = perspective === "self";
-  const roleLabel = isLocal ? "Voce" : "Inimigo";
-  const variantClass = isLocal ? "player-self-info" : "player-enemy";
+function renderStageStatusMetric(seat, player, metric, perspective) {
+  const animation = getMetricAnimation(seat, player, metric);
+  const fromPct = pct(animation.isIncreasing ? animation.prev : animation.current, metric.max);
+  const toPct = pct(animation.current, metric.max);
+  const maxedClass = animation.current >= metric.max ? "is-maxed" : "";
+  const animClass = animation.isIncreasing ? "is-growing" : "";
 
   return `
-    <section class="player-panel ${variantClass}">
-      <div class="player-header enemy-header">
-        <div class="enemy-identity">
-          <div class="player-crest enemy-crest">
-            <img src="${getCastleIcon(seat, false)}" alt="${seat}" />
-          </div>
-          <div class="player-heading enemy-heading">
-            <div class="player-name">${escapeHtml(player.name || "Aguardando...")}</div>
-            <div class="enemy-id-line">
-              <div class="player-seat">${roleLabel}</div>
-            </div>
-          </div>
-        </div>
-        <div class="player-meta enemy-meta">
-          ${renderPlayerMetrics(player, seat)}
-        </div>
+    <div class="stage-metric status-metric ${metric.className} ${maxedClass} is-${perspective}">
+      <div class="stage-metric-label">${escapeHtml(metric.label)}</div>
+      <div
+        class="status-track ${animClass}"
+        style="--status-fill-from: ${fromPct}; --status-fill-to: ${toPct};"
+      >
+        <span class="status-track-fill"></span>
+        ${renderMetricDividers(metric.max)}
       </div>
-    </section>
+    </div>
+  `;
+}
+
+function renderStageSidebar(player, seat, perspective) {
+  return `
+    <aside class="stage-sidebar is-${perspective}">
+      <div class="stage-player-name">${escapeHtml(player.name || "Aguardando...")}</div>
+      ${METRIC_CONFIG.map((metric) => renderStageStatusMetric(seat, player, metric, perspective)).join("")}
+    </aside>
   `;
 }
 
@@ -670,7 +686,7 @@ function renderReportOverlay(state) {
 }
 
 function renderBoardScreen(state) {
-  const { self, enemy } = perspectiveSeats(state);
+  const { self } = perspectiveSeats(state);
   const overlays = [];
 
   if (state.screen === "winner_transition") overlays.push(renderWinnerOverlay(state));
@@ -680,9 +696,7 @@ function renderBoardScreen(state) {
     <div class="screen board-screen">
       <div class="board-backdrop"></div>
       <div class="board-shell">
-        ${renderPlayerPanel(state, enemy, "enemy")}
         ${renderCenterStage(state, self)}
-        ${renderPlayerPanel(state, self, "self")}
         ${renderLocalHand(state, self)}
       </div>
       ${overlays.join("")}
