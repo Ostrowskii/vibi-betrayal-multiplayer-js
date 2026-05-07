@@ -15,8 +15,13 @@
   --enemy-panel-height: clamp(4.9rem, 10dvh, 6.5rem);
   --board-shell-pad-y: 0.45rem;
   --board-shell-gap: 0.42rem;
-  --board-zone-height: calc(75dvh - var(--board-shell-pad-y) - (var(--board-shell-gap) / 2));
-  --hand-zone-height: calc(25dvh - var(--board-shell-pad-y) - (var(--board-shell-gap) / 2));
+  --board-zone-share: 68dvh;
+  --hand-zone-share: 32dvh;
+  --board-zone-height: calc(var(--board-zone-share) - var(--board-shell-pad-y) - (var(--board-shell-gap) / 2));
+  --hand-zone-height: calc(var(--hand-zone-share) - var(--board-shell-pad-y) - (var(--board-shell-gap) / 2));
+  --selection-stack-gap: 0.26rem;
+  --selection-group-frame-height: calc((0.32rem * 2) + 2px);
+  --selection-footer-min-height: 3.35rem;
   --center-stage-max-height: 60dvh;
   --center-stage-ratio: 1.724137931;
   --center-row-width-pct: 45.7562%;
@@ -677,7 +682,7 @@ button {
   min-height: 0;
   height: 100%;
   grid-template-rows: minmax(0, 1fr) auto;
-  gap: 0.26rem;
+  gap: var(--selection-stack-gap);
   align-content: end;
   align-self: end;
 }
@@ -819,16 +824,28 @@ button {
 
 .player-local .selection-strip.is-rest,
 .player-local .selection-strip.is-attack {
+  --local-hand-card-height: min(
+    20dvh,
+    max(
+      0px,
+      calc(
+        var(--hand-zone-height)
+        - var(--selection-footer-min-height)
+        - var(--selection-stack-gap)
+        - var(--selection-group-frame-height)
+      )
+    )
+  );
   display: flex;
   justify-content: center;
   align-items: end;
   gap: 0.28rem;
-  max-height: 20dvh;
+  max-height: var(--local-hand-card-height);
 }
 
 .player-local .selection-strip.is-rest .card-button,
 .player-local .selection-strip.is-attack .card-button {
-  width: min(calc(20dvh * 1086 / 1448), calc((100% - 0.84rem) / 4));
+  width: min(calc(var(--local-hand-card-height) * 1086 / 1448), calc((100% - 0.84rem) / 4));
   aspect-ratio: 1086 / 1448;
   height: auto;
   flex-shrink: 0;
@@ -1631,6 +1648,7 @@ button {
     --enemy-panel-height: clamp(4.4rem, 10dvh, 5.3rem);
     --board-shell-pad-y: 0.34rem;
     --board-shell-gap: 0.3rem;
+    --selection-footer-min-height: 3rem;
     --card-art-size: 4.35rem;
     --decision-art-size: 5.6rem;
   }
