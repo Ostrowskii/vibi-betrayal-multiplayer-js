@@ -256,16 +256,16 @@ function cardExhaustionWarning(player, card, handType) {
     const chefAlive = player.ucs.chef.status !== "dead";
     if (exhaustion >= 5) {
       return chefAlive
-        ? "King no limite: o prximo cansaco vai zerar a exaustao e derrubar o Cook."
+        ? "King no limite: o proximo cansaco vai travar o descanso e derrubar o Cook."
         : "King no limite: o prximo cansaco pode derrubar o King.";
     }
     if (exhaustion >= 4) {
       return chefAlive
-        ? "Se nao descansar, o proximo cansaco vai zerar a exaustao do King e derrubar o Cook."
+        ? "Ks4: so Dummy pode descansar. Se nao descansar, o Cook cai."
         : "Se nao descansar, o proximo cansaco pode derrubar o King.";
     }
     if (exhaustion >= 3) {
-      return "O King esta perto do colapso.";
+      return "Ks4: no proximo cansaco so Dummy vai descansar.";
     }
     return "";
   }
@@ -279,11 +279,11 @@ function cardExhaustionWarning(player, card, handType) {
     }
     if (exhaustion >= 4) {
       return kingAlive
-        ? "Se nao descansar, o proximo cansaco pode derrubar o seu King."
+        ? "Cs4: Betrayl inimiga nao protege mais o Rei."
         : "Se nao descansar, o Cook pode entrar em colapso.";
     }
     if (exhaustion >= 3) {
-      return "Betrayl ja fica bloqueada por cansaco.";
+      return "Cs4: no proximo cansaco, Betrayl inimiga para de proteger o Rei.";
     }
     return "";
   }

@@ -104,11 +104,11 @@ function updatePoisonAvailability(state) {
   const c1TargetTrust = c2Player.castleTrust;
   const c2TargetTrust = c1Player.castleTrust;
   state.players.C1.ues.poisoned_tribute.status =
-    c1TargetTrust >= 3 && c1Player.ucs.chef.status !== "dead" && c1Player.ucs.chef.exhaustion < 3
+    c1TargetTrust >= 3 && c1Player.ucs.chef.status !== "dead" && c1Player.ucs.chef.exhaustion < 4
       ? "active"
       : "disabled";
   state.players.C2.ues.poisoned_tribute.status =
-    c2TargetTrust >= 3 && c2Player.ucs.chef.status !== "dead" && c2Player.ucs.chef.exhaustion < 3
+    c2TargetTrust >= 3 && c2Player.ucs.chef.status !== "dead" && c2Player.ucs.chef.exhaustion < 4
       ? "active"
       : "disabled";
 }
@@ -595,8 +595,9 @@ function applyPoisonedTribute(state, attackerId, defenderId) {
   const defender = state.players[defenderId];
   const defendingCard = normalizeUCType(defender.selectedUC);
   const trustBefore = defender.castleTrust;
+  const chefTooTiredToProtect = defender.ucs.chef.exhaustion >= 4;
 
-  if (defendingCard === "chef") {
+  if (defendingCard === "chef" && !chefTooTiredToProtect) {
     setTurnReportLine(
       state,
       attackerId,
@@ -636,11 +637,15 @@ function applyPoisonedTribute(state, attackerId, defenderId) {
   attacker.ues.poisoned_tribute.status = "disabled";
 
   const poisonBlockReason =
-    defender.ucs.chef.status === "dead"
+    chefTooTiredToProtect
+      ? "o seu Cook estava cansado demais para proteger o Rei"
+      : defender.ucs.chef.status === "dead"
       ? "o Cook inimigo já estava morto"
       : "o Cook inimigo não estava descansando";
   const defendBlockReason =
-    defender.ucs.chef.status === "dead"
+    chefTooTiredToProtect
+      ? "o seu Cook estava cansado demais para proteger o Rei"
+      : defender.ucs.chef.status === "dead"
       ? "seu Cook já estava morto"
       : "seu Cook não estava descansando";
 
@@ -942,6 +947,7 @@ function enterReport(state) {
 
 function canSelectUC(player, card) {
   if (card === "dummy") return true;
+  if (player.ucs.king.exhaustion >= 4) return false;
   return player.ucs[normalizeUCType(card)]?.status !== "dead";
 }
 
