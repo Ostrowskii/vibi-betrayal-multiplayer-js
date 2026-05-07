@@ -258,16 +258,16 @@ function cardExhaustionWarning(player, card, handType) {
     const chefAlive = player.ucs.chef.status !== "dead";
     if (exhaustion >= 5) {
       return chefAlive
-        ? "King no limite: o proximo cansaco vai travar o descanso e derrubar o Cook."
-        : "King no limite: o prximo cansaco pode derrubar o King.";
+        ? "O King esta no limite. Ninguem descansa, exceto o Dummy. Se nao descansar, o Cook cai."
+        : "O King esta no limite. Ninguem descansa, exceto o Dummy. Se nao descansar, o proprio King pode cair.";
     }
     if (exhaustion >= 4) {
       return chefAlive
-        ? "Ks4: so Dummy pode descansar. Se nao descansar, o Cook cai."
-        : "Se nao descansar, o proximo cansaco pode derrubar o King.";
+        ? "O King esta muito cansado. Ninguem descansa, exceto o Dummy. Se nao descansar, o Cook cai."
+        : "O King esta muito cansado. Ninguem descansa, exceto o Dummy. Se nao descansar, o proprio King pode cair.";
     }
     if (exhaustion >= 3) {
-      return "Ks4: no proximo cansaco so Dummy vai descansar.";
+      return "O King esta muito cansado. Se nao descansar, no proximo turno ninguem descansa, exceto o Dummy.";
     }
     return "";
   }
@@ -276,29 +276,29 @@ function cardExhaustionWarning(player, card, handType) {
     const kingAlive = player.ucs.king.status !== "dead";
     if (exhaustion >= 5) {
       return kingAlive
-        ? "Cook no limite: o seu King pode morrer."
-        : "Cook no limite.";
+        ? "O Cook esta no limite. Ele ja nao protege o King contra Betrayl inimiga. Se nao descansar, o seu King pode morrer."
+        : "O Cook esta no limite.";
     }
     if (exhaustion >= 4) {
       return kingAlive
-        ? "Cs4: Betrayl inimiga nao protege mais o Rei."
-        : "Se nao descansar, o Cook pode entrar em colapso.";
+        ? "O Cook esta muito cansado. Ele ja nao protege o King contra Betrayl inimiga. Se nao descansar, o seu King pode morrer."
+        : "O Cook esta muito cansado. Se nao descansar, pode entrar em colapso.";
     }
     if (exhaustion >= 3) {
-      return "Cs4: no proximo cansaco, Betrayl inimiga para de proteger o Rei.";
+      return "O Cook esta muito cansado. Se nao descansar, ele deixa de proteger o King contra Betrayl inimiga.";
     }
     return "";
   }
 
   if (normalizedCard === "guard") {
     if (exhaustion >= 5) {
-      return "Guard esgotado: Invasor passa direto.";
+      return "O Guard esta esgotado. Ele ja nao bloqueia Invasor.";
     }
     if (exhaustion >= 4) {
-      return "Se nao descansar, o proximo Invasor pode passar direto.";
+      return "O Guard esta muito cansado. Invasor ja causa muito mais dano nele. Se nao descansar, ele deixa de bloquear.";
     }
     if (exhaustion >= 3) {
-      return "Invasor vai causar mais dano no Guard.";
+      return "O Guard esta muito cansado. Invasor ja causa mais dano nele.";
     }
     return "";
   }
@@ -711,12 +711,10 @@ function renderRoundReport(state, seat) {
     <section class="round-report">
       <div class="round-report-kicker">Ultima rodada</div>
       <div class="round-report-list">
-        <div class="round-report-item">
-          <strong>Inimigo</strong>
+        <div class="round-report-item is-enemy">
           <p>${escapeHtml(summary.enemyLine)}</p>
         </div>
-        <div class="round-report-item">
-          <strong>Voce</strong>
+        <div class="round-report-item is-self">
           <p>${escapeHtml(summary.selfLine)}</p>
         </div>
         ${

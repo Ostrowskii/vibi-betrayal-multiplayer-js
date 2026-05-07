@@ -766,12 +766,6 @@ button {
   border: 1px solid rgba(255, 216, 164, 0.1);
 }
 
-.round-report-item strong {
-  color: var(--gold-strong);
-  font-size: 0.86rem;
-  line-height: 1;
-}
-
 .round-report-item p {
   margin: 0;
   color: var(--text-muted);
@@ -779,9 +773,28 @@ button {
   line-height: 1.24;
 }
 
+.round-report-item.is-enemy {
+  background: rgba(64, 93, 130, 0.16);
+  border-color: rgba(157, 197, 244, 0.2);
+}
+
+.round-report-item.is-enemy p {
+  color: #d6e6fb;
+}
+
+.round-report-item.is-self {
+  background: rgba(255, 255, 255, 0.03);
+}
+
 .round-report-item-alerts {
   background: rgba(146, 103, 41, 0.08);
   border-color: rgba(255, 216, 164, 0.18);
+}
+
+.round-report-item-alerts strong {
+  color: var(--gold-strong);
+  font-size: 0.86rem;
+  line-height: 1;
 }
 
 .round-report-alert-list {
