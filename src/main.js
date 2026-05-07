@@ -103,8 +103,11 @@ function startAssetPreload() {
     let index = 0;
     const pump = () => {
       if (index >= remaining.length) return;
-      const url = remaining[index++];
-      preloadImage(url).then(() => scheduleIdle(pump));
+      const batch = remaining.slice(index, index + 4);
+      index += batch.length;
+      Promise.allSettled(batch.map((url) => preloadImage(url))).then(() =>
+        scheduleIdle(pump),
+      );
     };
     scheduleIdle(pump);
   });
@@ -1231,5 +1234,7 @@ window.addEventListener("keydown", (event) => {
     playSound("click", 0.35);
   }
 });
+
+startAssetPreload();
 
 update();
