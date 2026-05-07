@@ -1150,6 +1150,7 @@ function getRenderKey() {
 function renderNow(force = false) {
   if (app.session) {
     const nextState = app.session.computeState();
+    app.session.ensureJoined(nextState);
     handleStateSideEffects(app.state, nextState);
     app.state = nextState;
   }

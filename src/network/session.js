@@ -10,6 +10,7 @@ export class MatchSession {
     this.onSync = onSync;
     this.synced = false;
     this.joinPosted = false;
+    this.lastJoinPostAt = 0;
     this.leavePosted = false;
     this.closeTimer = null;
     this.createdAt = Date.now();
@@ -33,12 +34,18 @@ export class MatchSession {
 
     this.game.on_sync(() => {
       this.synced = true;
-      if (!this.joinPosted) {
-        this.game.post({ $: "join", user: this.user });
-        this.joinPosted = true;
-      }
-      this.onSync?.();
+      this.postJoin();
+      window.setTimeout(() => this.onSync?.(), 0);
     });
+  }
+
+  postJoin(force = false) {
+    if (!this.synced) return false;
+    if (this.joinPosted && !force) return false;
+    this.game.post({ $: "join", user: this.user });
+    this.joinPosted = true;
+    this.lastJoinPostAt = Date.now();
+    return true;
   }
 
   computeState() {
@@ -54,6 +61,14 @@ export class MatchSession {
       return this.placeholderState;
     }
     return this.game.compute_render_state();
+  }
+
+  ensureJoined(state) {
+    if (!this.synced) return false;
+    if (state?.roster?.includes(this.user)) return false;
+    if ((state?.roster?.length ?? 0) >= 2) return false;
+    if (Date.now() - this.lastJoinPostAt < 1200) return false;
+    return this.postJoin(true);
   }
 
   leave() {
