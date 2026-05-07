@@ -531,9 +531,7 @@ function renderStageChoiceButton({ player, handType, view, ariaLabel }) {
   const selectedCard =
     handType === "uc"
       ? normalizeUCType(player.selectedUC)
-      : player.selectedUE === "poisoned_tribute"
-        ? null
-        : player.selectedUE;
+      : player.selectedUE;
   const label = selectedCard
     ? handType === "uc"
       ? UC_LABELS[selectedCard]
