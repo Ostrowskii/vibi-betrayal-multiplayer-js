@@ -942,6 +942,13 @@ function getMetricAnimation(seat, player, metric) {
   };
 }
 
+function resolveStageMetricSource(seat, metricKey) {
+  if (metricKey === "castleTrust") {
+    return seat === "C1" ? "C2" : "C1";
+  }
+  return seat;
+}
+
 function renderStatusMetric(seat, player, metric) {
   const animation = getMetricAnimation(seat, player, metric);
   const fromPct = pct(animation.isIncreasing ? animation.prev : animation.current, metric.max);
@@ -966,8 +973,8 @@ function renderStatusMetric(seat, player, metric) {
   `;
 }
 
-function renderStageStatusMetric(seat, player, metric, perspective) {
-  const animation = getMetricAnimation(seat, player, metric);
+function renderStageStatusMetric(sourceSeat, sourcePlayer, metric, perspective) {
+  const animation = getMetricAnimation(sourceSeat, sourcePlayer, metric);
   const fromPct = pct(animation.isIncreasing ? animation.prev : animation.current, metric.max);
   const toPct = pct(animation.current, metric.max);
   const maxedClass = animation.current >= metric.max ? "is-maxed" : "";
@@ -988,10 +995,16 @@ function renderStageStatusMetric(seat, player, metric, perspective) {
 }
 
 function renderStageSidebar(player, seat, perspective) {
+  const trustSeat = resolveStageMetricSource(seat, "castleTrust");
+  const trustPlayer = trustSeat === seat ? player : app.state.players[trustSeat];
+  const guardSeat = resolveStageMetricSource(seat, "guardDamage");
+  const guardPlayer = guardSeat === seat ? player : app.state.players[guardSeat];
+
   return `
     <aside class="stage-sidebar is-${perspective}">
       <div class="stage-player-name">${escapeHtml(player.name || "Aguardando...")}</div>
-      ${METRIC_CONFIG.map((metric) => renderStageStatusMetric(seat, player, metric, perspective)).join("")}
+      ${renderStageStatusMetric(trustSeat, trustPlayer, METRIC_CONFIG[0], perspective)}
+      ${renderStageStatusMetric(guardSeat, guardPlayer, METRIC_CONFIG[1], perspective)}
     </aside>
   `;
 }

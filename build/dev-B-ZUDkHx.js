@@ -161,7 +161,7 @@
         ${q(a)}
       </button>
     </div>
-  `}function vn(e){return Array.from({length:e-1},(t,n)=>`<span class="status-track-divider" style="left: ${((n+1)/e*100).toFixed(3)}%"></span>`).join(``)}function yn(e,t,n){return K.metricAnimations?.[e]?.[n.key]??{prev:t[n.key]??0,current:t[n.key]??0,max:n.max,isIncreasing:!1}}function bn(e,t,n,r){let i=yn(e,t,n),a=Bt(i.isIncreasing?i.prev:i.current,n.max),o=Bt(i.current,n.max),s=i.current>=n.max?`is-maxed`:``,c=i.isIncreasing?`is-growing`:``;return`
+  `}function vn(e){return Array.from({length:e-1},(t,n)=>`<span class="status-track-divider" style="left: ${((n+1)/e*100).toFixed(3)}%"></span>`).join(``)}function yn(e,t,n){return K.metricAnimations?.[e]?.[n.key]??{prev:t[n.key]??0,current:t[n.key]??0,max:n.max,isIncreasing:!1}}function bn(e,t){return t===`castleTrust`?e===`C1`?`C2`:`C1`:e}function xn(e,t,n,r){let i=yn(e,t,n),a=Bt(i.isIncreasing?i.prev:i.current,n.max),o=Bt(i.current,n.max),s=i.current>=n.max?`is-maxed`:``,c=i.isIncreasing?`is-growing`:``;return`
     <div class="stage-metric status-metric ${n.className} ${s} is-${r}">
       <div class="stage-metric-label">${q(n.label)}</div>
       <div
@@ -172,16 +172,17 @@
         ${vn(n.max)}
       </div>
     </div>
-  `}function $(e,t,n){return`
+  `}function $(e,t,n){let r=bn(t,`castleTrust`),i=r===t?e:K.state.players[r],a=bn(t,`guardDamage`),o=a===t?e:K.state.players[a];return`
     <aside class="stage-sidebar is-${n}">
       <div class="stage-player-name">${q(e.name||`Aguardando...`)}</div>
-      ${wt.map(r=>bn(t,e,r,n)).join(``)}
+      ${xn(r,i,wt[0],n)}
+      ${xn(a,o,wt[1],n)}
     </aside>
-  `}function xn(e,t){return`
+  `}function Sn(e,t){return`
     <section class="player-hand player-local">
       ${gn(e,t)}
     </section>
-  `}function Sn(e){let n=e.players[e.winner]?.name||e.winner;return`
+  `}function Cn(e){let n=e.players[e.winner]?.name||e.winner;return`
     <div class="overlay overlay-winner" data-action="continue-winner">
       <div class="winner-shell">
         <img class="winner-title" src="${t.textWinner}" alt="Winner" />
@@ -191,7 +192,7 @@
         <span class="overlay-hint">toque ou pressione qualquer tecla</span>
       </div>
     </div>
-  `}function Cn(e){let t=e.players[e.winner]?.name||e.winner||`Ninguem`;return`
+  `}function wn(e){let t=e.players[e.winner]?.name||e.winner||`Ninguem`;return`
     <div class="overlay overlay-report">
       <div class="report-shell">
         <h2>Fim da Partida</h2>
@@ -204,7 +205,7 @@
         </div>
       </div>
     </div>
-  `}function wn(e){let{self:t}=Lt(e),n=[],r=e.screen===`game`;return e.screen===`winner_transition`&&n.push(Sn(e)),e.screen===`report`&&!Q(e)&&n.push(Cn(e)),`
+  `}function Tn(e){let{self:t}=Lt(e),n=[],r=e.screen===`game`;return e.screen===`winner_transition`&&n.push(Cn(e)),e.screen===`report`&&!Q(e)&&n.push(wn(e)),`
     <div class="screen board-screen">
       <div class="board-backdrop"></div>
       <div class="board-shell ${r?`has-surrender`:``}">
@@ -222,12 +223,12 @@
           ${hn(e,t)}
         </div>
         <div class="hand-zone">
-          ${xn(e,t)}
+          ${Sn(e,t)}
         </div>
       </div>
       ${n.join(``)}
     </div>
-  `}function Tn(e){let n=!K.session?.synced,r=e.roster.length?e.roster.map((e,t)=>`<div class="lobby-name">${t+1}. ${q(e)}</div>`).join(``):`<div class="lobby-name">Nenhum jogador na sala ainda.</div>`;return`
+  `}function En(e){let n=!K.session?.synced,r=e.roster.length?e.roster.map((e,t)=>`<div class="lobby-name">${t+1}. ${q(e)}</div>`).join(``):`<div class="lobby-name">Nenhum jogador na sala ainda.</div>`;return`
     <div class="screen menu-screen">
       <div class="menu-backdrop"></div>
       <div class="menu-shell">
@@ -240,7 +241,7 @@
         </div>
       </div>
     </div>
-  `}function En(e){let n=e.roster.length?e.roster.map((e,t)=>`<div class="lobby-name">${t+1}. ${q(e)}</div>`).join(``):`<div class="lobby-name">Nenhum jogador confirmado nesta sala.</div>`,r=e.roster.length>=2?`Sala ocupada`:`Voce nao entrou nessa partida`,i=e.roster.length>=2?`Essa sala ja tem dois jogadores. Use outra sala ou reinicie a partida existente.`:`Seu navegador sincronizou a sala, mas este usuario nao virou um dos dois jogadores ativos.`;return`
+  `}function Dn(e){let n=e.roster.length?e.roster.map((e,t)=>`<div class="lobby-name">${t+1}. ${q(e)}</div>`).join(``):`<div class="lobby-name">Nenhum jogador confirmado nesta sala.</div>`,r=e.roster.length>=2?`Sala ocupada`:`Voce nao entrou nessa partida`,i=e.roster.length>=2?`Essa sala ja tem dois jogadores. Use outra sala ou reinicie a partida existente.`:`Seu navegador sincronizou a sala, mas este usuario nao virou um dos dois jogadores ativos.`;return`
     <div class="screen menu-screen">
       <div class="menu-backdrop"></div>
       <div class="menu-shell">
@@ -254,7 +255,7 @@
         </div>
       </div>
     </div>
-  `}function Dn(){return`
+  `}function On(){return`
     <div class="screen menu-screen">
       <div class="menu-backdrop"></div>
       <div class="menu-shell">
@@ -277,7 +278,7 @@
         </div>
       </div>
     </div>
-  `}function On(){return M.find(e=>e.id===K.selectedServerId)??null}function kn(){let e=It(),n=On();return`
+  `}function kn(){return M.find(e=>e.id===K.selectedServerId)??null}function An(){let e=It(),n=kn();return`
     <div class="screen menu-screen">
       <div class="menu-backdrop"></div>
       <div class="menu-shell">
@@ -309,4 +310,4 @@
         </div>
       </div>
     </div>
-  `}function An(){return!K.session||!K.state?K.menuPage===`servers`?kn():Dn():K.session.synced&&K.state.roster.length>=2&&!Y(K.state)?En(K.state):K.state.screen===`lobby`?Tn(K.state):wn(K.state)}function jn(){let e=K.form.user.trim(),t=K.form.room.trim();if(!e||!t){K.notice=`Preencha usuario e selecione um servidor.`,J(`invalid`,.55);return}K.session&&K.session.close(),K.notice=``,K.hadLiveMatch=!1,K.lastPhase=null,K.lastScreen=null,X(`rest`),Kt(),K.state=null,K.metricAnimations=null,K.finalBoardReview=!1,K.menuPage=`user`,K.session=new St({room:t,user:e}),J(`click`,.45)}function Mn(){K.session&&K.session.close(),K.session=null,K.state=null,K.hadLiveMatch=!1,K.lastPhase=null,K.lastScreen=null,X(`rest`),Kt(),K.metricAnimations=null,K.finalBoardReview=!1,K.menuPage=`user`}function Nn(){K.session&&K.session.close(),K.session=null,K.state=null,K.hadLiveMatch=!1,K.lastPhase=null,K.lastScreen=null,X(`rest`),Kt(),K.viewingTurn=null,K.localPhaseView=null,K.metricAnimations=null,K.finalBoardReview=!1,K.notice=``,K.menuPage=`servers`,!K.selectedServerId&&M[0]&&(K.selectedServerId=M[0].id)}function Pn(){if(!K.form.user.trim()){K.notice=`Preencha usuario.`,J(`invalid`,.55);return}K.notice=``,K.menuPage=`servers`,!K.selectedServerId&&M[0]&&(K.selectedServerId=M[0].id),Mt(),J(`click`,.35)}function Fn(){K.notice=``,K.finalBoardReview=!1,K.menuPage=`user`,J(`click`,.35)}function In(){let e=On();if(!e){K.notice=`Selecione um servidor.`,J(`invalid`,.55);return}K.form.room=e.room,jn()}function Ln(e,t){if(t){if((t.screen===`game`||t.screen===`winner_transition`||t.screen===`report`)&&(K.hadLiveMatch=!0),t.screen===`game`?K.viewingTurn===null?(K.viewingTurn=t.turnNumber,K.localPhaseView=`selection`):t.lastTurnSnapshot&&t.lastTurnSnapshot.turnNumber===K.viewingTurn&&t.turnNumber>K.viewingTurn&&K.localPhaseView!==`reveal`&&(K.localPhaseView=`reveal`,J(`place`,.5)):(K.viewingTurn=null,K.localPhaseView=null),t.screen!==`report`&&(K.finalBoardReview=!1),e?.phase!==t.phase&&(t.phase===`phase_0_start_effects`&&J(`turnStart`,.45),t.phase===`phase_2_results`&&J(`place`,.5)),e?.screen!==t.screen){let e=Y(t);t.screen===`winner_transition`&&J(t.winner===e?`victory`:`defeat`,.6)}K.hadLiveMatch&&t.screen===`lobby`&&t.roster.length===0&&(Mn(),K.notice=`A partida voltou ao menu compartilhado.`)}}function Rn(){if(K.session){let e=K.session.computeState();K.metricAnimations=Vt(K.state,e),Ln(K.state,e),K.state=e}let e=An();if(e!==K.lastMarkup){let t=Nt();G.innerHTML=e,K.lastMarkup=e,Ft(),Pt(t)}requestAnimationFrame(Rn)}G.addEventListener(`input`,e=>{let t=e.target.dataset.field;t&&(K.form[t]=e.target.value)}),G.addEventListener(`click`,e=>{let t=e.target.closest(`[data-action]`);if(!t)return;let{action:n,card:r,view:i}=t.dataset;switch(n){case`open-server-list`:Pn();return;case`back-to-user-menu`:Fn();return;case`connect-selected-server`:In();return;case`select-server`:if(!t.dataset.serverId)return;K.selectedServerId=t.dataset.serverId,J(`click`,.22);return;case`back-to-menu`:Mn();return;case`back-to-servers`:Nn(),J(`click`,.45);return;case`surrender-game`:Nn(),J(`click`,.35);return;case`confirm-selection`:K.session?.confirmSelection();return;case`advance-turn`:K.session?.advanceTurn()&&J(`turnConfirm`,.42);return;case`advance-local-view`:K.localPhaseView===`reveal`&&K.state&&(K.viewingTurn=K.state.turnNumber,K.localPhaseView=`selection`,J(`turnConfirm`,.42));return;case`open-final-board`:K.state?.screen===`report`&&K.state.lastTurnSnapshot&&(K.finalBoardReview=!0,J(`click`,.42));return;case`set-panel-view`:if(!i)return;X(i);return;case`select-uc`:K.session?.selectUC(r)&&J(`select`,.45);return;case`select-ue`:K.session?.selectUE(r)&&J(`select`,.45);return;case`continue-winner`:K.session?.continueWinner()&&J(`click`,.4);return;case`report-menu`:K.session?.reportAction(`menu`)&&J(`click`,.45);return;case`report-restart`:K.session?.reportAction(`restart`)&&J(`turnConfirm`,.45);return}}),window.addEventListener(`beforeunload`,()=>{K.session?.leave(),K.serverDirectory?.close()}),window.addEventListener(`keydown`,e=>{e.repeat||rn(e)||K.state?.screen===`winner_transition`&&(K.session?.continueWinner(),J(`click`,.35))}),Rn();
+  `}function jn(){return!K.session||!K.state?K.menuPage===`servers`?An():On():K.session.synced&&K.state.roster.length>=2&&!Y(K.state)?Dn(K.state):K.state.screen===`lobby`?En(K.state):Tn(K.state)}function Mn(){let e=K.form.user.trim(),t=K.form.room.trim();if(!e||!t){K.notice=`Preencha usuario e selecione um servidor.`,J(`invalid`,.55);return}K.session&&K.session.close(),K.notice=``,K.hadLiveMatch=!1,K.lastPhase=null,K.lastScreen=null,X(`rest`),Kt(),K.state=null,K.metricAnimations=null,K.finalBoardReview=!1,K.menuPage=`user`,K.session=new St({room:t,user:e}),J(`click`,.45)}function Nn(){K.session&&K.session.close(),K.session=null,K.state=null,K.hadLiveMatch=!1,K.lastPhase=null,K.lastScreen=null,X(`rest`),Kt(),K.metricAnimations=null,K.finalBoardReview=!1,K.menuPage=`user`}function Pn(){K.session&&K.session.close(),K.session=null,K.state=null,K.hadLiveMatch=!1,K.lastPhase=null,K.lastScreen=null,X(`rest`),Kt(),K.viewingTurn=null,K.localPhaseView=null,K.metricAnimations=null,K.finalBoardReview=!1,K.notice=``,K.menuPage=`servers`,!K.selectedServerId&&M[0]&&(K.selectedServerId=M[0].id)}function Fn(){if(!K.form.user.trim()){K.notice=`Preencha usuario.`,J(`invalid`,.55);return}K.notice=``,K.menuPage=`servers`,!K.selectedServerId&&M[0]&&(K.selectedServerId=M[0].id),Mt(),J(`click`,.35)}function In(){K.notice=``,K.finalBoardReview=!1,K.menuPage=`user`,J(`click`,.35)}function Ln(){let e=kn();if(!e){K.notice=`Selecione um servidor.`,J(`invalid`,.55);return}K.form.room=e.room,Mn()}function Rn(e,t){if(t){if((t.screen===`game`||t.screen===`winner_transition`||t.screen===`report`)&&(K.hadLiveMatch=!0),t.screen===`game`?K.viewingTurn===null?(K.viewingTurn=t.turnNumber,K.localPhaseView=`selection`):t.lastTurnSnapshot&&t.lastTurnSnapshot.turnNumber===K.viewingTurn&&t.turnNumber>K.viewingTurn&&K.localPhaseView!==`reveal`&&(K.localPhaseView=`reveal`,J(`place`,.5)):(K.viewingTurn=null,K.localPhaseView=null),t.screen!==`report`&&(K.finalBoardReview=!1),e?.phase!==t.phase&&(t.phase===`phase_0_start_effects`&&J(`turnStart`,.45),t.phase===`phase_2_results`&&J(`place`,.5)),e?.screen!==t.screen){let e=Y(t);t.screen===`winner_transition`&&J(t.winner===e?`victory`:`defeat`,.6)}K.hadLiveMatch&&t.screen===`lobby`&&t.roster.length===0&&(Nn(),K.notice=`A partida voltou ao menu compartilhado.`)}}function zn(){if(K.session){let e=K.session.computeState();K.metricAnimations=Vt(K.state,e),Rn(K.state,e),K.state=e}let e=jn();if(e!==K.lastMarkup){let t=Nt();G.innerHTML=e,K.lastMarkup=e,Ft(),Pt(t)}requestAnimationFrame(zn)}G.addEventListener(`input`,e=>{let t=e.target.dataset.field;t&&(K.form[t]=e.target.value)}),G.addEventListener(`click`,e=>{let t=e.target.closest(`[data-action]`);if(!t)return;let{action:n,card:r,view:i}=t.dataset;switch(n){case`open-server-list`:Fn();return;case`back-to-user-menu`:In();return;case`connect-selected-server`:Ln();return;case`select-server`:if(!t.dataset.serverId)return;K.selectedServerId=t.dataset.serverId,J(`click`,.22);return;case`back-to-menu`:Nn();return;case`back-to-servers`:Pn(),J(`click`,.45);return;case`surrender-game`:Pn(),J(`click`,.35);return;case`confirm-selection`:K.session?.confirmSelection();return;case`advance-turn`:K.session?.advanceTurn()&&J(`turnConfirm`,.42);return;case`advance-local-view`:K.localPhaseView===`reveal`&&K.state&&(K.viewingTurn=K.state.turnNumber,K.localPhaseView=`selection`,J(`turnConfirm`,.42));return;case`open-final-board`:K.state?.screen===`report`&&K.state.lastTurnSnapshot&&(K.finalBoardReview=!0,J(`click`,.42));return;case`set-panel-view`:if(!i)return;X(i);return;case`select-uc`:K.session?.selectUC(r)&&J(`select`,.45);return;case`select-ue`:K.session?.selectUE(r)&&J(`select`,.45);return;case`continue-winner`:K.session?.continueWinner()&&J(`click`,.4);return;case`report-menu`:K.session?.reportAction(`menu`)&&J(`click`,.45);return;case`report-restart`:K.session?.reportAction(`restart`)&&J(`turnConfirm`,.45);return}}),window.addEventListener(`beforeunload`,()=>{K.session?.leave(),K.serverDirectory?.close()}),window.addEventListener(`keydown`,e=>{e.repeat||rn(e)||K.state?.screen===`winner_transition`&&(K.session?.continueWinner(),J(`click`,.35))}),zn();
