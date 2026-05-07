@@ -39,6 +39,12 @@ const app = {
   lastRenderKey: "",
 };
 
+const ACTIVE_GAME_REFRESH_MS = Math.max(40, Math.round(1000 / TICK_RATE));
+const LOBBY_REFRESH_MS = 180;
+const STATIC_SESSION_REFRESH_MS = 260;
+const SERVER_LIST_REFRESH_MS = 800;
+const HIDDEN_REFRESH_MS = 1200;
+
 const audioPool = new Map();
 const METRIC_CONFIG = [
   { key: "castleTrust", label: "Confianca", max: 3, className: "is-trust" },
@@ -967,7 +973,11 @@ function joinRoom() {
   app.state = null;
   app.finalBoardReview = false;
   app.menuPage = "user";
-  app.session = new MatchSession({ room, user });
+  app.session = new MatchSession({
+    room,
+    user,
+    onSync: () => refreshAndSchedule(true),
+  });
   playSound("click", 0.45);
   refreshAndSchedule(true);
 }
@@ -1100,11 +1110,23 @@ function handleStateSideEffects(prev, next) {
 }
 
 function getRefreshDelayMs() {
+  if (document.hidden) {
+    return app.session || app.menuPage === "servers" ? HIDDEN_REFRESH_MS : null;
+  }
+
   if (app.session) {
-    return Math.max(40, Math.round(1000 / TICK_RATE));
+    if (!app.session.synced) return LOBBY_REFRESH_MS;
+
+    if (app.state?.screen === "game" || app.state?.screen === "winner_transition") {
+      return ACTIVE_GAME_REFRESH_MS;
+    }
+
+    return app.state?.screen === "lobby"
+      ? LOBBY_REFRESH_MS
+      : STATIC_SESSION_REFRESH_MS;
   }
   if (app.menuPage === "servers") {
-    return 400;
+    return SERVER_LIST_REFRESH_MS;
   }
   return null;
 }
@@ -1278,6 +1300,18 @@ root.addEventListener("click", (event) => {
 window.addEventListener("beforeunload", () => {
   app.session?.leave();
   app.serverDirectory?.close();
+});
+
+window.addEventListener("visibilitychange", () => {
+  if (!document.hidden) {
+    refreshAndSchedule(true);
+  } else {
+    scheduleRefresh();
+  }
+});
+
+window.addEventListener("focus", () => {
+  refreshAndSchedule(true);
 });
 
 window.addEventListener("keydown", (event) => {
