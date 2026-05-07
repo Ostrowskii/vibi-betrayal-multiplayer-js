@@ -173,9 +173,10 @@ function playSound(key, volume = 0.7) {
 }
 
 function localSeat(state) {
-  if (!state || !app.form.user) return null;
-  if (state.players.C1.name === app.form.user) return "C1";
-  if (state.players.C2.name === app.form.user) return "C2";
+  const user = app.session?.user ?? app.form.user.trim();
+  if (!state || !user) return null;
+  if (state.players.C1.name === user) return "C1";
+  if (state.players.C2.name === user) return "C2";
   return null;
 }
 
@@ -996,6 +997,8 @@ function joinRoom() {
   }
 
   app.notice = "";
+  app.form.user = user;
+  app.form.room = room;
   app.hadLiveMatch = false;
   app.lastPhase = null;
   app.lastScreen = null;

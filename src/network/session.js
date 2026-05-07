@@ -3,6 +3,10 @@ import { gameConfig } from "../game/engine.js";
 import { VIBINET_SERVER_LABEL, VIBINET_SERVER_URL } from "./config.js";
 import { packer } from "./packer.js";
 
+function isLobbyState(state) {
+  return state?.screen === "lobby";
+}
+
 export class MatchSession {
   constructor({ room, user }) {
     this.room = room;
@@ -51,7 +55,14 @@ export class MatchSession {
       }
       return this.placeholderState;
     }
-    return this.game.compute_render_state();
+    const currentState = this.game.compute_current_state();
+    const renderState = this.game.compute_render_state();
+
+    if (isLobbyState(currentState) || isLobbyState(renderState)) {
+      return currentState;
+    }
+
+    return renderState;
   }
 
   leave() {
