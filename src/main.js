@@ -2,6 +2,7 @@ import "./styles.css";
 
 import { ASSETS } from "./assets.js";
 import {
+  TICK_RATE,
   normalizeUCType,
   UC_LABELS,
   UC_TYPES,
@@ -33,8 +34,9 @@ const app = {
   panelView: "rest",
   viewingTurn: null,
   localPhaseView: null,
-  metricAnimations: null,
   finalBoardReview: false,
+  refreshTimer: null,
+  lastRenderKey: "",
 };
 
 const audioPool = new Map();
@@ -204,31 +206,6 @@ function pct(value, max) {
   const safeMax = Math.max(1, max);
   const safeValue = Math.max(0, Math.min(safeMax, value));
   return `${((safeValue / safeMax) * 100).toFixed(3)}%`;
-}
-
-function buildMetricAnimations(prevState, nextState) {
-  if (!nextState?.players) return null;
-  const seats = ["C1", "C2"];
-  const animations = {};
-
-  for (const seat of seats) {
-    const nextPlayer = nextState.players[seat];
-    const prevPlayer = prevState?.players?.[seat] ?? nextPlayer;
-    animations[seat] = {};
-
-    for (const metric of METRIC_CONFIG) {
-      const current = nextPlayer[metric.key] ?? 0;
-      const prev = prevPlayer[metric.key] ?? current;
-      animations[seat][metric.key] = {
-        prev,
-        current,
-        max: metric.max,
-        isIncreasing: current > prev,
-      };
-    }
-  }
-
-  return animations;
 }
 
 function cardCountBadge(player, card) {
@@ -679,31 +656,20 @@ function renderMetricDividers(max) {
   }).join("");
 }
 
-function getMetricAnimation(seat, player, metric) {
-  return app.metricAnimations?.[seat]?.[metric.key] ?? {
-    prev: player[metric.key] ?? 0,
-    current: player[metric.key] ?? 0,
-    max: metric.max,
-    isIncreasing: false,
-  };
-}
-
 function renderStatusMetric(seat, player, metric) {
-  const animation = getMetricAnimation(seat, player, metric);
-  const fromPct = pct(animation.isIncreasing ? animation.prev : animation.current, metric.max);
-  const toPct = pct(animation.current, metric.max);
-  const maxedClass = animation.current >= metric.max ? "is-maxed" : "";
-  const animClass = animation.isIncreasing ? "is-growing" : "";
+  const current = player[metric.key] ?? 0;
+  const toPct = pct(current, metric.max);
+  const maxedClass = current >= metric.max ? "is-maxed" : "";
 
   return `
     <div class="enemy-metric status-metric ${metric.className} ${maxedClass}">
       <div class="status-metric-head">
         <span class="enemy-metric-label status-metric-label">${escapeHtml(metric.label)}</span>
-        <strong class="enemy-metric-value status-metric-value">${animation.current}/${metric.max}</strong>
+        <strong class="enemy-metric-value status-metric-value">${current}/${metric.max}</strong>
       </div>
       <div
-        class="status-track ${animClass}"
-        style="--status-fill-from: ${fromPct}; --status-fill-to: ${toPct};"
+        class="status-track"
+        style="--status-fill-to: ${toPct};"
       >
         <span class="status-track-fill"></span>
         ${renderMetricDividers(metric.max)}
@@ -713,18 +679,16 @@ function renderStatusMetric(seat, player, metric) {
 }
 
 function renderStageStatusMetric(sourceSeat, sourcePlayer, metric, perspective) {
-  const animation = getMetricAnimation(sourceSeat, sourcePlayer, metric);
-  const fromPct = pct(animation.isIncreasing ? animation.prev : animation.current, metric.max);
-  const toPct = pct(animation.current, metric.max);
-  const maxedClass = animation.current >= metric.max ? "is-maxed" : "";
-  const animClass = animation.isIncreasing ? "is-growing" : "";
+  const current = sourcePlayer[metric.key] ?? 0;
+  const toPct = pct(current, metric.max);
+  const maxedClass = current >= metric.max ? "is-maxed" : "";
 
   return `
     <div class="stage-metric status-metric ${metric.className} ${maxedClass} is-${perspective}">
       <div class="stage-metric-label">${escapeHtml(metric.label)}</div>
       <div
-        class="status-track ${animClass}"
-        style="--status-fill-from: ${fromPct}; --status-fill-to: ${toPct};"
+        class="status-track"
+        style="--status-fill-to: ${toPct};"
       >
         <span class="status-track-fill"></span>
         ${renderMetricDividers(metric.max)}
@@ -988,6 +952,7 @@ function joinRoom() {
   if (!user || !room) {
     app.notice = "Preencha usuario e selecione um servidor.";
     playSound("invalid", 0.55);
+    refreshAndSchedule(true);
     return;
   }
 
@@ -1001,24 +966,24 @@ function joinRoom() {
   app.lastScreen = null;
   app.panelView = "rest";
   app.state = null;
-  app.metricAnimations = null;
   app.finalBoardReview = false;
   app.menuPage = "user";
   app.session = new MatchSession({ room, user });
   playSound("click", 0.45);
+  refreshAndSchedule(true);
 }
 
 function backToMenu() {
   if (app.session) {
     app.session.close();
   }
+  clearRefreshTimer();
   app.session = null;
   app.state = null;
   app.hadLiveMatch = false;
   app.lastPhase = null;
   app.lastScreen = null;
   app.panelView = "rest";
-  app.metricAnimations = null;
   app.finalBoardReview = false;
   app.menuPage = "user";
 }
@@ -1027,6 +992,7 @@ function backToServers() {
   if (app.session) {
     app.session.close();
   }
+  clearRefreshTimer();
   app.session = null;
   app.state = null;
   app.hadLiveMatch = false;
@@ -1035,7 +1001,6 @@ function backToServers() {
   app.panelView = "rest";
   app.viewingTurn = null;
   app.localPhaseView = null;
-  app.metricAnimations = null;
   app.finalBoardReview = false;
   app.notice = "";
   app.menuPage = "servers";
@@ -1049,6 +1014,7 @@ function openServerList() {
   if (!user) {
     app.notice = "Preencha usuario.";
     playSound("invalid", 0.55);
+    refreshAndSchedule(true);
     return;
   }
   app.notice = "";
@@ -1058,9 +1024,11 @@ function openServerList() {
   }
   startAssetPreload();
   playSound("click", 0.35);
+  refreshAndSchedule(true);
 }
 
 function backToUserMenu() {
+  clearRefreshTimer();
   app.notice = "";
   app.finalBoardReview = false;
   app.menuPage = "user";
@@ -1072,6 +1040,7 @@ function connectSelectedServer() {
   if (!selected) {
     app.notice = "Selecione um servidor.";
     playSound("invalid", 0.55);
+    refreshAndSchedule(true);
     return;
   }
   app.form.room = selected.room;
@@ -1131,24 +1100,73 @@ function handleStateSideEffects(prev, next) {
   }
 }
 
-function update() {
+function getRefreshDelayMs() {
+  if (app.session) {
+    return Math.max(40, Math.round(1000 / TICK_RATE));
+  }
+  if (app.menuPage === "servers") {
+    return 400;
+  }
+  return null;
+}
+
+function clearRefreshTimer() {
+  if (app.refreshTimer === null) return;
+  clearTimeout(app.refreshTimer);
+  app.refreshTimer = null;
+}
+
+function getRenderKey() {
+  const serverSnapshot =
+    !app.session && app.menuPage === "servers" ? serverStatus() : null;
+
+  return JSON.stringify({
+    menuPage: app.menuPage,
+    selectedServerId: app.selectedServerId,
+    notice: app.notice,
+    panelView: app.panelView,
+    viewingTurn: app.viewingTurn,
+    localPhaseView: app.localPhaseView,
+    finalBoardReview: app.finalBoardReview,
+    sessionActive: Boolean(app.session),
+    sessionSynced: app.session?.synced ?? false,
+    state: app.state,
+    serverSnapshot,
+  });
+}
+
+function renderNow(force = false) {
   if (app.session) {
     const nextState = app.session.computeState();
-    app.metricAnimations = buildMetricAnimations(app.state, nextState);
     handleStateSideEffects(app.state, nextState);
     app.state = nextState;
   }
 
-  const markup = renderApp();
-  if (markup !== app.lastMarkup) {
+  const renderKey = getRenderKey();
+  if (force || renderKey !== app.lastRenderKey) {
+    const markup = renderApp();
     const activeField = captureActiveField();
     root.innerHTML = markup;
     app.lastMarkup = markup;
+    app.lastRenderKey = renderKey;
     syncFormInputs();
     restoreActiveField(activeField);
   }
+}
 
-  requestAnimationFrame(update);
+function scheduleRefresh(delay = getRefreshDelayMs()) {
+  clearRefreshTimer();
+  if (delay === null) return;
+  app.refreshTimer = window.setTimeout(() => {
+    app.refreshTimer = null;
+    renderNow();
+    scheduleRefresh();
+  }, delay);
+}
+
+function refreshAndSchedule(force = false) {
+  renderNow(force);
+  scheduleRefresh();
 }
 
 root.addEventListener("input", (event) => {
@@ -1169,6 +1187,7 @@ root.addEventListener("click", (event) => {
       return;
     case "back-to-user-menu":
       backToUserMenu();
+      refreshAndSchedule(true);
       return;
     case "connect-selected-server":
       connectSelectedServer();
@@ -1177,24 +1196,31 @@ root.addEventListener("click", (event) => {
       if (!actionNode.dataset.serverId) return;
       app.selectedServerId = actionNode.dataset.serverId;
       playSound("click", 0.22);
+      refreshAndSchedule(true);
       return;
     case "back-to-menu":
       backToMenu();
+      refreshAndSchedule(true);
       return;
     case "back-to-servers":
       backToServers();
       playSound("click", 0.45);
+      refreshAndSchedule(true);
       return;
     case "surrender-match":
       backToServers();
       playSound("click", 0.4);
+      refreshAndSchedule(true);
       return;
     case "confirm-selection":
-      app.session?.confirmSelection();
+      if (app.session?.confirmSelection()) {
+        refreshAndSchedule(true);
+      }
       return;
     case "advance-turn":
       if (app.session?.advanceTurn()) {
         playSound("turnConfirm", 0.42);
+        refreshAndSchedule(true);
       }
       return;
     case "advance-local-view":
@@ -1202,41 +1228,49 @@ root.addEventListener("click", (event) => {
         app.viewingTurn = app.state.turnNumber;
         app.localPhaseView = "selection";
         playSound("turnConfirm", 0.42);
+        refreshAndSchedule(true);
       }
       return;
     case "open-final-board":
       if (app.state?.screen === "report" && app.state.lastTurnSnapshot) {
         app.finalBoardReview = true;
         playSound("click", 0.42);
+        refreshAndSchedule(true);
       }
       return;
     case "set-panel-view":
       if (!view) return;
       app.panelView = view;
+      refreshAndSchedule(true);
       return;
     case "select-uc":
       if (app.session?.selectUC(card)) {
         playSound("select", 0.45);
+        refreshAndSchedule(true);
       }
       return;
     case "select-ue":
       if (app.session?.selectUE(card)) {
         playSound("select", 0.45);
+        refreshAndSchedule(true);
       }
       return;
     case "continue-winner":
       if (app.session?.continueWinner()) {
         playSound("click", 0.4);
+        refreshAndSchedule(true);
       }
       return;
     case "report-menu":
       if (app.session?.reportAction("menu")) {
         playSound("click", 0.45);
+        refreshAndSchedule(true);
       }
       return;
     case "report-restart":
       if (app.session?.reportAction("restart")) {
         playSound("turnConfirm", 0.45);
+        refreshAndSchedule(true);
       }
       return;
   }
@@ -1250,11 +1284,12 @@ window.addEventListener("beforeunload", () => {
 window.addEventListener("keydown", (event) => {
   if (event.repeat) return;
   if (app.state?.screen === "winner_transition") {
-    app.session?.continueWinner();
-    playSound("click", 0.35);
+    if (app.session?.continueWinner()) {
+      playSound("click", 0.35);
+      refreshAndSchedule(true);
+    }
   }
 });
 
 startAssetPreload();
-
-update();
+refreshAndSchedule(true);

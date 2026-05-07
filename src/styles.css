@@ -657,20 +657,6 @@ button {
   pointer-events: none;
 }
 
-.status-track.is-growing .status-track-fill {
-  animation: status-track-grow 280ms ease-out both;
-}
-
-@keyframes status-track-grow {
-  from {
-    width: var(--status-fill-from);
-  }
-
-  to {
-    width: var(--status-fill-to);
-  }
-}
-
 .turn-viewer,
 .event-feed,
 .spotlight-card {
