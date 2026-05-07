@@ -3,18 +3,18 @@ export const VIBINET_SERVER_LABEL = "net.vibistudiotest.site";
 
 export const SERVER_CHOICES = [
   {
-    id: "castelo-rubi",
-    name: "Castelo Rubi",
-    room: "betrayal-castelo-rubi",
+    id: "r7m-x2d",
+    name: "R7M-X2D",
+    room: "betrayal-r7m-x2d",
   },
   {
-    id: "torre-dourada",
-    name: "Torre Dourada",
-    room: "betrayal-torre-dourada",
+    id: "k9v-p4s",
+    name: "K9V-P4S",
+    room: "betrayal-k9v-p4s",
   },
   {
-    id: "patio-onix",
-    name: "Patio Onix",
-    room: "betrayal-patio-onix",
+    id: "w3q-l8n",
+    name: "W3Q-L8N",
+    room: "betrayal-w3q-l8n",
   },
 ];
