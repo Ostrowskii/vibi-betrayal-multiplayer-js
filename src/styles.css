@@ -1091,7 +1091,9 @@ button {
   width: min(100%, calc(var(--center-stage-max-height) * var(--center-stage-ratio)));
   max-height: var(--center-stage-max-height);
   aspect-ratio: 500 / 290;
-  padding: 0.42rem calc(var(--center-stage-inline-pad-pct) + 0.18rem);
+  padding:
+    clamp(0.68rem, 1.15dvh, 0.98rem)
+    clamp(0.9rem, 1.5vw, 1.22rem);
   justify-self: center;
 }
 
