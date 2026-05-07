@@ -1043,6 +1043,7 @@ function renderReportOverlay(state) {
 function renderBoardScreen(state) {
   const { self } = perspectiveSeats(state);
   const overlays = [];
+  const showSurrender = state.screen === "game";
 
   if (state.screen === "winner_transition") overlays.push(renderWinnerOverlay(state));
   if (state.screen === "report" && !isFinalBoardReview(state)) {
@@ -1052,7 +1053,21 @@ function renderBoardScreen(state) {
   return `
     <div class="screen board-screen">
       <div class="board-backdrop"></div>
-      <div class="board-shell">
+      <div class="board-shell ${showSurrender ? "has-surrender" : ""}">
+        ${
+          showSurrender
+            ? `
+              <div class="surrender-zone">
+                <button
+                  class="surrender-button"
+                  data-action="surrender-game"
+                >
+                  Desistir
+                </button>
+              </div>
+            `
+            : ""
+        }
         <div class="board-zone">
           ${renderCenterStage(state, self)}
         </div>
@@ -1425,6 +1440,10 @@ root.addEventListener("click", (event) => {
     case "back-to-servers":
       backToServers();
       playSound("click", 0.45);
+      return;
+    case "surrender-game":
+      backToServers();
+      playSound("click", 0.35);
       return;
     case "confirm-selection":
       app.session?.confirmSelection();

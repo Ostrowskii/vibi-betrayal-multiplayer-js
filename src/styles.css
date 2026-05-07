@@ -15,10 +15,12 @@
   --enemy-panel-height: clamp(4.9rem, 10dvh, 6.5rem);
   --board-shell-pad-y: 0.45rem;
   --board-shell-gap: 0.42rem;
+  --surrender-zone-height: 3.35rem;
   --board-zone-share: 68dvh;
   --hand-zone-share: 32dvh;
   --board-zone-height: calc(var(--board-zone-share) - var(--board-shell-pad-y) - (var(--board-shell-gap) / 2));
   --hand-zone-height: calc(var(--hand-zone-share) - var(--board-shell-pad-y) - (var(--board-shell-gap) / 2));
+  --board-zone-height-with-surrender: max(0px, calc(var(--board-zone-height) - var(--surrender-zone-height) - var(--board-shell-gap)));
   --selection-stack-gap: 0.26rem;
   --selection-group-frame-height: calc((0.32rem * 2) + 2px);
   --selection-footer-min-height: 3.35rem;
@@ -352,11 +354,25 @@ button {
   overflow: hidden;
 }
 
+.board-shell.has-surrender {
+  grid-template-rows:
+    minmax(0, var(--surrender-zone-height))
+    minmax(0, var(--board-zone-height-with-surrender))
+    minmax(0, var(--hand-zone-height));
+}
+
+.surrender-zone,
 .board-zone,
 .hand-zone {
   width: 100%;
   min-height: 0;
   background: transparent;
+}
+
+.surrender-zone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .board-zone {
@@ -1088,6 +1104,28 @@ button {
   opacity: 0.62;
 }
 
+.surrender-button {
+  width: min(12rem, 36vw);
+  min-height: var(--selection-footer-min-height);
+  border: 1px solid rgba(141, 174, 210, 0.34);
+  border-radius: 0.9rem;
+  color: #d5e4f6;
+  background: linear-gradient(180deg, rgba(58, 86, 122, 0.92), rgba(31, 46, 69, 0.92));
+  box-shadow: inset 0 0 0 1px rgba(201, 223, 251, 0.08);
+  padding: 0.45rem 0.8rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.surrender-button:hover {
+  background: linear-gradient(180deg, rgba(70, 98, 134, 0.96), rgba(38, 54, 78, 0.96));
+}
+
+.surrender-button:active {
+  transform: translateY(1px);
+}
+
 .review-button {
   border: 1px solid var(--line-soft);
   border-radius: 999px;
@@ -1651,6 +1689,7 @@ button {
     --enemy-panel-height: clamp(5.2rem, 10dvh, 6.8rem);
     --board-shell-pad-y: 0.8rem;
     --board-shell-gap: 0.8rem;
+    --surrender-zone-height: 3.55rem;
     --card-art-size: 5.8rem;
     --decision-art-size: 8.1rem;
   }
@@ -1684,6 +1723,7 @@ button {
     --enemy-panel-height: clamp(4.4rem, 10dvh, 5.3rem);
     --board-shell-pad-y: 0.34rem;
     --board-shell-gap: 0.3rem;
+    --surrender-zone-height: 3rem;
     --selection-footer-min-height: 3rem;
     --card-art-size: 4.35rem;
     --decision-art-size: 5.6rem;
