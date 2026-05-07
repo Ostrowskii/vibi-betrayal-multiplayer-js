@@ -46,8 +46,6 @@ const METRIC_CONFIG = [
 const FIRST_GAME_SCREEN_IMAGES = [
   ASSETS.castle1,
   ASSETS.castle2,
-  ASSETS.iconRest,
-  ASSETS.iconForward,
   ASSETS.cardBack,
   ASSETS.cardBackHidden,
   ASSETS.cardBackHiddenRest,
@@ -334,7 +332,7 @@ function renderSelectionGroup({
   `;
 }
 
-function renderStageChoiceButton({ player, handType, view, icon, ariaLabel }) {
+function renderStageChoiceButton({ player, handType, view, ariaLabel }) {
   const selectedCard =
     handType === "uc"
       ? normalizeUCType(player.selectedUC)
@@ -378,7 +376,7 @@ function renderStageChoiceButton({ player, handType, view, icon, ariaLabel }) {
           `
           : `
             <span class="stage-choice-empty">
-              <img src="${icon}" alt="" aria-hidden="true" />
+              <span class="stage-choice-plus" aria-hidden="true">+</span>
               <strong>${escapeHtml(label)}</strong>
             </span>
           `
@@ -531,14 +529,12 @@ function renderCenterStage(state, self) {
             player,
             handType: "ue",
             view: "attack",
-            icon: ASSETS.iconForward,
             ariaLabel: "Abrir visualização de ataque",
           })}
           ${renderStageChoiceButton({
             player,
             handType: "uc",
             view: "rest",
-            icon: ASSETS.iconRest,
             ariaLabel: "Abrir visualização de descanso",
           })}
         </div>

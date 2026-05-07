@@ -1258,15 +1258,18 @@ button {
   text-align: center;
 }
 
-.stage-choice-empty img {
-  width: 2.15rem;
-  height: 2.15rem;
-  object-fit: contain;
+.stage-choice-plus {
+  color: color-mix(in srgb, var(--gold-strong) 88%, white 12%);
+  font-size: clamp(2.2rem, 5.5vw, 2.95rem);
+  line-height: 1;
+  font-weight: 700;
+  text-shadow: 0 0 0.7rem rgb(255 217 146 / 0.2);
 }
 
 .stage-choice-empty strong {
   font-size: 0.94rem;
   line-height: 1.05;
+  color: var(--gold-strong);
 }
 
 .turn-viewer {
