@@ -921,6 +921,29 @@ function handleSelection(state, user, card, kind) {
   return next;
 }
 
+function handleClearSelection(state, user, kind) {
+  const seat = seatForUser(state, user);
+  if (!seat || state.screen !== "game" || state.phase !== "phase_1_selection") {
+    return state;
+  }
+
+  const next = cloneState(state);
+  const player = next.players[seat];
+  if (player.confirmed) return state;
+
+  if (kind === "uc") {
+    if (!player.selectedUC) return state;
+    player.selectedUC = null;
+    pushLog(next, `${seat} limpou a carta de castelo.`);
+    return next;
+  }
+
+  if (!player.selectedUE) return state;
+  player.selectedUE = null;
+  pushLog(next, `${seat} limpou a carta de estratégia.`);
+  return next;
+}
+
 function handleConfirm(state, user) {
   const seat = seatForUser(state, user);
   if (!seat || state.screen !== "game" || state.phase !== "phase_1_selection") {
@@ -1020,6 +1043,10 @@ export function onPost(post, state) {
       return handleSelection(state, post.user.trim(), post.card, "uc");
     case "select_ue":
       return handleSelection(state, post.user.trim(), post.card, "ue");
+    case "clear_uc":
+      return handleClearSelection(state, post.user.trim(), "uc");
+    case "clear_ue":
+      return handleClearSelection(state, post.user.trim(), "ue");
     case "continue":
       return handleContinue(state, post.user.trim());
     case "confirm":

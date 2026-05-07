@@ -74,6 +74,18 @@ export const packer = {
         card: uePacker,
       },
     },
+    clear_uc: {
+      $: "Struct",
+      fields: {
+        user: { $: "String" },
+      },
+    },
+    clear_ue: {
+      $: "Struct",
+      fields: {
+        user: { $: "String" },
+      },
+    },
     report_action: {
       $: "Struct",
       fields: {

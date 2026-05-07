@@ -73,6 +73,18 @@ export class MatchSession {
     return true;
   }
 
+  clearUC() {
+    if (!this.synced) return false;
+    this.game.post({ $: "clear_uc", user: this.user });
+    return true;
+  }
+
+  clearUE() {
+    if (!this.synced) return false;
+    this.game.post({ $: "clear_ue", user: this.user });
+    return true;
+  }
+
   continueWinner() {
     if (!this.synced) return false;
     this.game.post({ $: "continue", user: this.user });

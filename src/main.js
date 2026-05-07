@@ -33,6 +33,10 @@ const app = {
   panelView: "rest",
   viewingTurn: null,
   localPhaseView: null,
+  keyboardCursor: {
+    uc: null,
+    ue: null,
+  },
   metricAnimations: null,
   finalBoardReview: false,
 };
@@ -248,6 +252,189 @@ function visibleAttackCards(player) {
       card !== "poisoned_tribute" ||
       player.ues.poisoned_tribute.status === "active",
   );
+}
+
+function resetKeyboardCursor() {
+  app.keyboardCursor.uc = null;
+  app.keyboardCursor.ue = null;
+}
+
+function handTypeFromView(view) {
+  return view === "attack" ? "ue" : "uc";
+}
+
+function getKeyboardCards(player, handType) {
+  return handType === "uc" ? UC_TYPES : visibleAttackCards(player);
+}
+
+function getSelectedCardForHand(player, handType) {
+  return handType === "uc"
+    ? normalizeUCType(player.selectedUC)
+    : player.selectedUE;
+}
+
+function getSelectedCardIndex(player, handType, cards) {
+  const selectedCard = getSelectedCardForHand(player, handType);
+  return selectedCard ? cards.indexOf(selectedCard) : -1;
+}
+
+function findSelectableIndex(player, handType, cards, startIndex, delta = 1) {
+  for (
+    let index = startIndex;
+    index >= 0 && index < cards.length;
+    index += delta
+  ) {
+    if (!getCardDisabled(player, cards[index], handType)) {
+      return index;
+    }
+  }
+  return -1;
+}
+
+function getKeyboardContext() {
+  const state = app.state;
+  if (!state || state.screen !== "game" || state.phase !== "phase_1_selection") {
+    return null;
+  }
+  const seat = localSeat(state);
+  if (!seat) return null;
+  const player = state.players[seat];
+  if (!player || player.confirmed) return null;
+  return { state, seat, player };
+}
+
+function setPanelView(view) {
+  app.panelView = view === "attack" ? "attack" : "rest";
+}
+
+function selectKeyboardCard(player, handType, index) {
+  const cards = getKeyboardCards(player, handType);
+  const card = cards[index];
+  if (!card || getCardDisabled(player, card, handType)) {
+    return false;
+  }
+  const changed = handType === "uc"
+    ? app.session?.selectUC(card)
+    : app.session?.selectUE(card);
+  if (!changed) return false;
+  app.keyboardCursor[handType] = index;
+  playSound("select", 0.45);
+  return true;
+}
+
+function moveKeyboardSelection(player, handType, delta) {
+  const cards = getKeyboardCards(player, handType);
+  if (!cards.length) return false;
+
+  const selectedIndex = getSelectedCardIndex(player, handType, cards);
+  const currentIndex = selectedIndex >= 0
+    ? selectedIndex
+    : app.keyboardCursor[handType];
+
+  if (currentIndex === null || currentIndex < 0 || currentIndex >= cards.length) {
+    const firstIndex = findSelectableIndex(player, handType, cards, 0, 1);
+    if (firstIndex < 0) return false;
+    return selectKeyboardCard(player, handType, firstIndex);
+  }
+
+  const nextIndex = findSelectableIndex(
+    player,
+    handType,
+    cards,
+    currentIndex + delta,
+    delta,
+  );
+  if (nextIndex < 0) return false;
+  return selectKeyboardCard(player, handType, nextIndex);
+}
+
+function clearKeyboardSelection(player, handType) {
+  const hasSelection = handType === "uc"
+    ? Boolean(player.selectedUC)
+    : Boolean(player.selectedUE);
+  if (!hasSelection) return false;
+  const changed = handType === "uc"
+    ? app.session?.clearUC()
+    : app.session?.clearUE();
+  if (!changed) return false;
+  app.keyboardCursor[handType] = null;
+  return true;
+}
+
+function confirmKeyboardSelection(player) {
+  if (!player.selectedUC || !player.selectedUE || player.confirmed) {
+    return false;
+  }
+  return app.session?.confirmSelection() ?? false;
+}
+
+function handleSelectionKeydown(event) {
+  if (event.ctrlKey || event.metaKey || event.altKey) return false;
+  if (
+    event.target instanceof HTMLElement &&
+    (event.target.tagName === "INPUT" ||
+      event.target.tagName === "TEXTAREA" ||
+      event.target.isContentEditable)
+  ) {
+    return false;
+  }
+
+  const context = getKeyboardContext();
+  if (!context) return false;
+
+  const { player } = context;
+  const handType = handTypeFromView(app.panelView);
+  const lowerKey = event.key.length === 1 ? event.key.toLowerCase() : event.key;
+
+  if (event.key === "Tab") {
+    event.preventDefault();
+    setPanelView(app.panelView === "attack" ? "rest" : "attack");
+    return true;
+  }
+
+  if (lowerKey === "q") {
+    event.preventDefault();
+    setPanelView("rest");
+    return true;
+  }
+
+  if (lowerKey === "e") {
+    event.preventDefault();
+    setPanelView("attack");
+    return true;
+  }
+
+  if (/^[1-5]$/.test(event.key)) {
+    const index = Number(event.key) - 1;
+    event.preventDefault();
+    return selectKeyboardCard(player, handType, index);
+  }
+
+  if (lowerKey === "a") {
+    event.preventDefault();
+    return moveKeyboardSelection(player, handType, -1);
+  }
+
+  if (lowerKey === "d") {
+    event.preventDefault();
+    return moveKeyboardSelection(player, handType, 1);
+  }
+
+  if (
+    event.key === "Backspace" ||
+    event.key === "Delete" ||
+    event.key === "Escape"
+  ) {
+    event.preventDefault();
+    return clearKeyboardSelection(player, handType);
+  }
+
+  if (event.key === "Enter" || event.code === "Space") {
+    event.preventDefault();
+    return confirmKeyboardSelection(player);
+  }
+
+  return false;
 }
 
 function getCardDisabled(player, card, handType) {
@@ -980,7 +1167,8 @@ function joinRoom() {
   app.hadLiveMatch = false;
   app.lastPhase = null;
   app.lastScreen = null;
-  app.panelView = "rest";
+  setPanelView("rest");
+  resetKeyboardCursor();
   app.state = null;
   app.metricAnimations = null;
   app.finalBoardReview = false;
@@ -998,7 +1186,8 @@ function backToMenu() {
   app.hadLiveMatch = false;
   app.lastPhase = null;
   app.lastScreen = null;
-  app.panelView = "rest";
+  setPanelView("rest");
+  resetKeyboardCursor();
   app.metricAnimations = null;
   app.finalBoardReview = false;
   app.menuPage = "user";
@@ -1013,7 +1202,8 @@ function backToServers() {
   app.hadLiveMatch = false;
   app.lastPhase = null;
   app.lastScreen = null;
-  app.panelView = "rest";
+  setPanelView("rest");
+  resetKeyboardCursor();
   app.viewingTurn = null;
   app.localPhaseView = null;
   app.metricAnimations = null;
@@ -1189,7 +1379,7 @@ root.addEventListener("click", (event) => {
       return;
     case "set-panel-view":
       if (!view) return;
-      app.panelView = view;
+      setPanelView(view);
       return;
     case "select-uc":
       if (app.session?.selectUC(card)) {
@@ -1226,6 +1416,9 @@ window.addEventListener("beforeunload", () => {
 
 window.addEventListener("keydown", (event) => {
   if (event.repeat) return;
+  if (handleSelectionKeydown(event)) {
+    return;
+  }
   if (app.state?.screen === "winner_transition") {
     app.session?.continueWinner();
     playSound("click", 0.35);
