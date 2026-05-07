@@ -793,21 +793,12 @@ function renderBoardScreen(state) {
 
 function renderLobby(state) {
   const connecting = !app.session?.synced;
-  const pendingJoin =
-    !connecting &&
-    Boolean(app.form.user) &&
-    !state.roster.includes(app.form.user) &&
-    state.roster.length < 2;
   const names = state.roster.length
     ? state.roster.map((name, index) => `<div class="lobby-name">${index + 1}. ${escapeHtml(name)}</div>`).join("")
-    : pendingJoin
-      ? `<div class="lobby-name">1. ${escapeHtml(app.form.user)} (entrando)</div>`
     : `<div class="lobby-name">Nenhum jogador na sala ainda.</div>`;
   const statusText = connecting
     ? "Sincronizando com o servidor da sala."
-    : pendingJoin
-      ? "Registrando seu usuario na sala."
-      : "Esperando dois usuarios ativos na sala.";
+    : "Esperando dois usuarios ativos na sala.";
 
   return `
     <div class="screen menu-screen">
@@ -976,11 +967,7 @@ function joinRoom() {
   app.state = null;
   app.finalBoardReview = false;
   app.menuPage = "user";
-  app.session = new MatchSession({
-    room,
-    user,
-    onSync: () => refreshAndSchedule(true),
-  });
+  app.session = new MatchSession({ room, user });
   playSound("click", 0.45);
   refreshAndSchedule(true);
 }
