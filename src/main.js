@@ -495,10 +495,10 @@ function renderRevealStage(state, self) {
           ${renderRevealSlot(enemySnap.selectedUE, "ue")}
           ${enemyRestSlot}
         </div>
-        ${renderStageSidebar(enemyPlayer, enemy, "enemy")}
+        ${renderStageSidebar(state, enemyPlayer, enemy, "enemy")}
       </div>
       <div class="stage-lane stage-lane-self">
-        ${renderStageSidebar(selfPlayer, self, "self")}
+        ${renderStageSidebar(state, selfPlayer, self, "self")}
         <div class="decision-row stage-board-row is-self">
           ${renderRevealSlot(selfSnap.selectedUE, "ue")}
           ${renderRevealSlot(selfSnap.selectedUC, "uc")}
@@ -531,10 +531,10 @@ function renderCenterStage(state, self) {
           ${enemySlotUE}
           ${enemySlotUC}
         </div>
-        ${renderStageSidebar(enemyPlayer, enemy, "enemy")}
+        ${renderStageSidebar(state, enemyPlayer, enemy, "enemy")}
       </div>
       <div class="stage-lane stage-lane-self">
-        ${renderStageSidebar(player, self, "self")}
+        ${renderStageSidebar(state, player, self, "self")}
         <div class="decision-row stage-board-row is-self">
           ${renderStageChoiceButton({
             player,
@@ -712,8 +712,8 @@ function renderStatusMetric(seat, player, metric) {
   `;
 }
 
-function renderStageStatusMetric(seat, player, metric, perspective) {
-  const animation = getMetricAnimation(seat, player, metric);
+function renderStageStatusMetric(sourceSeat, sourcePlayer, metric, perspective) {
+  const animation = getMetricAnimation(sourceSeat, sourcePlayer, metric);
   const fromPct = pct(animation.isIncreasing ? animation.prev : animation.current, metric.max);
   const toPct = pct(animation.current, metric.max);
   const maxedClass = animation.current >= metric.max ? "is-maxed" : "";
@@ -733,11 +733,16 @@ function renderStageStatusMetric(seat, player, metric, perspective) {
   `;
 }
 
-function renderStageSidebar(player, seat, perspective) {
+function renderStageSidebar(state, player, seat, perspective) {
+  const metricSeatFor = (metric) =>
+    metric.key === "castleTrust" ? opposingSeat(seat) : seat;
+
   return `
     <aside class="stage-sidebar is-${perspective}">
       <div class="stage-player-name">${escapeHtml(player.name || "Aguardando...")}</div>
-      ${METRIC_CONFIG.map((metric) => renderStageStatusMetric(seat, player, metric, perspective)).join("")}
+      ${METRIC_CONFIG.map((metric) =>
+        renderStageStatusMetric(metricSeatFor(metric), state.players[metricSeatFor(metric)], metric, perspective),
+      ).join("")}
     </aside>
   `;
 }

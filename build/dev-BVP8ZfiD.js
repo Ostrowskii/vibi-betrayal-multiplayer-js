@@ -76,10 +76,10 @@
           ${Q(a.selectedUE,`ue`)}
           ${c}
         </div>
-        ${$(s,n,`enemy`)}
+        ${$(e,s,n,`enemy`)}
       </div>
       <div class="stage-lane stage-lane-self">
-        ${$(o,t,`self`)}
+        ${$(e,o,t,`self`)}
         <div class="decision-row stage-board-row is-self">
           ${Q(i.selectedUE,`ue`)}
           ${Q(i.selectedUC,`uc`)}
@@ -93,10 +93,10 @@
           ${i.selectedUE?Kt(`ue`):`<div class="center-slot stage-empty-slot" aria-hidden="true"></div>`}
           ${i.selectedUC?Kt(`uc`):`<div class="center-slot stage-empty-slot" aria-hidden="true"></div>`}
         </div>
-        ${$(i,r,`enemy`)}
+        ${$(e,i,r,`enemy`)}
       </div>
       <div class="stage-lane stage-lane-self">
-        ${$(n,t,`self`)}
+        ${$(e,n,t,`self`)}
         <div class="decision-row stage-board-row is-self">
           ${Gt({player:n,handType:`ue`,view:`attack`,ariaLabel:`Abrir visualização de ataque`})}
           ${Gt({player:n,handType:`uc`,view:`rest`,ariaLabel:`Abrir visualização de descanso`})}
@@ -170,10 +170,10 @@
         ${nn(n.max)}
       </div>
     </div>
-  `}function $(e,t,n){return`
-    <aside class="stage-sidebar is-${n}">
-      <div class="stage-player-name">${X(e.name||`Aguardando...`)}</div>
-      ${xt.map(r=>an(t,e,r,n)).join(``)}
+  `}function $(e,t,n,r){let i=e=>e.key===`castleTrust`?opposingSeat(n):n;return`
+    <aside class="stage-sidebar is-${r}">
+      <div class="stage-player-name">${X(t.name||`Aguardando...`)}</div>
+      ${xt.map(t=>an(i(t),e.players[i(t)],t,r)).join(``)}
     </aside>
   `}function on(e,t){return`
     <section class="player-hand player-local">
