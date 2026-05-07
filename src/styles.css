@@ -614,7 +614,7 @@ button {
 
 .status-track {
   position: relative;
-  height: 0.78rem;
+  height: 0.96rem;
   border: 1px solid var(--line-soft);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.05);
@@ -1083,7 +1083,7 @@ button {
   width: min(100%, calc(var(--center-stage-max-height) * var(--center-stage-ratio)));
   max-height: var(--center-stage-max-height);
   aspect-ratio: 500 / 290;
-  padding: 0 var(--center-stage-inline-pad-pct);
+  padding: 0.42rem calc(var(--center-stage-inline-pad-pct) + 0.18rem);
   justify-self: center;
 }
 
