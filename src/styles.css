@@ -1612,6 +1612,19 @@ button {
   background: rgba(8, 4, 3, 0.72);
 }
 
+.overlay-surrender-confirm {
+  background: rgba(8, 4, 3, 0.52);
+}
+
+.overlay-scrim-button {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+}
+
 .winner-shell,
 .report-shell {
   width: min(30rem, 100%);
@@ -1675,6 +1688,48 @@ button {
 .report-actions .is-accent {
   color: var(--text-main);
   background: linear-gradient(180deg, #2f6c60, #1e4d43);
+}
+
+.surrender-confirm-shell {
+  position: relative;
+  z-index: 1;
+  width: min(28rem, 100%);
+  padding: 1.2rem;
+  border: 1px solid rgba(141, 174, 210, 0.24);
+  border-radius: 1.15rem;
+  text-align: center;
+  background:
+    linear-gradient(180deg, rgba(24, 32, 45, 0.96), rgba(13, 18, 28, 0.98));
+  box-shadow: var(--shadow);
+}
+
+.surrender-confirm-shell h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.surrender-confirm-shell p {
+  margin: 0.7rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.98rem;
+  line-height: 1.34;
+}
+
+.surrender-confirm-actions {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 1rem;
+}
+
+.surrender-confirm-actions .menu-button {
+  margin-top: 0;
+}
+
+.surrender-confirm-button {
+  color: #d5e4f6;
+  background: linear-gradient(180deg, rgba(58, 86, 122, 0.95), rgba(31, 46, 69, 0.96));
+  border: 1px solid rgba(141, 174, 210, 0.34);
+  box-shadow: inset 0 0 0 1px rgba(201, 223, 251, 0.08);
 }
 
 @media (min-width: 900px) {

@@ -39,6 +39,7 @@ const app = {
   },
   metricAnimations: null,
   finalBoardReview: false,
+  surrenderConfirmOpen: false,
 };
 
 const audioPool = new Map();
@@ -1057,6 +1058,26 @@ function renderReportOverlay(state) {
   `;
 }
 
+function renderSurrenderConfirmOverlay() {
+  return `
+    <div class="overlay overlay-surrender-confirm">
+      <button
+        class="overlay-scrim-button"
+        data-action="cancel-surrender"
+        aria-label="Fechar confirmacao de desistir"
+      ></button>
+      <div class="surrender-confirm-shell">
+        <h2>Desistir da partida?</h2>
+        <p>Voce vai sair desta sala e voltar para a lista de servidores.</p>
+        <div class="surrender-confirm-actions">
+          <button class="menu-button is-secondary" data-action="cancel-surrender">Cancelar</button>
+          <button class="menu-button surrender-confirm-button" data-action="confirm-surrender">Desistir</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 function renderBoardScreen(state) {
   const { self } = perspectiveSeats(state);
   const overlays = [];
@@ -1065,6 +1086,9 @@ function renderBoardScreen(state) {
   if (state.screen === "winner_transition") overlays.push(renderWinnerOverlay(state));
   if (state.screen === "report" && !isFinalBoardReview(state)) {
     overlays.push(renderReportOverlay(state));
+  }
+  if (showSurrender && app.surrenderConfirmOpen) {
+    overlays.push(renderSurrenderConfirmOverlay());
   }
 
   return `
@@ -1274,6 +1298,7 @@ function joinRoom() {
   app.state = null;
   app.metricAnimations = null;
   app.finalBoardReview = false;
+  app.surrenderConfirmOpen = false;
   app.menuPage = "user";
   app.session = new MatchSession({ room, user });
   playSound("click", 0.45);
@@ -1292,6 +1317,7 @@ function backToMenu() {
   resetKeyboardCursor();
   app.metricAnimations = null;
   app.finalBoardReview = false;
+  app.surrenderConfirmOpen = false;
   app.menuPage = "user";
 }
 
@@ -1310,6 +1336,7 @@ function backToServers() {
   app.localPhaseView = null;
   app.metricAnimations = null;
   app.finalBoardReview = false;
+  app.surrenderConfirmOpen = false;
   app.notice = "";
   app.menuPage = "servers";
   if (!app.selectedServerId && SERVER_CHOICES[0]) {
@@ -1336,6 +1363,7 @@ function openServerList() {
 function backToUserMenu() {
   app.notice = "";
   app.finalBoardReview = false;
+  app.surrenderConfirmOpen = false;
   app.menuPage = "user";
   playSound("click", 0.35);
 }
@@ -1378,6 +1406,9 @@ function handleStateSideEffects(prev, next) {
 
   if (next.screen !== "report") {
     app.finalBoardReview = false;
+  }
+  if (next.screen !== "game") {
+    app.surrenderConfirmOpen = false;
   }
 
   if (prev?.phase !== next.phase) {
@@ -1459,6 +1490,15 @@ root.addEventListener("click", (event) => {
       playSound("click", 0.45);
       return;
     case "surrender-game":
+      app.surrenderConfirmOpen = true;
+      playSound("click", 0.35);
+      return;
+    case "cancel-surrender":
+      app.surrenderConfirmOpen = false;
+      playSound("click", 0.28);
+      return;
+    case "confirm-surrender":
+      app.surrenderConfirmOpen = false;
       backToServers();
       playSound("click", 0.35);
       return;
@@ -1522,6 +1562,22 @@ window.addEventListener("beforeunload", () => {
 
 window.addEventListener("keydown", (event) => {
   if (event.repeat) return;
+  if (app.surrenderConfirmOpen) {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      app.surrenderConfirmOpen = false;
+      playSound("click", 0.28);
+      return;
+    }
+    if (event.key === "Enter") {
+      event.preventDefault();
+      app.surrenderConfirmOpen = false;
+      backToServers();
+      playSound("click", 0.35);
+      return;
+    }
+    return;
+  }
   if (handleSelectionKeydown(event)) {
     return;
   }
