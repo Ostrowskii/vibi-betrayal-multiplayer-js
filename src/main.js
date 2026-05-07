@@ -246,6 +246,64 @@ function cardExhaustionBadge(player, card, handType) {
   return String(exhaustion);
 }
 
+function cardExhaustionWarning(player, card, handType) {
+  if (handType !== "uc") return "";
+  const normalizedCard = normalizeUCType(card);
+  if (!normalizedCard || normalizedCard === "dummy") return "";
+  const exhaustion = player.ucs[normalizedCard]?.exhaustion ?? 0;
+
+  if (normalizedCard === "king") {
+    const chefAlive = player.ucs.chef.status !== "dead";
+    if (exhaustion >= 5) {
+      return chefAlive
+        ? "King no limite: o prximo cansaco vai zerar a exaustao e derrubar o Cook."
+        : "King no limite: o prximo cansaco pode derrubar o King.";
+    }
+    if (exhaustion >= 4) {
+      return chefAlive
+        ? "Se nao descansar, o proximo cansaco vai zerar a exaustao do King e derrubar o Cook."
+        : "Se nao descansar, o proximo cansaco pode derrubar o King.";
+    }
+    if (exhaustion >= 3) {
+      return "O King esta perto do colapso.";
+    }
+    return "";
+  }
+
+  if (normalizedCard === "chef") {
+    const kingAlive = player.ucs.king.status !== "dead";
+    if (exhaustion >= 5) {
+      return kingAlive
+        ? "Cook no limite: o seu King pode morrer."
+        : "Cook no limite.";
+    }
+    if (exhaustion >= 4) {
+      return kingAlive
+        ? "Se nao descansar, o proximo cansaco pode derrubar o seu King."
+        : "Se nao descansar, o Cook pode entrar em colapso.";
+    }
+    if (exhaustion >= 3) {
+      return "Betrayl ja fica bloqueada por cansaco.";
+    }
+    return "";
+  }
+
+  if (normalizedCard === "guard") {
+    if (exhaustion >= 5) {
+      return "Guard esgotado: Invasor passa direto.";
+    }
+    if (exhaustion >= 4) {
+      return "Se nao descansar, o proximo Invasor pode passar direto.";
+    }
+    if (exhaustion >= 3) {
+      return "Invasor vai causar mais dano no Guard.";
+    }
+    return "";
+  }
+
+  return "";
+}
+
 function visibleAttackCards(player) {
   return UE_TYPES.filter(
     (card) =>
@@ -465,6 +523,7 @@ function renderCardButton({ card, handType, player, seat, interactive }) {
   const disabled = getCardDisabled(player, card, handType);
   const badge = cardCountBadge(player, card);
   const exhaustionBadge = cardExhaustionBadge(player, card, handType);
+  const exhaustionWarning = cardExhaustionWarning(player, card, handType);
   const action = handType === "uc" ? "select-uc" : "select-ue";
   const disabledClass = disabled || !interactive ? "is-disabled" : "";
   const selectedClass = selected ? "is-selected" : "";
@@ -478,10 +537,15 @@ function renderCardButton({ card, handType, player, seat, interactive }) {
       data-seat="${seat}"
       ${disabledAttr}
     >
-      <div class="card-art-shell">
+      <div class="card-art-shell ${exhaustionWarning ? "has-warning" : ""}">
         <img class="card-art" src="${getCardArt(card, disabled)}" alt="${escapeHtml(label)}" />
         <div class="card-caption">
           <span class="card-title">${escapeHtml(label)}</span>
+          ${
+            exhaustionWarning
+              ? `<span class="card-warning">${escapeHtml(exhaustionWarning)}</span>`
+              : ""
+          }
         </div>
         ${badge ? `<span class="card-badge">${escapeHtml(badge)}</span>` : ""}
         ${
@@ -543,6 +607,9 @@ function renderStageChoiceButton({ player, handType, view, ariaLabel }) {
   const exhaustionBadge = selectedCard
     ? cardExhaustionBadge(player, selectedCard, handType)
     : "";
+  const exhaustionWarning = selectedCard
+    ? cardExhaustionWarning(player, selectedCard, handType)
+    : "";
 
   return `
     <button
@@ -554,10 +621,15 @@ function renderStageChoiceButton({ player, handType, view, ariaLabel }) {
       ${
         selectedCard
           ? `
-            <div class="card-art-shell">
+            <div class="card-art-shell ${exhaustionWarning ? "has-warning" : ""}">
               <img class="card-art" src="${getCardArt(selectedCard, false)}" alt="${escapeHtml(label)}" />
               <div class="card-caption">
                 <span class="card-title">${escapeHtml(label)}</span>
+                ${
+                  exhaustionWarning
+                    ? `<span class="card-warning">${escapeHtml(exhaustionWarning)}</span>`
+                    : ""
+                }
               </div>
               ${badge ? `<span class="card-badge">${escapeHtml(badge)}</span>` : ""}
               ${

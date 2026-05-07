@@ -99,12 +99,18 @@ function prepareTurnView(state) {
 }
 
 function updatePoisonAvailability(state) {
-  const c1TargetTrust = state.players.C2.castleTrust;
-  const c2TargetTrust = state.players.C1.castleTrust;
+  const c1Player = state.players.C1;
+  const c2Player = state.players.C2;
+  const c1TargetTrust = c2Player.castleTrust;
+  const c2TargetTrust = c1Player.castleTrust;
   state.players.C1.ues.poisoned_tribute.status =
-    c1TargetTrust >= 3 ? "active" : "disabled";
+    c1TargetTrust >= 3 && c1Player.ucs.chef.status !== "dead" && c1Player.ucs.chef.exhaustion < 3
+      ? "active"
+      : "disabled";
   state.players.C2.ues.poisoned_tribute.status =
-    c2TargetTrust >= 3 ? "active" : "disabled";
+    c2TargetTrust >= 3 && c2Player.ucs.chef.status !== "dead" && c2Player.ucs.chef.exhaustion < 3
+      ? "active"
+      : "disabled";
 }
 
 function startTurn(
@@ -367,11 +373,11 @@ function pushInvaderCards(
   state,
   attackerId,
   defenderId,
-  defendingCard,
   guardBefore,
   guardAfter,
+  captureReason,
 ) {
-  if (defendingCard === "guard") {
+  if (captureReason === "guard_dead") {
     pushPublicCard(
       state,
       attackerId,
@@ -385,6 +391,24 @@ function pushInvaderCards(
       "invader",
       "Invasores",
       "O inimigo enviou invasores e o seu Guard estava dormindo.",
+    );
+    return;
+  }
+
+  if (captureReason === "guard_exhausted") {
+    pushPublicCard(
+      state,
+      attackerId,
+      "invader",
+      "Invasores",
+      "Você enviou invasores e o Guard do inimigo estava exausto demais para bloquear. O King foi capturado.",
+    );
+    pushPublicCard(
+      state,
+      defenderId,
+      "invader",
+      "Invasores",
+      "O inimigo enviou invasores e o seu Guard estava exausto demais para bloquear. O King foi capturado.",
     );
     return;
   }
@@ -428,11 +452,14 @@ function applyInvader(state, attackerId, defenderId) {
   const defender = state.players[defenderId];
   const defendingCard = normalizeUCType(defender.selectedUC);
   const guardBefore = defender.guardDamage;
+  const guardExhaustion = defender.ucs.guard.exhaustion;
+  const guardCanBlock = defender.ucs.guard.status !== "dead" && guardExhaustion < 5;
+  const guardDamageIncrement = guardExhaustion >= 4 ? 4 : guardExhaustion >= 3 ? 3 : 2;
 
   attacker.ues.invader.available = Math.max(0, attacker.ues.invader.available - 1);
   applyTradeBlockFromInvader(state, attackerId);
 
-  if (defendingCard === "guard") {
+  if (defendingCard === "guard" && guardCanBlock) {
     setTurnReportLine(
       state,
       attackerId,
@@ -446,13 +473,20 @@ function applyInvader(state, attackerId, defenderId) {
       "O inimigo enviou Invasor e encontrou seu Guard descansando. O Guard morreu.",
     );
     defender.ucs.guard.status = "dead";
-    pushInvaderCards(state, attackerId, defenderId, defendingCard, guardBefore, null);
+    pushInvaderCards(
+      state,
+      attackerId,
+      defenderId,
+      guardBefore,
+      null,
+      "guard_dead",
+    );
     pushLog(state, `${attacker.name} derrubou o Guard de ${defender.name}.`);
     return;
   }
 
-  if (defender.ucs.guard.status !== "dead") {
-    defender.guardDamage += 2;
+  if (guardCanBlock) {
+    defender.guardDamage += guardDamageIncrement;
     const guardAfter = defender.guardDamage;
     const deathSuffix = guardAfter >= 6 ? " O Guard morreu com esse dano." : "";
     setTurnReportLine(
@@ -471,9 +505,9 @@ function applyInvader(state, attackerId, defenderId) {
       state,
       attackerId,
       defenderId,
-      defendingCard,
       guardBefore,
       guardAfter,
+      null,
     );
     if (guardAfter >= 6) {
       defender.ucs.guard.status = "dead";
@@ -486,16 +520,27 @@ function applyInvader(state, attackerId, defenderId) {
     state,
     attackerId,
     "selfLine",
-    "Você enviou Invasor enquanto o Guard inimigo já estava morto. O King foi capturado.",
+    guardExhaustion >= 5
+      ? "Você enviou Invasor, mas o Guard inimigo estava exausto demais para bloquear. O King foi capturado."
+      : "Você enviou Invasor enquanto o Guard inimigo já estava morto. O King foi capturado.",
   );
   setTurnReportLine(
     state,
     defenderId,
     "enemyLine",
-    "O inimigo enviou Invasor enquanto seu Guard já estava morto. O King foi capturado.",
+    guardExhaustion >= 5
+      ? "O inimigo enviou Invasor, mas o seu Guard estava exausto demais para bloquear. O King foi capturado."
+      : "O inimigo enviou Invasor enquanto seu Guard já estava morto. O King foi capturado.",
   );
   defender.ucs.king.status = "dead";
-  pushInvaderCards(state, attackerId, defenderId, defendingCard, guardBefore, null);
+  pushInvaderCards(
+    state,
+    attackerId,
+    defenderId,
+    guardBefore,
+    null,
+    guardExhaustion >= 5 ? "guard_exhausted" : "guard_dead",
+  );
   setWinner(
     state,
     attackerId,
@@ -706,6 +751,51 @@ function applyExhaustion(state) {
         player.ucs[key].exhaustion += 1;
       }
     }
+  }
+
+  for (const seat of PLAYER_IDS) {
+    const player = state.players[seat];
+    const chef = player.ucs.chef;
+    if (chef.status === "dead" || chef.exhaustion < 5 || player.ucs.king.status === "dead") {
+      continue;
+    }
+
+    const enemySeat = opposingSeat(seat);
+    const enemy = state.players[enemySeat];
+    player.ucs.king.status = "dead";
+    appendTurnReportLine(
+      state,
+      seat,
+      "selfLine",
+      "Seu Cook chegou ao limite de exaustão e o seu King morreu.",
+    );
+    appendTurnReportLine(
+      state,
+      enemySeat,
+      "enemyLine",
+      "O Cook inimigo chegou ao limite de exaustão e o King dele morreu.",
+    );
+    pushPublicCard(
+      state,
+      seat,
+      "chef",
+      "Colapso do Cook",
+      "Seu Cook chegou a 5 stacks e o seu King morreu.",
+    );
+    pushPublicCard(
+      state,
+      enemySeat,
+      "chef",
+      "Colapso do Cook",
+      "O Cook inimigo chegou a 5 stacks e o King dele morreu.",
+    );
+    setWinner(
+      state,
+      enemySeat,
+      "madness",
+      `${player.name} deixou o Cook chegar a 5 stacks. ${enemy.name} venceu imediatamente.`,
+    );
+    return;
   }
 
   const madnessSeats = [];

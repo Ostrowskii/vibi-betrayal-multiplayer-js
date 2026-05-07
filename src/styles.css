@@ -899,6 +899,10 @@ button {
   align-self: start;
 }
 
+.card-art-shell.has-warning {
+  --card-caption-offset: 3.35rem;
+}
+
 .card-art-shell > .card-art,
 .slot-card img,
 .spotlight-card img {
@@ -939,6 +943,7 @@ button {
   border-radius: 0.65rem;
   background: rgba(10, 7, 5, 0.7);
   display: grid;
+  gap: 0.06rem;
   place-items: center;
   text-align: center;
   pointer-events: none;
@@ -950,6 +955,14 @@ button {
   font-size: 0.82rem;
   font-weight: 700;
   line-height: 1.05;
+}
+
+.card-warning {
+  width: 100%;
+  color: var(--gold-strong);
+  font-size: clamp(0.46rem, 0.95dvh, 0.62rem);
+  line-height: 1.02;
+  overflow-wrap: anywhere;
 }
 
 .card-inline-stack {
@@ -980,6 +993,10 @@ button {
 .player-local .card-title {
   font-size: clamp(1.2rem, 2.45dvh, 1.48rem);
   line-height: 1.02;
+}
+
+.player-local .card-warning {
+  font-size: clamp(0.55rem, 1.1dvh, 0.7rem);
 }
 
 .card-badge {
@@ -1230,6 +1247,10 @@ button {
   aspect-ratio: auto;
 }
 
+.stage-choice-button .card-art-shell.has-warning {
+  --card-caption-offset: 3rem;
+}
+
 .stage-choice-button .card-art-shell > .card-art {
   width: 100%;
   height: 100%;
@@ -1242,6 +1263,10 @@ button {
 .stage-choice-button .card-title {
   font-size: 0.96rem;
   line-height: 1;
+}
+
+.stage-choice-button .card-warning {
+  font-size: 0.58rem;
 }
 
 .stage-choice-button .card-badge {
