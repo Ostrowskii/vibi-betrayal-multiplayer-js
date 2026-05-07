@@ -258,16 +258,16 @@ function cardExhaustionWarning(player, card, handType) {
     const chefAlive = player.ucs.chef.status !== "dead";
     if (exhaustion >= 5) {
       return chefAlive
-        ? "O King esta no limite. Ninguem descansa, exceto o Dummy. Se nao descansar, o Cook cai."
-        : "O King esta no limite. Ninguem descansa, exceto o Dummy. Se nao descansar, o proprio King pode cair.";
+        ? "O King esta no limite. Ninguem descansa. O Cook cai agora."
+        : "O King esta no limite. Ninguem descansa. Ele pode cair agora.";
     }
     if (exhaustion >= 4) {
       return chefAlive
-        ? "O King esta muito cansado. Ninguem descansa, exceto o Dummy. Se nao descansar, o Cook cai."
-        : "O King esta muito cansado. Ninguem descansa, exceto o Dummy. Se nao descansar, o proprio King pode cair.";
+        ? "O King esta no limite. Ninguem descansa. Se seguir assim, o Cook cai."
+        : "O King esta no limite. Ninguem descansa. Se seguir assim, ele cai.";
     }
     if (exhaustion >= 3) {
-      return "O King esta muito cansado. Se nao descansar, no proximo turno ninguem descansa, exceto o Dummy.";
+      return "O King esta muito cansado. Se nao descansar, ninguem descansa.";
     }
     return "";
   }
@@ -276,26 +276,26 @@ function cardExhaustionWarning(player, card, handType) {
     const kingAlive = player.ucs.king.status !== "dead";
     if (exhaustion >= 5) {
       return kingAlive
-        ? "O Cook esta no limite. Ele ja nao protege o King contra Betrayl inimiga. Se nao descansar, o seu King pode morrer."
+        ? "O Cook esta no limite. Betrayl ja passa. O King pode cair agora."
         : "O Cook esta no limite.";
     }
     if (exhaustion >= 4) {
       return kingAlive
-        ? "O Cook esta muito cansado. Ele ja nao protege o King contra Betrayl inimiga. Se nao descansar, o seu King pode morrer."
+        ? "O Cook esta no limite. Betrayl passa. Se nao descansar, o King cai."
         : "O Cook esta muito cansado. Se nao descansar, pode entrar em colapso.";
     }
     if (exhaustion >= 3) {
-      return "O Cook esta muito cansado. Se nao descansar, ele deixa de proteger o King contra Betrayl inimiga.";
+      return "O Cook esta muito cansado. Se nao descansar, Betrayl passa.";
     }
     return "";
   }
 
   if (normalizedCard === "guard") {
     if (exhaustion >= 5) {
-      return "O Guard esta esgotado. Ele ja nao bloqueia Invasor.";
+      return "O Guard esta esgotado. Invasor ja passa direto.";
     }
     if (exhaustion >= 4) {
-      return "O Guard esta muito cansado. Invasor ja causa muito mais dano nele. Se nao descansar, ele deixa de bloquear.";
+      return "O Guard esta muito cansado. Se nao descansar, Invasor passa.";
     }
     if (exhaustion >= 3) {
       return "O Guard esta muito cansado. Invasor ja causa mais dano nele.";
