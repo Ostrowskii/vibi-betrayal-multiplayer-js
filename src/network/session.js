@@ -4,9 +4,10 @@ import { VIBINET_SERVER_LABEL, VIBINET_SERVER_URL } from "./config.js";
 import { packer } from "./packer.js";
 
 export class MatchSession {
-  constructor({ room, user }) {
+  constructor({ room, user, onSync = null }) {
     this.room = room;
     this.user = user;
+    this.onSync = onSync;
     this.synced = false;
     this.joinPosted = false;
     this.leavePosted = false;
@@ -36,6 +37,7 @@ export class MatchSession {
         this.game.post({ $: "join", user: this.user });
         this.joinPosted = true;
       }
+      this.onSync?.();
     });
   }
 
