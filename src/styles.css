@@ -15,10 +15,10 @@
   --enemy-panel-height: clamp(4.9rem, 10dvh, 6.5rem);
   --board-shell-pad-y: 0.45rem;
   --board-shell-gap: 0.42rem;
-  --board-zone-share: 68dvh;
-  --hand-zone-share: 32dvh;
-  --board-zone-height: calc(var(--board-zone-share) - var(--board-shell-pad-y) - (var(--board-shell-gap) / 2));
-  --hand-zone-height: calc(var(--hand-zone-share) - var(--board-shell-pad-y) - (var(--board-shell-gap) / 2));
+  --board-shell-content-height: calc(100dvh - (2 * var(--board-shell-pad-y)) - (2 * var(--board-shell-gap)));
+  --board-zone-height: calc(var(--board-shell-content-height) * 0.60);
+  --surrender-zone-height: calc(var(--board-shell-content-height) * 0.08);
+  --hand-zone-height: calc(var(--board-shell-content-height) * 0.32);
   --selection-stack-gap: 0.26rem;
   --selection-group-frame-height: calc((0.32rem * 2) + 2px);
   --selection-footer-min-height: 3.35rem;
@@ -339,6 +339,7 @@ button {
   justify-items: center;
   grid-template-rows:
     minmax(0, var(--board-zone-height))
+    minmax(0, var(--surrender-zone-height))
     minmax(0, var(--hand-zone-height));
   gap: var(--board-shell-gap);
   height: 100dvh;
@@ -353,6 +354,7 @@ button {
 }
 
 .board-zone,
+.surrender-zone,
 .hand-zone {
   width: 100%;
   min-height: 0;
@@ -367,6 +369,12 @@ button {
 .hand-zone {
   display: grid;
   align-items: end;
+  justify-items: center;
+}
+
+.surrender-zone {
+  display: grid;
+  align-items: center;
   justify-items: center;
 }
 
@@ -886,6 +894,11 @@ button {
   align-self: start;
 }
 
+.player-local .card-title {
+  font-size: clamp(0.72rem, min(2.35dvh, calc(1.2vw + 0.35rem)), 1.48rem);
+  line-height: 1.02;
+}
+
 .card-art-shell {
   position: relative;
   --card-caption-offset: 2.15rem;
@@ -1283,6 +1296,24 @@ button {
   font-size: 0.94rem;
   line-height: 1.05;
   color: var(--gold-strong);
+}
+
+.surrender-button {
+  width: min(100%, 11.25rem);
+  min-height: 3.35rem;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid rgba(240, 122, 122, 0.34);
+  border-radius: 0.9rem;
+  background: linear-gradient(180deg, #7f3d39, #4f211d);
+  color: #fff0ec;
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.surrender-button:hover:not(:disabled) {
+  border-color: rgba(255, 171, 171, 0.45);
+  background: linear-gradient(180deg, #8e4640, #5d2823);
 }
 
 .turn-viewer {

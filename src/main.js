@@ -755,6 +755,16 @@ function renderLocalHand(state, seat) {
   `;
 }
 
+function renderSurrenderZone() {
+  return `
+    <section class="surrender-zone" aria-label="Desistir">
+      <button class="surrender-button" data-action="surrender-match">
+        Desistir
+      </button>
+    </section>
+  `;
+}
+
 function renderWinnerOverlay(state) {
   const winnerName = state.players[state.winner]?.name || state.winner;
   return `
@@ -807,6 +817,7 @@ function renderBoardScreen(state) {
         <div class="board-zone">
           ${renderCenterStage(state, self)}
         </div>
+        ${renderSurrenderZone()}
         <div class="hand-zone">
           ${renderLocalHand(state, self)}
         </div>
@@ -1173,6 +1184,10 @@ root.addEventListener("click", (event) => {
     case "back-to-servers":
       backToServers();
       playSound("click", 0.45);
+      return;
+    case "surrender-match":
+      backToServers();
+      playSound("click", 0.4);
       return;
     case "confirm-selection":
       app.session?.confirmSelection();

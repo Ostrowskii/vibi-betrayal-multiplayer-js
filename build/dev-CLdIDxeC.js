@@ -179,7 +179,13 @@
     <section class="player-hand player-local">
       ${en(e,t)}
     </section>
-  `}function sn(e){let n=e.players[e.winner]?.name||e.winner;return`
+  `}function sn(){return`
+    <section class="surrender-zone" aria-label="Desistir">
+      <button class="surrender-button" data-action="surrender-match">
+        Desistir
+      </button>
+    </section>
+  `}function cn(e){let n=e.players[e.winner]?.name||e.winner;return`
     <div class="overlay overlay-winner" data-action="continue-winner">
       <div class="winner-shell">
         <img class="winner-title" src="${t.textWinner}" alt="Winner" />
@@ -189,7 +195,7 @@
         <span class="overlay-hint">toque ou pressione qualquer tecla</span>
       </div>
     </div>
-  `}function cn(e){let t=e.players[e.winner]?.name||e.winner||`Ninguem`;return`
+  `}function ln(e){let t=e.players[e.winner]?.name||e.winner||`Ninguem`;return`
     <div class="overlay overlay-report">
       <div class="report-shell">
         <h2>Fim da Partida</h2>
@@ -202,20 +208,21 @@
         </div>
       </div>
     </div>
-  `}function ln(e){let{self:t}=Pt(e),n=[];return e.screen===`winner_transition`&&n.push(sn(e)),e.screen===`report`&&!qt(e)&&n.push(cn(e)),`
+  `}function un(e){let{self:t}=Pt(e),n=[];return e.screen===`winner_transition`&&n.push(cn(e)),e.screen===`report`&&!qt(e)&&n.push(ln(e)),`
     <div class="screen board-screen">
       <div class="board-backdrop"></div>
       <div class="board-shell">
         <div class="board-zone">
           ${$t(e,t)}
         </div>
+        ${sn()}
         <div class="hand-zone">
           ${on(e,t)}
         </div>
       </div>
       ${n.join(``)}
     </div>
-  `}function un(e){let n=!J.session?.synced,r=e.roster.length?e.roster.map((e,t)=>`<div class="lobby-name">${t+1}. ${X(e)}</div>`).join(``):`<div class="lobby-name">Nenhum jogador na sala ainda.</div>`;return`
+  `}function dn(e){let n=!J.session?.synced,r=e.roster.length?e.roster.map((e,t)=>`<div class="lobby-name">${t+1}. ${X(e)}</div>`).join(``):`<div class="lobby-name">Nenhum jogador na sala ainda.</div>`;return`
     <div class="screen menu-screen">
       <div class="menu-backdrop"></div>
       <div class="menu-shell">
@@ -228,7 +235,7 @@
         </div>
       </div>
     </div>
-  `}function dn(e){let n=e.roster.length?e.roster.map((e,t)=>`<div class="lobby-name">${t+1}. ${X(e)}</div>`).join(``):`<div class="lobby-name">Nenhum jogador confirmado nesta sala.</div>`,r=e.roster.length>=2?`Sala ocupada`:`Voce nao entrou nessa partida`,i=e.roster.length>=2?`Essa sala ja tem dois jogadores. Use outra sala ou reinicie a partida existente.`:`Seu navegador sincronizou a sala, mas este usuario nao virou um dos dois jogadores ativos.`;return`
+  `}function fn(e){let n=e.roster.length?e.roster.map((e,t)=>`<div class="lobby-name">${t+1}. ${X(e)}</div>`).join(``):`<div class="lobby-name">Nenhum jogador confirmado nesta sala.</div>`,r=e.roster.length>=2?`Sala ocupada`:`Voce nao entrou nessa partida`,i=e.roster.length>=2?`Essa sala ja tem dois jogadores. Use outra sala ou reinicie a partida existente.`:`Seu navegador sincronizou a sala, mas este usuario nao virou um dos dois jogadores ativos.`;return`
     <div class="screen menu-screen">
       <div class="menu-backdrop"></div>
       <div class="menu-shell">
@@ -242,7 +249,7 @@
         </div>
       </div>
     </div>
-  `}function fn(){return`
+  `}function pn(){return`
     <div class="screen menu-screen">
       <div class="menu-backdrop"></div>
       <div class="menu-shell">
@@ -265,7 +272,7 @@
         </div>
       </div>
     </div>
-  `}function pn(){return M.find(e=>e.id===J.selectedServerId)??null}function mn(){let e=Mt(),n=pn();return`
+  `}function mn(){return M.find(e=>e.id===J.selectedServerId)??null}function hn(){let e=Mt(),n=mn();return`
     <div class="screen menu-screen">
       <div class="menu-backdrop"></div>
       <div class="menu-shell">
@@ -297,4 +304,4 @@
         </div>
       </div>
     </div>
-  `}function hn(){return!J.session||!J.state?J.menuPage===`servers`?mn():fn():J.session.synced&&J.state.roster.length>=2&&!Nt(J.state)?dn(J.state):J.state.screen===`lobby`?un(J.state):ln(J.state)}function gn(){let e=J.form.user.trim(),t=J.form.room.trim();if(!e||!t){J.notice=`Preencha usuario e selecione um servidor.`,Z(`invalid`,.55);return}J.session&&J.session.close(),J.notice=``,J.hadLiveMatch=!1,J.lastPhase=null,J.lastScreen=null,J.panelView=`rest`,J.state=null,J.metricAnimations=null,J.finalBoardReview=!1,J.menuPage=`user`,J.session=new yt({room:t,user:e}),Z(`click`,.45)}function _n(){J.session&&J.session.close(),J.session=null,J.state=null,J.hadLiveMatch=!1,J.lastPhase=null,J.lastScreen=null,J.panelView=`rest`,J.metricAnimations=null,J.finalBoardReview=!1,J.menuPage=`user`}function vn(){J.session&&J.session.close(),J.session=null,J.state=null,J.hadLiveMatch=!1,J.lastPhase=null,J.lastScreen=null,J.panelView=`rest`,J.viewingTurn=null,J.localPhaseView=null,J.metricAnimations=null,J.finalBoardReview=!1,J.notice=``,J.menuPage=`servers`,!J.selectedServerId&&M[0]&&(J.selectedServerId=M[0].id)}function yn(){if(!J.form.user.trim()){J.notice=`Preencha usuario.`,Z(`invalid`,.55);return}J.notice=``,J.menuPage=`servers`,!J.selectedServerId&&M[0]&&(J.selectedServerId=M[0].id),Ot(),Z(`click`,.35)}function bn(){J.notice=``,J.finalBoardReview=!1,J.menuPage=`user`,Z(`click`,.35)}function xn(){let e=pn();if(!e){J.notice=`Selecione um servidor.`,Z(`invalid`,.55);return}J.form.room=e.room,gn()}function Sn(e,t){if(t){if((t.screen===`game`||t.screen===`winner_transition`||t.screen===`report`)&&(J.hadLiveMatch=!0),t.screen===`game`?J.viewingTurn===null?(J.viewingTurn=t.turnNumber,J.localPhaseView=`selection`):t.lastTurnSnapshot&&t.lastTurnSnapshot.turnNumber===J.viewingTurn&&t.turnNumber>J.viewingTurn&&J.localPhaseView!==`reveal`&&(J.localPhaseView=`reveal`,Z(`place`,.5)):(J.viewingTurn=null,J.localPhaseView=null),t.screen!==`report`&&(J.finalBoardReview=!1),e?.phase!==t.phase&&(t.phase===`phase_0_start_effects`&&Z(`turnStart`,.45),t.phase===`phase_2_results`&&Z(`place`,.5)),e?.screen!==t.screen){let e=Nt(t);t.screen===`winner_transition`&&Z(t.winner===e?`victory`:`defeat`,.6)}J.hadLiveMatch&&t.screen===`lobby`&&t.roster.length===0&&(_n(),J.notice=`A partida voltou ao menu compartilhado.`)}}function Cn(){if(J.session){let e=J.session.computeState();J.metricAnimations=Rt(J.state,e),Sn(J.state,e),J.state=e}let e=hn();if(e!==J.lastMarkup){let t=kt();q.innerHTML=e,J.lastMarkup=e,jt(),At(t)}requestAnimationFrame(Cn)}q.addEventListener(`input`,e=>{let t=e.target.dataset.field;t&&(J.form[t]=e.target.value)}),q.addEventListener(`click`,e=>{let t=e.target.closest(`[data-action]`);if(!t)return;let{action:n,card:r,view:i}=t.dataset;switch(n){case`open-server-list`:yn();return;case`back-to-user-menu`:bn();return;case`connect-selected-server`:xn();return;case`select-server`:if(!t.dataset.serverId)return;J.selectedServerId=t.dataset.serverId,Z(`click`,.22);return;case`back-to-menu`:_n();return;case`back-to-servers`:vn(),Z(`click`,.45);return;case`confirm-selection`:J.session?.confirmSelection();return;case`advance-turn`:J.session?.advanceTurn()&&Z(`turnConfirm`,.42);return;case`advance-local-view`:J.localPhaseView===`reveal`&&J.state&&(J.viewingTurn=J.state.turnNumber,J.localPhaseView=`selection`,Z(`turnConfirm`,.42));return;case`open-final-board`:J.state?.screen===`report`&&J.state.lastTurnSnapshot&&(J.finalBoardReview=!0,Z(`click`,.42));return;case`set-panel-view`:if(!i)return;J.panelView=i;return;case`select-uc`:J.session?.selectUC(r)&&Z(`select`,.45);return;case`select-ue`:J.session?.selectUE(r)&&Z(`select`,.45);return;case`continue-winner`:J.session?.continueWinner()&&Z(`click`,.4);return;case`report-menu`:J.session?.reportAction(`menu`)&&Z(`click`,.45);return;case`report-restart`:J.session?.reportAction(`restart`)&&Z(`turnConfirm`,.45);return}}),window.addEventListener(`beforeunload`,()=>{J.session?.leave(),J.serverDirectory?.close()}),window.addEventListener(`keydown`,e=>{e.repeat||J.state?.screen===`winner_transition`&&(J.session?.continueWinner(),Z(`click`,.35))}),Ot(),Cn();
+  `}function gn(){return!J.session||!J.state?J.menuPage===`servers`?hn():pn():J.session.synced&&J.state.roster.length>=2&&!Nt(J.state)?fn(J.state):J.state.screen===`lobby`?dn(J.state):un(J.state)}function _n(){let e=J.form.user.trim(),t=J.form.room.trim();if(!e||!t){J.notice=`Preencha usuario e selecione um servidor.`,Z(`invalid`,.55);return}J.session&&J.session.close(),J.notice=``,J.hadLiveMatch=!1,J.lastPhase=null,J.lastScreen=null,J.panelView=`rest`,J.state=null,J.metricAnimations=null,J.finalBoardReview=!1,J.menuPage=`user`,J.session=new yt({room:t,user:e}),Z(`click`,.45)}function vn(){J.session&&J.session.close(),J.session=null,J.state=null,J.hadLiveMatch=!1,J.lastPhase=null,J.lastScreen=null,J.panelView=`rest`,J.metricAnimations=null,J.finalBoardReview=!1,J.menuPage=`user`}function yn(){J.session&&J.session.close(),J.session=null,J.state=null,J.hadLiveMatch=!1,J.lastPhase=null,J.lastScreen=null,J.panelView=`rest`,J.viewingTurn=null,J.localPhaseView=null,J.metricAnimations=null,J.finalBoardReview=!1,J.notice=``,J.menuPage=`servers`,!J.selectedServerId&&M[0]&&(J.selectedServerId=M[0].id)}function bn(){if(!J.form.user.trim()){J.notice=`Preencha usuario.`,Z(`invalid`,.55);return}J.notice=``,J.menuPage=`servers`,!J.selectedServerId&&M[0]&&(J.selectedServerId=M[0].id),Ot(),Z(`click`,.35)}function xn(){J.notice=``,J.finalBoardReview=!1,J.menuPage=`user`,Z(`click`,.35)}function Sn(){let e=mn();if(!e){J.notice=`Selecione um servidor.`,Z(`invalid`,.55);return}J.form.room=e.room,_n()}function Cn(e,t){if(t){if((t.screen===`game`||t.screen===`winner_transition`||t.screen===`report`)&&(J.hadLiveMatch=!0),t.screen===`game`?J.viewingTurn===null?(J.viewingTurn=t.turnNumber,J.localPhaseView=`selection`):t.lastTurnSnapshot&&t.lastTurnSnapshot.turnNumber===J.viewingTurn&&t.turnNumber>J.viewingTurn&&J.localPhaseView!==`reveal`&&(J.localPhaseView=`reveal`,Z(`place`,.5)):(J.viewingTurn=null,J.localPhaseView=null),t.screen!==`report`&&(J.finalBoardReview=!1),e?.phase!==t.phase&&(t.phase===`phase_0_start_effects`&&Z(`turnStart`,.45),t.phase===`phase_2_results`&&Z(`place`,.5)),e?.screen!==t.screen){let e=Nt(t);t.screen===`winner_transition`&&Z(t.winner===e?`victory`:`defeat`,.6)}J.hadLiveMatch&&t.screen===`lobby`&&t.roster.length===0&&(vn(),J.notice=`A partida voltou ao menu compartilhado.`)}}function wn(){if(J.session){let e=J.session.computeState();J.metricAnimations=Rt(J.state,e),Cn(J.state,e),J.state=e}let e=gn();if(e!==J.lastMarkup){let t=kt();q.innerHTML=e,J.lastMarkup=e,jt(),At(t)}requestAnimationFrame(wn)}q.addEventListener(`input`,e=>{let t=e.target.dataset.field;t&&(J.form[t]=e.target.value)}),q.addEventListener(`click`,e=>{let t=e.target.closest(`[data-action]`);if(!t)return;let{action:n,card:r,view:i}=t.dataset;switch(n){case`open-server-list`:bn();return;case`back-to-user-menu`:xn();return;case`connect-selected-server`:Sn();return;case`select-server`:if(!t.dataset.serverId)return;J.selectedServerId=t.dataset.serverId,Z(`click`,.22);return;case`back-to-menu`:vn();return;case`back-to-servers`:yn(),Z(`click`,.45);return;case`surrender-match`:yn(),Z(`click`,.4);return;case`confirm-selection`:J.session?.confirmSelection();return;case`advance-turn`:J.session?.advanceTurn()&&Z(`turnConfirm`,.42);return;case`advance-local-view`:J.localPhaseView===`reveal`&&J.state&&(J.viewingTurn=J.state.turnNumber,J.localPhaseView=`selection`,Z(`turnConfirm`,.42));return;case`open-final-board`:J.state?.screen===`report`&&J.state.lastTurnSnapshot&&(J.finalBoardReview=!0,Z(`click`,.42));return;case`set-panel-view`:if(!i)return;J.panelView=i;return;case`select-uc`:J.session?.selectUC(r)&&Z(`select`,.45);return;case`select-ue`:J.session?.selectUE(r)&&Z(`select`,.45);return;case`continue-winner`:J.session?.continueWinner()&&Z(`click`,.4);return;case`report-menu`:J.session?.reportAction(`menu`)&&Z(`click`,.45);return;case`report-restart`:J.session?.reportAction(`restart`)&&Z(`turnConfirm`,.45);return}}),window.addEventListener(`beforeunload`,()=>{J.session?.leave(),J.serverDirectory?.close()}),window.addEventListener(`keydown`,e=>{e.repeat||J.state?.screen===`winner_transition`&&(J.session?.continueWinner(),Z(`click`,.35))}),Ot(),wn();
