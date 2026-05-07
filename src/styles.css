@@ -845,7 +845,15 @@ button {
 
 .player-local .selection-strip.is-rest .card-button,
 .player-local .selection-strip.is-attack .card-button {
-  width: min(calc(var(--local-hand-card-height) * 1086 / 1448), calc((100% - 0.84rem) / 4));
+  width: min(
+    calc(var(--local-hand-card-height) * 1086 / 1448),
+    calc(
+      (
+          100%
+          - ((var(--selection-card-count, 4) - 1) * 0.28rem)
+        ) / var(--selection-card-count, 4)
+    )
+  );
   aspect-ratio: 1086 / 1448;
   height: auto;
   flex-shrink: 0;

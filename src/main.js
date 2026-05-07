@@ -242,8 +242,12 @@ function cardExhaustionBadge(player, card, handType) {
   return String(exhaustion);
 }
 
-function visibleAttackCards() {
-  return UE_TYPES.filter((card) => card !== "poisoned_tribute");
+function visibleAttackCards(player) {
+  return UE_TYPES.filter(
+    (card) =>
+      card !== "poisoned_tribute" ||
+      player.ues.poisoned_tribute.status === "active",
+  );
 }
 
 function getCardDisabled(player, card, handType) {
@@ -312,10 +316,14 @@ function renderSelectionGroup({
   tone,
 }) {
   const kindClass = handType === "uc" ? "is-rest" : "is-attack";
+  const cardCount = Math.max(1, cards.length);
 
   return `
     <section class="selection-group ${kindClass}">
-      <div class="selection-strip ${kindClass} ${tone}">
+      <div
+        class="selection-strip ${kindClass} ${tone}"
+        style="--selection-card-count: ${cardCount};"
+      >
         ${cards
           .map((card) =>
             renderCardButton({
@@ -557,7 +565,7 @@ function renderOwnChoices(state, seat) {
     ? renderRoundReport(state, seat)
     : currentView === "attack"
       ? renderSelectionGroup({
-        cards: visibleAttackCards(),
+        cards: visibleAttackCards(player),
         handType: "ue",
         player,
         seat,
