@@ -230,7 +230,9 @@ function buildMetricAnimations(prevState, nextState) {
   return animations;
 }
 
-function cardCountBadge() {
+function cardCountBadge(player, card) {
+  if (card === "invader") return `x${player.ues.invader.available}`;
+  if (card === "tribute") return `x${player.ues.tribute.available}`;
   return "";
 }
 
@@ -346,7 +348,7 @@ function renderStageChoiceButton({ player, handType, view, icon, ariaLabel }) {
     : view === "rest"
       ? "Descanso"
       : "Ataque";
-  const badge = selectedCard ? cardCountBadge(player, selectedCard) : "";
+  const badge = "";
   const exhaustionBadge = selectedCard
     ? cardExhaustionBadge(player, selectedCard, handType)
     : "";
