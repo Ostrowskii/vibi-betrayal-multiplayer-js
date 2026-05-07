@@ -1114,6 +1114,9 @@ button {
 .stage-board-row {
   width: var(--center-row-width-pct);
   flex: 0 0 var(--center-row-width-pct);
+  padding:
+    clamp(0.12rem, 0.3dvh, 0.22rem)
+    clamp(0.28rem, 0.9vw, 0.56rem);
 }
 
 .stage-sidebar {
