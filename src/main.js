@@ -250,6 +250,7 @@ function cardExhaustionWarning(player, card, handType) {
   if (handType !== "uc") return "";
   const normalizedCard = normalizeUCType(card);
   if (!normalizedCard || normalizedCard === "dummy") return "";
+  if (player.ucs[normalizedCard]?.status === "dead") return "";
   const exhaustion = player.ucs[normalizedCard]?.exhaustion ?? 0;
 
   if (normalizedCard === "king") {
@@ -302,6 +303,10 @@ function cardExhaustionWarning(player, card, handType) {
   }
 
   return "";
+}
+
+function getRoundReportWarnings(player) {
+  return UC_TYPES.map((card) => cardExhaustionWarning(player, card, "uc")).filter(Boolean);
 }
 
 function visibleAttackCards(player) {
@@ -523,7 +528,6 @@ function renderCardButton({ card, handType, player, seat, interactive }) {
   const disabled = getCardDisabled(player, card, handType);
   const badge = cardCountBadge(player, card);
   const exhaustionBadge = cardExhaustionBadge(player, card, handType);
-  const exhaustionWarning = cardExhaustionWarning(player, card, handType);
   const action = handType === "uc" ? "select-uc" : "select-ue";
   const disabledClass = disabled || !interactive ? "is-disabled" : "";
   const selectedClass = selected ? "is-selected" : "";
@@ -537,15 +541,10 @@ function renderCardButton({ card, handType, player, seat, interactive }) {
       data-seat="${seat}"
       ${disabledAttr}
     >
-      <div class="card-art-shell ${exhaustionWarning ? "has-warning" : ""}">
+      <div class="card-art-shell">
         <img class="card-art" src="${getCardArt(card, disabled)}" alt="${escapeHtml(label)}" />
         <div class="card-caption">
           <span class="card-title">${escapeHtml(label)}</span>
-          ${
-            exhaustionWarning
-              ? `<span class="card-warning">${escapeHtml(exhaustionWarning)}</span>`
-              : ""
-          }
         </div>
         ${badge ? `<span class="card-badge">${escapeHtml(badge)}</span>` : ""}
         ${
@@ -607,9 +606,6 @@ function renderStageChoiceButton({ player, handType, view, ariaLabel }) {
   const exhaustionBadge = selectedCard
     ? cardExhaustionBadge(player, selectedCard, handType)
     : "";
-  const exhaustionWarning = selectedCard
-    ? cardExhaustionWarning(player, selectedCard, handType)
-    : "";
 
   return `
     <button
@@ -621,15 +617,10 @@ function renderStageChoiceButton({ player, handType, view, ariaLabel }) {
       ${
         selectedCard
           ? `
-            <div class="card-art-shell ${exhaustionWarning ? "has-warning" : ""}">
+            <div class="card-art-shell">
               <img class="card-art" src="${getCardArt(selectedCard, false)}" alt="${escapeHtml(label)}" />
               <div class="card-caption">
                 <span class="card-title">${escapeHtml(label)}</span>
-                ${
-                  exhaustionWarning
-                    ? `<span class="card-warning">${escapeHtml(exhaustionWarning)}</span>`
-                    : ""
-                }
               </div>
               ${badge ? `<span class="card-badge">${escapeHtml(badge)}</span>` : ""}
               ${
@@ -713,6 +704,7 @@ function shouldRevealEnemyRestCard(state, self) {
 
 function renderRoundReport(state, seat) {
   const summary = getTurnSummary(state, seat);
+  const warnings = getRoundReportWarnings(state.players[seat]);
 
   return `
     <section class="round-report">
@@ -726,6 +718,18 @@ function renderRoundReport(state, seat) {
           <strong>Voce</strong>
           <p>${escapeHtml(summary.selfLine)}</p>
         </div>
+        ${
+          warnings.length
+            ? `
+              <div class="round-report-item round-report-item-alerts">
+                <strong>Avisos</strong>
+                <div class="round-report-alert-list">
+                  ${warnings.map((warning) => `<p>${escapeHtml(warning)}</p>`).join("")}
+                </div>
+              </div>
+            `
+            : ""
+        }
       </div>
     </section>
   `;
