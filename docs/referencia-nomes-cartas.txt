@@ -1,0 +1,47 @@
+referencia de nomes das cartas
+==============================
+
+objetivo
+--------
+
+- a ui do jogo usa os nomes em ingles como canonicos
+- este arquivo guarda a referencia dos ids internos e uma base pt-BR para uso futuro
+
+nomes canonicos em uso no jogo
+------------------------------
+
+ucs
+- king -> King
+- chef -> Cook
+- guard -> Guard
+- dummy -> Dummy
+
+ues
+- assassin -> Assassin
+- spy -> Spy
+- invader -> Invader
+- tribute -> Tribute
+- poisoned_tribute -> Betrayl
+
+referencia pt-BR
+----------------
+
+ucs
+- king -> Rei
+- chef -> Cozinheiro
+- guard -> Guarda
+- dummy -> Dummy
+
+ues
+- assassin -> Assassino
+- spy -> Spy
+- invader -> Invasor
+- tribute -> Tributo
+- poisoned_tribute -> Traicao
+
+observacoes
+-----------
+
+- os ids internos devem continuar estaveis
+- a ui atual do jogo deve usar o bloco em ingles
+- a referencia pt-BR existe so para consulta e futura localizacao
