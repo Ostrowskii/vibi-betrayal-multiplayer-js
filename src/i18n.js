@@ -90,9 +90,9 @@ const MESSAGES = {
       "The Cook is very tired. If he does not rest, Betrayl passes.",
     "ui.warning.guard.exhausted": "The Guard is exhausted. Invader already passes.",
     "ui.warning.guard.tiredPasses":
-      "The Guard is very tired. If he does not rest, Invader passes.",
+      "The Guard is very tired. Invader deals 3->4 damage now. At 5, it passes.",
     "ui.warning.guard.tiredDamage":
-      "The Guard is very tired. Invader already deals more damage.",
+      "The Guard is very tired. Invader deals 2->3 damage now.",
     "net.server.name": ({ number }) => `Room ${number}`,
     "net.probe.unavailable.text": ({ server }) => `Server ${server} unavailable.`,
     "net.probe.unavailable.detail":
@@ -411,9 +411,9 @@ const MESSAGES = {
       "O Cook esta muito cansado. Se nao descansar, Betrayl passa.",
     "ui.warning.guard.exhausted": "O Guard esta esgotado. Invader ja passa direto.",
     "ui.warning.guard.tiredPasses":
-      "O Guard esta muito cansado. Se nao descansar, Invader passa.",
+      "O Guard esta muito cansado. Invader agora causa 3->4 de dano. Com 5, passa.",
     "ui.warning.guard.tiredDamage":
-      "O Guard esta muito cansado. Invader ja causa mais dano nele.",
+      "O Guard esta muito cansado. Invader agora causa 2->3 de dano.",
     "net.server.name": ({ number }) => `Sala ${number}`,
     "net.probe.unavailable.text": ({ server }) => `Servidor ${server} indisponivel.`,
     "net.probe.unavailable.detail":
