@@ -80,14 +80,14 @@ const MESSAGES = {
     "ui.warning.king.tired":
       "The King is very tired. If he does not rest, nobody rests.",
     "ui.warning.cook.limitKingFalls":
-      "The Cook is at the limit. Betrayl already passes. The King may fall.",
+      "The Cook is at the limit. Betrayal already passes. The King may fall.",
     "ui.warning.cook.limitOnly": "The Cook is at the limit.",
     "ui.warning.cook.limitKingNext":
-      "The Cook is at the limit. Betrayl passes. If he does not rest, the King falls.",
+      "The Cook is at the limit. Betrayal passes. If he does not rest, the King falls.",
     "ui.warning.cook.tiredCollapse":
       "The Cook is very tired. If he does not rest, he may collapse.",
     "ui.warning.cook.tiredBetrayl":
-      "The Cook is very tired. If he does not rest, Betrayl passes.",
+      "The Cook is very tired. If he does not rest, Betrayal passes.",
     "ui.warning.guard.exhausted": "The Guard is exhausted. Invader already passes.",
     "ui.warning.guard.tiredPasses":
       "The Guard is very tired. Invader deals 3->4 damage now. At 5, it passes.",
@@ -169,7 +169,7 @@ const MESSAGES = {
     "engine.log.tributeRaisedTrust": ({ attacker, defender }) =>
       `${attacker} sent Tribute. ${defender}'s trust went up.`,
     "engine.log.betraylLoweredTrust": ({ attacker, defender }) =>
-      `${attacker} lowered ${defender}'s trust with Betrayl.`,
+      `${attacker} lowered ${defender}'s trust with Betrayal.`,
     "engine.log.kingMadnessReset": ({ player }) =>
       `${player} let the King reach 5 stacks. The Cook died and the King's exhaustion reset.`,
     "engine.log.kingMadnessLoss": ({ player, enemy }) =>
@@ -272,15 +272,15 @@ const MESSAGES = {
     "engine.tribute.public.received": ({ before, after }) =>
       `You received Tribute. Your trust went from ${before} to ${after}.`,
     "engine.betrayl.report.selfKill":
-      "You sent Betrayl and caught the enemy Cook resting. The King was poisoned.",
+      "You sent Betrayal and caught the enemy Cook resting. The King was poisoned.",
     "engine.betrayl.report.enemyKill":
-      "The enemy sent Betrayl and caught your Cook resting. The King was poisoned.",
+      "The enemy sent Betrayal and caught your Cook resting. The King was poisoned.",
     "engine.betrayl.public.selfKill":
-      "You sent Betrayl while the enemy Cook was resting. The King was poisoned.",
+      "You sent Betrayal while the enemy Cook was resting. The King was poisoned.",
     "engine.betrayl.public.enemyKill":
-      "The enemy sent Betrayl while your Cook was resting. The King was poisoned.",
+      "The enemy sent Betrayal while your Cook was resting. The King was poisoned.",
     "engine.winner.betrayl": ({ attacker, defender }) =>
-      `${attacker} won with Betrayl over ${defender}.`,
+      `${attacker} won with Betrayal over ${defender}.`,
     "engine.betrayl.reason.selfCookTooTired":
       "your Cook was too tired to protect the King",
     "engine.betrayl.reason.enemyCookDead": "the enemy Cook was already dead",
@@ -291,13 +291,13 @@ const MESSAGES = {
     "engine.betrayl.reason.defendCookDead": "your Cook was already dead",
     "engine.betrayl.reason.defendCookNotResting": "your Cook was not resting",
     "engine.betrayl.report.selfFail": ({ reason, before, after }, { message }) =>
-      `You sent Betrayl, but ${message(reason)}. Trust fell from ${before} to ${after}.`,
+      `You sent Betrayal, but ${message(reason)}. Trust fell from ${before} to ${after}.`,
     "engine.betrayl.report.enemyFail": ({ reason, before, after }, { message }) =>
-      `The enemy sent Betrayl, but ${message(reason)}. Your trust fell from ${before} to ${after}.`,
+      `The enemy sent Betrayal, but ${message(reason)}. Your trust fell from ${before} to ${after}.`,
     "engine.betrayl.public.selfFail": ({ before, after }) =>
-      `You sent Betrayl. The enemy trust fell from ${before} to ${after}.`,
+      `You sent Betrayal. The enemy trust fell from ${before} to ${after}.`,
     "engine.betrayl.public.enemyFail": ({ before, after }) =>
-      `The enemy sent Betrayl. Your trust fell from ${before} to ${after}.`,
+      `The enemy sent Betrayal. Your trust fell from ${before} to ${after}.`,
     "engine.kingReset.public.self":
       "Your King reached 5 stacks, killed the Cook, and reset exhaustion.",
     "engine.kingReset.public.enemy":
@@ -401,14 +401,14 @@ const MESSAGES = {
     "ui.warning.king.tired":
       "O King esta muito cansado. Se nao descansar, ninguem descansa.",
     "ui.warning.cook.limitKingFalls":
-      "O Cook esta no limite. Betrayl ja passa. O King pode cair agora.",
+      "O Cook esta no limite. Betrayal ja passa. O King pode cair agora.",
     "ui.warning.cook.limitOnly": "O Cook esta no limite.",
     "ui.warning.cook.limitKingNext":
-      "O Cook esta no limite. Betrayl passa. Se nao descansar, o King cai.",
+      "O Cook esta no limite. Betrayal passa. Se nao descansar, o King cai.",
     "ui.warning.cook.tiredCollapse":
       "O Cook esta muito cansado. Se nao descansar, pode entrar em colapso.",
     "ui.warning.cook.tiredBetrayl":
-      "O Cook esta muito cansado. Se nao descansar, Betrayl passa.",
+      "O Cook esta muito cansado. Se nao descansar, Betrayal passa.",
     "ui.warning.guard.exhausted": "O Guard esta esgotado. Invader ja passa direto.",
     "ui.warning.guard.tiredPasses":
       "O Guard esta muito cansado. Invader agora causa 3->4 de dano. Com 5, passa.",
@@ -488,7 +488,7 @@ const MESSAGES = {
     "engine.log.tributeRaisedTrust": ({ attacker, defender }) =>
       `${attacker} enviou Tribute. A confianca de ${defender} subiu.`,
     "engine.log.betraylLoweredTrust": ({ attacker, defender }) =>
-      `${attacker} derrubou a confianca de ${defender} com Betrayl.`,
+      `${attacker} derrubou a confianca de ${defender} com Betrayal.`,
     "engine.log.kingMadnessReset": ({ player }) =>
       `${player} deixou o King chegar a 5 stacks. O Cook morreu e a exaustao do King foi zerada.`,
     "engine.log.kingMadnessLoss": ({ player, enemy }) =>
@@ -591,15 +591,15 @@ const MESSAGES = {
     "engine.tribute.public.received": ({ before, after }) =>
       `Voce recebeu Tribute. Sua confianca subiu de ${before} para ${after}.`,
     "engine.betrayl.report.selfKill":
-      "Voce enviou Betrayl e pegou o Cook inimigo descansando. O King foi envenenado.",
+      "Voce enviou Betrayal e pegou o Cook inimigo descansando. O King foi envenenado.",
     "engine.betrayl.report.enemyKill":
-      "O inimigo enviou Betrayl e pegou seu Cook descansando. O King foi envenenado.",
+      "O inimigo enviou Betrayal e pegou seu Cook descansando. O King foi envenenado.",
     "engine.betrayl.public.selfKill":
-      "Voce enviou Betrayl enquanto o Cook inimigo dormia. O King foi envenenado.",
+      "Voce enviou Betrayal enquanto o Cook inimigo dormia. O King foi envenenado.",
     "engine.betrayl.public.enemyKill":
-      "O inimigo enviou Betrayl enquanto o seu Cook dormia. O King foi envenenado.",
+      "O inimigo enviou Betrayal enquanto o seu Cook dormia. O King foi envenenado.",
     "engine.winner.betrayl": ({ attacker, defender }) =>
-      `${attacker} venceu com Betrayl sobre ${defender}.`,
+      `${attacker} venceu com Betrayal sobre ${defender}.`,
     "engine.betrayl.reason.selfCookTooTired":
       "o seu Cook estava cansado demais para proteger o King",
     "engine.betrayl.reason.enemyCookDead": "o Cook inimigo ja estava morto",
@@ -610,13 +610,13 @@ const MESSAGES = {
     "engine.betrayl.reason.defendCookDead": "seu Cook ja estava morto",
     "engine.betrayl.reason.defendCookNotResting": "seu Cook nao estava descansando",
     "engine.betrayl.report.selfFail": ({ reason, before, after }, { message }) =>
-      `Voce enviou Betrayl, mas ${message(reason)}. A confianca caiu de ${before} para ${after}.`,
+      `Voce enviou Betrayal, mas ${message(reason)}. A confianca caiu de ${before} para ${after}.`,
     "engine.betrayl.report.enemyFail": ({ reason, before, after }, { message }) =>
-      `O inimigo enviou Betrayl, mas ${message(reason)}. Sua confianca caiu de ${before} para ${after}.`,
+      `O inimigo enviou Betrayal, mas ${message(reason)}. Sua confianca caiu de ${before} para ${after}.`,
     "engine.betrayl.public.selfFail": ({ before, after }) =>
-      `Voce enviou Betrayl. A confianca do inimigo caiu de ${before} para ${after}.`,
+      `Voce enviou Betrayal. A confianca do inimigo caiu de ${before} para ${after}.`,
     "engine.betrayl.public.enemyFail": ({ before, after }) =>
-      `O inimigo enviou Betrayl. Sua confianca caiu de ${before} para ${after}.`,
+      `O inimigo enviou Betrayal. Sua confianca caiu de ${before} para ${after}.`,
     "engine.kingReset.public.self":
       "Seu King chegou a 5 stacks, matou o proprio Cook e zerou a exaustao.",
     "engine.kingReset.public.enemy":

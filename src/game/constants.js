@@ -29,7 +29,7 @@ export const CARD_LABELS = {
     spy: "Spy",
     invader: "Invader",
     tribute: "Tribute",
-    poisoned_tribute: "Betrayl",
+    poisoned_tribute: "Betrayal",
   },
   ptBR: {
     king: "Rei",
