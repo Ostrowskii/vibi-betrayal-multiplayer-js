@@ -1,5 +1,6 @@
 import { VibiNet } from "vibinet";
 import { gameConfig } from "../game/engine.js";
+import { msg } from "../i18n.js";
 import { VIBINET_SERVER_LABEL, VIBINET_SERVER_URL } from "./config.js";
 import { packer } from "./packer.js";
 
@@ -14,9 +15,9 @@ export class MatchSession {
     this.createdAt = Date.now();
     this.placeholderState = structuredClone(gameConfig.initial);
     this.placeholderState.publicLog = [
-      "Conectando ao servidor...",
-      `Sala alvo: ${room}`,
-      `Servidor: ${VIBINET_SERVER_LABEL}`,
+      msg("net.session.connecting"),
+      msg("net.session.targetRoom", { room }),
+      msg("net.session.server", { server: VIBINET_SERVER_LABEL }),
     ];
 
     this.game = new VibiNet.game({
@@ -44,9 +45,9 @@ export class MatchSession {
       const waitMs = Date.now() - this.createdAt;
       if (waitMs >= 5000) {
         this.placeholderState.publicLog = [
-          "Ainda sem sync inicial.",
-          `Servidor: ${VIBINET_SERVER_LABEL}`,
-          "Se isso nao sair dessa tela, o endpoint configurado nao respondeu ao on_sync.",
+          msg("net.session.waitingSync"),
+          msg("net.session.server", { server: VIBINET_SERVER_LABEL }),
+          msg("net.session.syncTimeoutDetail"),
         ];
       }
       return this.placeholderState;

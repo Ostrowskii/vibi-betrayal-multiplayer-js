@@ -1,4 +1,5 @@
 import { PHASE_DURATIONS } from "./constants.js";
+import { msg } from "../i18n.js";
 
 export function cloneState(state) {
   return structuredClone(state);
@@ -85,7 +86,7 @@ export function createInitialState() {
     winner: null,
     victoryType: null,
     reportAction: null,
-    publicLog: ["Aguardando dois jogadores entrarem na sala."],
+    publicLog: [msg("engine.state.waitingPlayers")],
   };
 }
 
@@ -108,7 +109,7 @@ export function createFreshMatchState(roster, matchNumber = 1) {
   state.phaseTicksRemaining = PHASE_DURATIONS.phase_0_start_effects;
   state.matchNumber = matchNumber;
   state.publicLog = [
-    `Partida ${matchNumber} iniciada. Preparando o turno 1.`,
+    msg("engine.state.matchStarted", { matchNumber }),
   ];
   return state;
 }

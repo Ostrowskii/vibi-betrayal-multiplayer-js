@@ -11,6 +11,7 @@ export const UE_TYPES = [
 export const TICK_RATE = 12;
 export const TOLERANCE_MS = 350;
 export const LOG_LIMIT = 14;
+export const DEFAULT_LOCALE = "en";
 
 export const PHASE_DURATIONS = {
   phase_0_start_effects: 10,
@@ -43,6 +44,8 @@ export const CARD_LABELS = {
   },
 };
 
+export const SUPPORTED_LOCALES = Object.keys(CARD_LABELS);
+
 const pickCardLabels = (keys, locale = "en") =>
   Object.fromEntries(keys.map((key) => [key, CARD_LABELS[locale][key]]));
 
@@ -51,14 +54,37 @@ export const UC_LABELS = pickCardLabels(UC_TYPES);
 export const UE_LABELS = pickCardLabels(UE_TYPES);
 
 export const PHASE_LABELS = {
-  lobby: "Sala",
-  phase_0_start_effects: "Início do Turno",
-  phase_1_selection: "Decisões Simultâneas",
-  phase_2_results: "Resultados do Turno",
-  winner_transition: "Vitória",
-  report: "Relatório",
+  en: {
+    lobby: "Room",
+    phase_0_start_effects: "Turn Start",
+    phase_1_selection: "Simultaneous Choices",
+    phase_2_results: "Turn Results",
+    winner_transition: "Victory",
+    report: "Report",
+  },
+  ptBR: {
+    lobby: "Sala",
+    phase_0_start_effects: "Inicio do Turno",
+    phase_1_selection: "Decisoes Simultaneas",
+    phase_2_results: "Resultados do Turno",
+    winner_transition: "Vitoria",
+    report: "Relatorio",
+  },
 };
 
 export function normalizeUCType(card) {
   return card;
+}
+
+export function getCardLabel(card, locale = DEFAULT_LOCALE) {
+  const normalized = normalizeUCType(card);
+  return CARD_LABELS[locale]?.[normalized] ?? CARD_LABELS[locale]?.[card] ?? card;
+}
+
+export function getCardLabels(keys, locale = DEFAULT_LOCALE) {
+  return Object.fromEntries(keys.map((key) => [key, getCardLabel(key, locale)]));
+}
+
+export function getPhaseLabel(phase, locale = DEFAULT_LOCALE) {
+  return PHASE_LABELS[locale]?.[phase] ?? PHASE_LABELS.en[phase] ?? phase;
 }

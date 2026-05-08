@@ -2,13 +2,14 @@ import "./styles.css";
 
 import { ASSETS } from "./assets.js";
 import {
+  DEFAULT_LOCALE,
   normalizeUCType,
-  UC_LABELS,
   UC_TYPES,
-  UE_LABELS,
   UE_TYPES,
+  getCardLabel,
 } from "./game/constants.js";
 import { getVictoryLabel } from "./game/engine.js";
+import { renderMessage, setLocale, t } from "./i18n.js";
 import { SERVER_CHOICES } from "./network/config.js";
 import { ServerDirectory } from "./network/server-directory.js";
 import { MatchSession } from "./network/session.js";
@@ -40,13 +41,26 @@ const app = {
   metricAnimations: null,
   finalBoardReview: false,
   surrenderConfirmOpen: false,
+  locale: DEFAULT_LOCALE,
 };
 
 const audioPool = new Map();
-const METRIC_CONFIG = [
-  { key: "castleTrust", label: "Confianca", max: 3, className: "is-trust" },
-  { key: "guardDamage", label: "Guard", max: 6, className: "is-guard" },
-];
+function metricConfig() {
+  return [
+    {
+      key: "castleTrust",
+      label: t("metric.trust"),
+      max: 3,
+      className: "is-trust",
+    },
+    {
+      key: "guardDamage",
+      label: getCardLabel("guard", app.locale),
+      max: 6,
+      className: "is-guard",
+    },
+  ];
+}
 
 const FIRST_GAME_SCREEN_IMAGES = [
   ASSETS.castle1,
@@ -157,6 +171,10 @@ function escapeHtml(value) {
     .replaceAll('"', "&quot;");
 }
 
+function text(value) {
+  return renderMessage(value, app.locale);
+}
+
 function serverStatus() {
   return app.serverDirectory?.snapshot() ?? [];
 }
@@ -218,7 +236,7 @@ function buildMetricAnimations(prevState, nextState) {
     const prevPlayer = prevState?.players?.[seat] ?? nextPlayer;
     animations[seat] = {};
 
-    for (const metric of METRIC_CONFIG) {
+    for (const metric of metricConfig()) {
       const current = nextPlayer[metric.key] ?? 0;
       const prev = prevPlayer[metric.key] ?? current;
       animations[seat][metric.key] = {
@@ -258,16 +276,16 @@ function cardExhaustionWarning(player, card, handType) {
     const chefAlive = player.ucs.chef.status !== "dead";
     if (exhaustion >= 5) {
       return chefAlive
-        ? "O King esta no limite. Ninguem descansa. O Cook cai agora."
-        : "O King esta no limite. Ninguem descansa. Ele pode cair agora.";
+        ? t("ui.warning.king.limitCookFalls")
+        : t("ui.warning.king.limitSelfFalls");
     }
     if (exhaustion >= 4) {
       return chefAlive
-        ? "O King esta no limite. Ninguem descansa. Se seguir assim, o Cook cai."
-        : "O King esta no limite. Ninguem descansa. Se seguir assim, ele cai.";
+        ? t("ui.warning.king.limitCookNext")
+        : t("ui.warning.king.limitSelfNext");
     }
     if (exhaustion >= 3) {
-      return "O King esta muito cansado. Se nao descansar, ninguem descansa.";
+      return t("ui.warning.king.tired");
     }
     return "";
   }
@@ -276,29 +294,29 @@ function cardExhaustionWarning(player, card, handType) {
     const kingAlive = player.ucs.king.status !== "dead";
     if (exhaustion >= 5) {
       return kingAlive
-        ? "O Cook esta no limite. Betrayl ja passa. O King pode cair agora."
-        : "O Cook esta no limite.";
+        ? t("ui.warning.cook.limitKingFalls")
+        : t("ui.warning.cook.limitOnly");
     }
     if (exhaustion >= 4) {
       return kingAlive
-        ? "O Cook esta no limite. Betrayl passa. Se nao descansar, o King cai."
-        : "O Cook esta muito cansado. Se nao descansar, pode entrar em colapso.";
+        ? t("ui.warning.cook.limitKingNext")
+        : t("ui.warning.cook.tiredCollapse");
     }
     if (exhaustion >= 3) {
-      return "O Cook esta muito cansado. Se nao descansar, Betrayl passa.";
+      return t("ui.warning.cook.tiredBetrayl");
     }
     return "";
   }
 
   if (normalizedCard === "guard") {
     if (exhaustion >= 5) {
-      return "O Guard esta esgotado. Invader ja passa direto.";
+      return t("ui.warning.guard.exhausted");
     }
     if (exhaustion >= 4) {
-      return "O Guard esta muito cansado. Se nao descansar, Invader passa.";
+      return t("ui.warning.guard.tiredPasses");
     }
     if (exhaustion >= 3) {
-      return "O Guard esta muito cansado. Invader ja causa mais dano nele.";
+      return t("ui.warning.guard.tiredDamage");
     }
     return "";
   }
@@ -520,7 +538,7 @@ function getCardDisabled(player, card, handType) {
 
 function renderCardButton({ card, handType, player, seat, interactive }) {
   const normalizedCard = handType === "uc" ? normalizeUCType(card) : card;
-  const label = handType === "uc" ? UC_LABELS[normalizedCard] : UE_LABELS[card];
+  const label = getCardLabel(normalizedCard, app.locale);
   const selected =
     handType === "uc"
       ? normalizeUCType(player.selectedUC) === normalizedCard
@@ -597,12 +615,10 @@ function renderStageChoiceButton({ player, handType, view, ariaLabel }) {
       ? normalizeUCType(player.selectedUC)
       : player.selectedUE;
   const label = selectedCard
-    ? handType === "uc"
-      ? UC_LABELS[selectedCard]
-      : UE_LABELS[selectedCard]
+    ? getCardLabel(selectedCard, app.locale)
     : view === "rest"
-      ? "Descanso"
-      : "Ataque";
+      ? t("ui.choice.rest")
+      : t("ui.choice.attack");
   const badge = "";
   const exhaustionBadge = selectedCard
     ? cardExhaustionBadge(player, selectedCard, handType)
@@ -655,9 +671,7 @@ function renderRevealSlot(card, handType) {
   if (!card) {
     return `<div class="center-slot stage-empty-slot" aria-hidden="true"></div>`;
   }
-  const label = handType === "uc"
-    ? UC_LABELS[normalizeUCType(card)]
-    : UE_LABELS[card];
+  const label = getCardLabel(card, app.locale);
   return `
     <div class="center-slot stage-reveal-slot">
       <img class="stage-slot-art" src="${getCardArt(card, false)}" alt="${escapeHtml(label ?? "")}" />
@@ -682,8 +696,8 @@ function isSummaryView(state) {
 
 function getTurnSummary(state, seat) {
   return state.lastTurnSnapshot?.reportBySeat?.[seat] ?? {
-    enemyLine: "O inimigo não causou um efeito que precisasse ser relatado.",
-    selfLine: "Sua jogada não causou um efeito que precisasse ser relatado.",
+    enemyLine: [t("ui.roundReport.enemyNoEffect")],
+    selfLine: [t("ui.roundReport.selfNoEffect")],
   };
 }
 
@@ -709,19 +723,19 @@ function renderRoundReport(state, seat) {
 
   return `
     <section class="round-report">
-      <div class="round-report-kicker">Ultima rodada</div>
+      <div class="round-report-kicker">${escapeHtml(t("ui.roundReport.lastRound"))}</div>
       <div class="round-report-list">
         <div class="round-report-item is-enemy">
-          <p>${escapeHtml(summary.enemyLine)}</p>
+          <p>${escapeHtml(text(summary.enemyLine))}</p>
         </div>
         <div class="round-report-item is-self">
-          <p>${escapeHtml(summary.selfLine)}</p>
+          <p>${escapeHtml(text(summary.selfLine))}</p>
         </div>
         ${
           warnings.length
             ? `
               <div class="round-report-item round-report-item-alerts">
-                <strong>Avisos</strong>
+                <strong>${escapeHtml(t("ui.roundReport.alerts"))}</strong>
                 <div class="round-report-alert-list">
                   ${warnings.map((warning) => `<p>${escapeHtml(warning)}</p>`).join("")}
                 </div>
@@ -797,13 +811,13 @@ function renderCenterStage(state, self) {
             player,
             handType: "ue",
             view: "attack",
-            ariaLabel: "Abrir visualização de ataque",
+            ariaLabel: t("ui.stage.openAttackView"),
           })}
           ${renderStageChoiceButton({
             player,
             handType: "uc",
             view: "rest",
-            ariaLabel: "Abrir visualização de descanso",
+            ariaLabel: t("ui.stage.openRestView"),
           })}
         </div>
       </div>
@@ -860,7 +874,7 @@ function renderHeaderAction(state, seat) {
           class="confirm-button confirm-button-square"
           data-action="back-to-servers"
         >
-          Voltar para servidores
+          ${escapeHtml(t("ui.header.backToServers"))}
         </button>
       </div>
     `;
@@ -873,13 +887,13 @@ function renderHeaderAction(state, seat) {
           data-action="advance-local-view"
           data-seat="${seat}"
         >
-          Próximo turno
+          ${escapeHtml(t("ui.header.nextTurn"))}
         </button>
       </div>
     `;
   }
   if (state.phase === "phase_2_results") {
-    const buttonLabel = "OK";
+    const buttonLabel = t("ui.choice.ok");
 
     return `
       <div class="selection-actions is-single">
@@ -900,7 +914,7 @@ function renderHeaderAction(state, seat) {
     !player.confirmed &&
     player.selectedUC &&
     player.selectedUE;
-  const buttonLabel = player.confirmed ? "..." : "OK";
+  const buttonLabel = player.confirmed ? "..." : t("ui.choice.ok");
   const disabledAttr = canConfirm ? "" : "disabled";
   const confirmStateClass = player.confirmed ? "is-waiting" : canConfirm ? "" : "is-incomplete";
   const swapView = app.panelView === "attack" ? "rest" : "attack";
@@ -912,7 +926,7 @@ function renderHeaderAction(state, seat) {
         class="swap-button"
         data-action="set-panel-view"
         data-view="${swapView}"
-        aria-label="Trocar entre ataque e descanso"
+        aria-label="${escapeHtml(t("ui.stage.swapAttackRest"))}"
         ${swapDisabledAttr}
       >
         <img src="${ASSETS.iconSwap}" alt="" aria-hidden="true" />
@@ -998,6 +1012,7 @@ function renderStageStatusMetric(sourceSeat, sourcePlayer, metric, perspective) 
 }
 
 function renderStageSidebar(player, seat, perspective) {
+  const metrics = metricConfig();
   const trustSeat = resolveStageMetricSource(seat, "castleTrust");
   const trustPlayer = trustSeat === seat ? player : app.state.players[trustSeat];
   const guardSeat = resolveStageMetricSource(seat, "guardDamage");
@@ -1005,9 +1020,9 @@ function renderStageSidebar(player, seat, perspective) {
 
   return `
     <aside class="stage-sidebar is-${perspective}">
-      <div class="stage-player-name">${escapeHtml(player.name || "Aguardando...")}</div>
-      ${renderStageStatusMetric(trustSeat, trustPlayer, METRIC_CONFIG[0], perspective)}
-      ${renderStageStatusMetric(guardSeat, guardPlayer, METRIC_CONFIG[1], perspective)}
+      <div class="stage-player-name">${escapeHtml(player.name || t("ui.stage.waiting"))}</div>
+      ${renderStageStatusMetric(trustSeat, trustPlayer, metrics[0], perspective)}
+      ${renderStageStatusMetric(guardSeat, guardPlayer, metrics[1], perspective)}
     </aside>
   `;
 }
@@ -1025,31 +1040,31 @@ function renderWinnerOverlay(state) {
   return `
     <div class="overlay overlay-winner" data-action="continue-winner">
       <div class="winner-shell">
-        <img class="winner-title" src="${ASSETS.textWinner}" alt="Winner" />
+        <img class="winner-title" src="${ASSETS.textWinner}" alt="${escapeHtml(t("ui.overlay.winnerTitleAlt"))}" />
         <img class="winner-crest" src="${getCastleIcon(state.winner)}" alt="${escapeHtml(winnerName)}" />
         <h2>${escapeHtml(winnerName)}</h2>
         <p>${escapeHtml(getVictoryLabel(state.victoryType))}</p>
-        <span class="overlay-hint">toque ou pressione qualquer tecla</span>
+        <span class="overlay-hint">${escapeHtml(t("ui.overlay.winnerHint"))}</span>
       </div>
     </div>
   `;
 }
 
 function renderReportOverlay(state) {
-  const winnerName = state.players[state.winner]?.name || state.winner || "Ninguem";
+  const winnerName = state.players[state.winner]?.name || state.winner || t("ui.report.noWinner");
 
   return `
     <div class="overlay overlay-report">
       <div class="report-shell">
-        <h2>Fim da Partida</h2>
-        <div class="report-row"><span>Turnos</span><strong>${state.turnNumber}</strong></div>
-        <div class="report-row"><span>Vencedor</span><strong>${escapeHtml(winnerName)}</strong></div>
-        <div class="report-row"><span>Tipo</span><strong>${escapeHtml(
+        <h2>${escapeHtml(t("ui.report.gameOver"))}</h2>
+        <div class="report-row"><span>${escapeHtml(t("ui.report.turns"))}</span><strong>${state.turnNumber}</strong></div>
+        <div class="report-row"><span>${escapeHtml(t("ui.report.winner"))}</span><strong>${escapeHtml(winnerName)}</strong></div>
+        <div class="report-row"><span>${escapeHtml(t("ui.report.type"))}</span><strong>${escapeHtml(
           getVictoryLabel(state.victoryType),
         )}</strong></div>
         <div class="report-actions">
-          <button class="is-accent" data-action="report-restart">Outra partida</button>
-          <button data-action="open-final-board">Ver tabuleiro</button>
+          <button class="is-accent" data-action="report-restart">${escapeHtml(t("ui.report.playAgain"))}</button>
+          <button data-action="open-final-board">${escapeHtml(t("ui.report.viewBoard"))}</button>
         </div>
       </div>
     </div>
@@ -1062,14 +1077,14 @@ function renderSurrenderConfirmOverlay() {
       <button
         class="overlay-scrim-button"
         data-action="cancel-surrender"
-        aria-label="Fechar confirmacao de desistir"
+        aria-label="${escapeHtml(t("ui.surrender.closeConfirm"))}"
       ></button>
       <div class="surrender-confirm-shell">
-        <h2>Desistir da partida?</h2>
-        <p>Voce vai sair desta sala e voltar para a lista de servidores.</p>
+        <h2>${escapeHtml(t("ui.surrender.confirmTitle"))}</h2>
+        <p>${escapeHtml(t("ui.surrender.confirmBody"))}</p>
         <div class="surrender-confirm-actions">
-          <button class="menu-button is-secondary" data-action="cancel-surrender">Cancelar</button>
-          <button class="menu-button surrender-confirm-button" data-action="confirm-surrender">Desistir</button>
+          <button class="menu-button is-secondary" data-action="cancel-surrender">${escapeHtml(t("ui.surrender.cancel"))}</button>
+          <button class="menu-button surrender-confirm-button" data-action="confirm-surrender">${escapeHtml(t("ui.surrender.confirm"))}</button>
         </div>
       </div>
     </div>
@@ -1101,7 +1116,7 @@ function renderBoardScreen(state) {
                   class="surrender-button"
                   data-action="surrender-game"
                 >
-                  Desistir
+                  ${escapeHtml(t("ui.surrender.button"))}
                 </button>
               </div>
             `
@@ -1123,7 +1138,7 @@ function renderLobby(state) {
   const connecting = !app.session?.synced;
   const names = state.roster.length
     ? state.roster.map((name, index) => `<div class="lobby-name">${index + 1}. ${escapeHtml(name)}</div>`).join("")
-    : `<div class="lobby-name">Nenhum jogador na sala ainda.</div>`;
+    : `<div class="lobby-name">${escapeHtml(t("ui.lobby.noPlayers"))}</div>`;
 
   return `
     <div class="screen menu-screen">
@@ -1131,14 +1146,14 @@ function renderLobby(state) {
       <div class="menu-shell">
         <img class="menu-title" src="${ASSETS.title}" alt="Betrayal" />
         <div class="menu-card">
-          <h2>Sala ${escapeHtml(app.form.room)}</h2>
+          <h2>${escapeHtml(t("ui.lobby.roomTitle", { room: app.form.room }))}</h2>
           <p>${
             connecting
-              ? "Sincronizando com o servidor da sala."
-              : "Esperando dois usuarios ativos na sala."
+              ? escapeHtml(t("ui.lobby.syncing"))
+              : escapeHtml(t("ui.lobby.waitingPlayers"))
           }</p>
           <div class="lobby-list">${names}</div>
-          <button class="menu-button" data-action="back-to-menu">Voltar ao menu local</button>
+          <button class="menu-button" data-action="back-to-menu">${escapeHtml(t("ui.lobby.backToMenu"))}</button>
         </div>
       </div>
     </div>
@@ -1148,16 +1163,16 @@ function renderLobby(state) {
 function renderRoomBlocked(state) {
   const roster = state.roster.length
     ? state.roster.map((name, index) => `<div class="lobby-name">${index + 1}. ${escapeHtml(name)}</div>`).join("")
-    : `<div class="lobby-name">Nenhum jogador confirmado nesta sala.</div>`;
+    : `<div class="lobby-name">${escapeHtml(t("ui.blocked.noConfirmed"))}</div>`;
 
   const title =
     state.roster.length >= 2
-      ? "Sala ocupada"
-      : "Voce nao entrou nessa partida";
+      ? t("ui.blocked.fullTitle")
+      : t("ui.blocked.notJoinedTitle");
   const copy =
     state.roster.length >= 2
-      ? "Essa sala ja tem dois jogadores. Use outra sala ou reinicie a partida existente."
-      : "Seu navegador sincronizou a sala, mas este usuario nao virou um dos dois jogadores ativos.";
+      ? t("ui.blocked.fullCopy")
+      : t("ui.blocked.notJoinedCopy");
 
   return `
     <div class="screen menu-screen">
@@ -1168,8 +1183,8 @@ function renderRoomBlocked(state) {
           <h2>${escapeHtml(title)}</h2>
           <p>${escapeHtml(copy)}</p>
           <div class="lobby-list">${roster}</div>
-          <div class="notice">Dica: teste com uma sala nova e dois usuarios diferentes.</div>
-          <button class="menu-button" data-action="back-to-menu">Voltar ao menu local</button>
+          <div class="notice">${escapeHtml(t("ui.blocked.tip"))}</div>
+          <button class="menu-button" data-action="back-to-menu">${escapeHtml(t("ui.lobby.backToMenu"))}</button>
         </div>
       </div>
     </div>
@@ -1184,14 +1199,14 @@ function renderMenu() {
         <img class="menu-title" src="${ASSETS.title}" alt="Betrayal" />
         <div class="menu-card">
           <div class="menu-copy">
-            <span class="menu-kicker">vibinet room play</span>
-            <h1>Usuario.</h1>
+            <span class="menu-kicker">${escapeHtml(t("ui.menu.kicker"))}</span>
+            <h1>${escapeHtml(t("ui.menu.userTitle"))}</h1>
           </div>
           <label class="field">
-            <span>Usuario</span>
+            <span>${escapeHtml(t("ui.menu.userLabel"))}</span>
             <input
               data-field="user"
-              placeholder="ex: Zorro"
+              placeholder="${escapeHtml(t("ui.menu.userPlaceholder"))}"
               maxlength="24"
             />
           </label>
@@ -1200,7 +1215,7 @@ function renderMenu() {
               ? `<div class="notice">${escapeHtml(app.notice)}</div>`
               : ""
           }
-          <button class="menu-button" data-action="open-server-list">Ver servidores</button>
+          <button class="menu-button" data-action="open-server-list">${escapeHtml(t("ui.menu.viewServers"))}</button>
         </div>
       </div>
     </div>
@@ -1223,12 +1238,12 @@ function renderServerList() {
         <div class="menu-card server-menu-card">
           <div class="server-menu-header">
             <div class="menu-copy">
-              <span class="menu-kicker">lista fixa</span>
-              <h1>Servidores.</h1>
+              <span class="menu-kicker">${escapeHtml(t("ui.serverList.kicker"))}</span>
+              <h1>${escapeHtml(t("ui.serverList.title"))}</h1>
             </div>
             <button class="menu-button server-connect-inline" data-action="connect-selected-server" ${
               selected ? "" : "disabled"
-            }>Conectar</button>
+            }>${escapeHtml(t("ui.serverList.connect"))}</button>
           </div>
           <div class="server-list-shell">
             ${entries
@@ -1239,7 +1254,7 @@ function renderServerList() {
                     data-action="select-server"
                     data-server-id="${entry.id}"
                   >
-                    <span class="server-row-name">${escapeHtml(entry.name)}</span>
+                    <span class="server-row-name">${escapeHtml(t("net.server.name", { number: entry.number }))}</span>
                     <span class="server-row-detail is-${entry.kind}">${escapeHtml(entry.detail)}</span>
                   </button>
                 `,
@@ -1252,7 +1267,7 @@ function renderServerList() {
               : ""
           }
           <div class="server-menu-actions">
-            <button class="menu-button is-secondary" data-action="back-to-user-menu">Voltar</button>
+            <button class="menu-button is-secondary" data-action="back-to-user-menu">${escapeHtml(t("ui.serverList.back"))}</button>
           </div>
         </div>
       </div>
@@ -1278,7 +1293,7 @@ function joinRoom() {
   const room = app.form.room.trim();
 
   if (!user || !room) {
-    app.notice = "Preencha usuario e selecione um servidor.";
+    app.notice = t("ui.notices.fillUserAndServer");
     playSound("invalid", 0.55);
     return;
   }
@@ -1345,7 +1360,7 @@ function backToServers() {
 function openServerList() {
   const user = app.form.user.trim();
   if (!user) {
-    app.notice = "Preencha usuario.";
+    app.notice = t("ui.notices.fillUser");
     playSound("invalid", 0.55);
     return;
   }
@@ -1369,7 +1384,7 @@ function backToUserMenu() {
 function connectSelectedServer() {
   const selected = getSelectedServer();
   if (!selected) {
-    app.notice = "Selecione um servidor.";
+    app.notice = t("ui.notices.selectServer");
     playSound("invalid", 0.55);
     return;
   }
@@ -1429,11 +1444,13 @@ function handleStateSideEffects(prev, next) {
     next.roster.length === 0
   ) {
     backToMenu();
-    app.notice = "A partida voltou ao menu compartilhado.";
+    app.notice = t("ui.notices.matchReturnedToMenu");
   }
 }
 
 function update() {
+  setLocale(app.locale);
+
   if (app.session) {
     const nextState = app.session.computeState();
     app.metricAnimations = buildMetricAnimations(app.state, nextState);

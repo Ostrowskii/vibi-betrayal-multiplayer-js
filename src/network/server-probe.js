@@ -1,4 +1,5 @@
 import { create_client } from "vibinet";
+import { t } from "../i18n.js";
 import { VIBINET_SERVER_LABEL, VIBINET_SERVER_URL } from "./config.js";
 
 const WS_CONNECTING = 0;
@@ -27,8 +28,8 @@ export class OfficialServerProbe {
     if (this.bootError) {
       return {
         kind: "offline",
-        text: `Servidor ${VIBINET_SERVER_LABEL} indisponivel.`,
-        detail: "A conexao inicial nem conseguiu abrir o cliente de rede.",
+        text: t("net.probe.unavailable.text", { server: VIBINET_SERVER_LABEL }),
+        detail: t("net.probe.unavailable.detail"),
       };
     }
 
@@ -46,39 +47,39 @@ export class OfficialServerProbe {
     if (readyState === WS_OPEN && synced) {
       return {
         kind: "online",
-        text: `Servidor ${VIBINET_SERVER_LABEL} online.`,
-        detail: "A conexao com o servidor configurado respondeu ao sync inicial.",
+        text: t("net.probe.online.text", { server: VIBINET_SERVER_LABEL }),
+        detail: t("net.probe.online.detail"),
       };
     }
 
     if (readyState === WS_CONNECTING && waitMs < OFFLINE_TIMEOUT_MS && !reconnecting) {
       return {
         kind: "checking",
-        text: `Verificando ${VIBINET_SERVER_LABEL}...`,
-        detail: "A tela inicial ainda esta aguardando a primeira resposta de sync.",
+        text: t("net.probe.checking.text", { server: VIBINET_SERVER_LABEL }),
+        detail: t("net.probe.checking.detail"),
       };
     }
 
     if (readyState === WS_OPEN && !synced) {
       return {
         kind: "checking",
-        text: "Conexao aberta, aguardando sync inicial...",
-        detail: "O websocket abriu, mas o servidor ainda nao respondeu ao on_sync.",
+        text: t("net.probe.openWaiting.text"),
+        detail: t("net.probe.openWaiting.detail"),
       };
     }
 
     if (readyState === WS_CLOSING || reconnecting) {
       return {
         kind: "offline",
-        text: `Servidor ${VIBINET_SERVER_LABEL} reconectando.`,
-        detail: "A conexao caiu ou nao respondeu. O cliente esta tentando reconectar.",
+        text: t("net.probe.reconnecting.text", { server: VIBINET_SERVER_LABEL }),
+        detail: t("net.probe.reconnecting.detail"),
       };
     }
 
     return {
       kind: "offline",
-      text: `Servidor ${VIBINET_SERVER_LABEL} offline ou sem resposta.`,
-      detail: "Se o botao de entrar nao fizer nada, o problema provavelmente esta no endpoint configurado.",
+      text: t("net.probe.offline.text", { server: VIBINET_SERVER_LABEL }),
+      detail: t("net.probe.offline.detail"),
     };
   }
 

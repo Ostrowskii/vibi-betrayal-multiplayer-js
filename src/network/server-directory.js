@@ -1,5 +1,6 @@
 import { VibiNet } from "vibinet";
 import { gameConfig } from "../game/engine.js";
+import { t } from "../i18n.js";
 import { packer } from "./packer.js";
 import { SERVER_CHOICES, VIBINET_SERVER_URL } from "./config.js";
 
@@ -35,11 +36,11 @@ class ServerRoomProbe {
 
   snapshot() {
     if (this.bootError) {
-      return {
-        kind: "offline",
-        people: null,
-        detail: "indisponivel",
-      };
+        return {
+          kind: "offline",
+          people: null,
+          detail: t("net.directory.unavailable"),
+        };
     }
 
     if (!this.synced) {
@@ -48,13 +49,13 @@ class ServerRoomProbe {
         return {
           kind: "offline",
           people: null,
-          detail: "sem resposta",
+          detail: t("net.directory.noResponse"),
         };
       }
       return {
         kind: "checking",
         people: null,
-        detail: "verificando",
+        detail: t("net.directory.checking"),
       };
     }
 
@@ -64,13 +65,16 @@ class ServerRoomProbe {
       return {
         kind: "online",
         people,
-        detail: people === 1 ? "1 pessoa" : `${people} pessoas`,
+        detail:
+          people === 1
+            ? t("net.directory.people.one")
+            : t("net.directory.people.many", { count: people }),
       };
     } catch {
       return {
         kind: "checking",
         people: null,
-        detail: "sincronizando",
+        detail: t("net.directory.syncing"),
       };
     }
   }
