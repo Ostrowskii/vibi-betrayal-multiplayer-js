@@ -18,20 +18,37 @@ export const PHASE_DURATIONS = {
   winner_transition: 28,
 };
 
-export const UC_LABELS = {
-  king: "King",
-  chef: "Cook",
-  guard: "Guard",
-  dummy: "Dummy",
+export const CARD_LABELS = {
+  en: {
+    king: "King",
+    chef: "Cook",
+    guard: "Guard",
+    dummy: "Dummy",
+    assassin: "Assassin",
+    spy: "Spy",
+    invader: "Invader",
+    tribute: "Tribute",
+    poisoned_tribute: "Betrayl",
+  },
+  ptBR: {
+    king: "Rei",
+    chef: "Cozinheiro",
+    guard: "Guarda",
+    dummy: "Dummy",
+    assassin: "Assassino",
+    spy: "Spy",
+    invader: "Invasor",
+    tribute: "Tributo",
+    poisoned_tribute: "Traicao",
+  },
 };
 
-export const UE_LABELS = {
-  assassin: "Assassino",
-  spy: "Spy",
-  invader: "Invasor",
-  tribute: "Tributo",
-  poisoned_tribute: "Betrayl",
-};
+const pickCardLabels = (keys, locale = "en") =>
+  Object.fromEntries(keys.map((key) => [key, CARD_LABELS[locale][key]]));
+
+export const UC_LABELS = pickCardLabels(UC_TYPES);
+
+export const UE_LABELS = pickCardLabels(UE_TYPES);
 
 export const PHASE_LABELS = {
   lobby: "Sala",

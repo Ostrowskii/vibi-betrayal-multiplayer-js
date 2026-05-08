@@ -239,14 +239,14 @@ function finalizeTurnReport(state, resolvedAttackers) {
 
 function pushAssassinCards(state, attackerId, defenderId, killedKing) {
   const attackerText = killedKing
-    ? "Você enviou um assassino e matou o King inimigo."
-    : "Você enviou um assassino, mas ele foi pego.";
+    ? "Você enviou Assassin e matou o King inimigo."
+    : "Você enviou Assassin, mas ele foi pego.";
   const defenderText = killedKing
-    ? "O inimigo enviou um assassino e o seu King morreu enquanto descansava."
-    : "O inimigo enviou um assassino, mas ele foi pego.";
+    ? "O inimigo enviou Assassin e o seu King morreu enquanto descansava."
+    : "O inimigo enviou Assassin, mas ele foi pego.";
 
-  pushPublicCard(state, attackerId, "assassin", "Assassino", attackerText);
-  pushPublicCard(state, defenderId, "assassin", "Assassino", defenderText);
+  pushPublicCard(state, attackerId, "assassin", UE_LABELS.assassin, attackerText);
+  pushPublicCard(state, defenderId, "assassin", UE_LABELS.assassin, defenderText);
 }
 
 function applyAssassin(state, attackerId, defenderId) {
@@ -260,16 +260,16 @@ function applyAssassin(state, attackerId, defenderId) {
     attackerId,
     "selfLine",
     killedKing
-      ? "Você enviou Assassino e matou o King inimigo enquanto ele descansava."
-      : "Você enviou Assassino, mas ele foi executado antes de alcançar o King.",
+      ? "Você enviou Assassin e matou o King inimigo enquanto ele descansava."
+      : "Você enviou Assassin, mas ele foi executado antes de alcançar o King.",
   );
   setTurnReportLine(
     state,
     defenderId,
     "enemyLine",
     killedKing
-      ? "O inimigo enviou Assassino e matou o seu King enquanto ele descansava."
-      : "O inimigo enviou Assassino, mas ele foi executado antes de alcançar o seu King.",
+      ? "O inimigo enviou Assassin e matou o seu King enquanto ele descansava."
+      : "O inimigo enviou Assassin, mas ele foi executado antes de alcançar o seu King.",
   );
 
   pushAssassinCards(state, attackerId, defenderId, killedKing);
@@ -288,7 +288,7 @@ function applyAssassin(state, attackerId, defenderId) {
   attacker.ues.assassin.status = "dead";
   pushLog(
     state,
-    `${attacker.name} perdeu o Assassino. O King de ${defender.name} foi exposto.`,
+    `${attacker.name} perdeu o Assassin. O King de ${defender.name} foi exposto.`,
   );
 }
 
@@ -322,14 +322,14 @@ function applySpy(state, attackerId, defenderId) {
       state,
       attackerId,
       "spy",
-      "Spy pego",
+      "Spy capturado",
       "Você enviou um Spy, mas ele foi pego porque ninguém descansou.",
     );
     pushPublicCard(
       state,
       defenderId,
       "spy",
-      "Spy pego",
+      "Spy capturado",
       "O inimigo enviou um Spy, mas ninguém descansou e ele foi pego.",
     );
     pushPrivateCard(
@@ -382,15 +382,15 @@ function pushInvaderCards(
       state,
       attackerId,
       "invader",
-      "Invasores",
-      "Você enviou invasores e o Guard do inimigo estava dormindo.",
+      UE_LABELS.invader,
+      "Você enviou Invader e o Guard do inimigo estava dormindo.",
     );
     pushPublicCard(
       state,
       defenderId,
       "invader",
-      "Invasores",
-      "O inimigo enviou invasores e o seu Guard estava dormindo.",
+      UE_LABELS.invader,
+      "O inimigo enviou Invader e o seu Guard estava dormindo.",
     );
     return;
   }
@@ -400,15 +400,15 @@ function pushInvaderCards(
       state,
       attackerId,
       "invader",
-      "Invasores",
-      "Você enviou invasores e o Guard do inimigo estava exausto demais para bloquear. O King foi capturado.",
+      UE_LABELS.invader,
+      "Você enviou Invader e o Guard do inimigo estava exausto demais para bloquear. O King foi capturado.",
     );
     pushPublicCard(
       state,
       defenderId,
       "invader",
-      "Invasores",
-      "O inimigo enviou invasores e o seu Guard estava exausto demais para bloquear. O King foi capturado.",
+      UE_LABELS.invader,
+      "O inimigo enviou Invader e o seu Guard estava exausto demais para bloquear. O King foi capturado.",
     );
     return;
   }
@@ -418,15 +418,15 @@ function pushInvaderCards(
       state,
       attackerId,
       "invader",
-      "Invasores",
-      `Você enviou invasores e o Guard do inimigo defendeu. A vida do Guard caiu de ${guardBefore} para ${guardAfter}.`,
+      UE_LABELS.invader,
+      `Você enviou Invader e o Guard do inimigo defendeu. A vida do Guard caiu de ${guardBefore} para ${guardAfter}.`,
     );
     pushPublicCard(
       state,
       defenderId,
       "invader",
-      "Invasores",
-      `O inimigo enviou invasores e o seu Guard defendeu. A vida do Guard caiu de ${guardBefore} para ${guardAfter}.`,
+      UE_LABELS.invader,
+      `O inimigo enviou Invader e o seu Guard defendeu. A vida do Guard caiu de ${guardBefore} para ${guardAfter}.`,
     );
     return;
   }
@@ -435,15 +435,15 @@ function pushInvaderCards(
     state,
     attackerId,
     "invader",
-    "Invasores",
-    "Você enviou invasores e o Guard do inimigo não estava disponível. O King foi capturado.",
+    UE_LABELS.invader,
+    "Você enviou Invader e o Guard do inimigo não estava disponível. O King foi capturado.",
   );
   pushPublicCard(
     state,
     defenderId,
     "invader",
-    "Invasores",
-    "O inimigo enviou invasores e o seu Guard não estava disponível. O King foi capturado.",
+    UE_LABELS.invader,
+    "O inimigo enviou Invader e o seu Guard não estava disponível. O King foi capturado.",
   );
 }
 
@@ -464,13 +464,13 @@ function applyInvader(state, attackerId, defenderId) {
       state,
       attackerId,
       "selfLine",
-      "Você enviou Invasor e encontrou o Guard inimigo descansando. O Guard morreu.",
+      "Você enviou Invader e encontrou o Guard inimigo descansando. O Guard morreu.",
     );
     setTurnReportLine(
       state,
       defenderId,
       "enemyLine",
-      "O inimigo enviou Invasor e encontrou seu Guard descansando. O Guard morreu.",
+      "O inimigo enviou Invader e encontrou seu Guard descansando. O Guard morreu.",
     );
     defender.ucs.guard.status = "dead";
     pushInvaderCards(
@@ -493,13 +493,13 @@ function applyInvader(state, attackerId, defenderId) {
       state,
       attackerId,
       "selfLine",
-      `Você enviou Invasor. O Guard inimigo defendeu e foi de ${guardBefore} para ${guardAfter} de dano.${deathSuffix}`,
+      `Você enviou Invader. O Guard inimigo defendeu e foi de ${guardBefore} para ${guardAfter} de dano.${deathSuffix}`,
     );
     setTurnReportLine(
       state,
       defenderId,
       "enemyLine",
-      `O inimigo enviou Invasor. Seu Guard defendeu e foi de ${guardBefore} para ${guardAfter} de dano.${deathSuffix}`,
+      `O inimigo enviou Invader. Seu Guard defendeu e foi de ${guardBefore} para ${guardAfter} de dano.${deathSuffix}`,
     );
     pushInvaderCards(
       state,
@@ -521,16 +521,16 @@ function applyInvader(state, attackerId, defenderId) {
     attackerId,
     "selfLine",
     guardExhaustion >= 5
-      ? "Você enviou Invasor, mas o Guard inimigo estava exausto demais para bloquear. O King foi capturado."
-      : "Você enviou Invasor enquanto o Guard inimigo já estava morto. O King foi capturado.",
+      ? "Você enviou Invader, mas o Guard inimigo estava exausto demais para bloquear. O King foi capturado."
+      : "Você enviou Invader enquanto o Guard inimigo já estava morto. O King foi capturado.",
   );
   setTurnReportLine(
     state,
     defenderId,
     "enemyLine",
     guardExhaustion >= 5
-      ? "O inimigo enviou Invasor, mas o seu Guard estava exausto demais para bloquear. O King foi capturado."
-      : "O inimigo enviou Invasor enquanto seu Guard já estava morto. O King foi capturado.",
+      ? "O inimigo enviou Invader, mas o seu Guard estava exausto demais para bloquear. O King foi capturado."
+      : "O inimigo enviou Invader enquanto seu Guard já estava morto. O King foi capturado.",
   );
   defender.ucs.king.status = "dead";
   pushInvaderCards(
@@ -560,12 +560,12 @@ function applyTribute(state, attackerId, defenderId) {
 
   const attackerLine =
     defender.castleTrust > trustBefore
-      ? `Você enviou Tributo e ganhou 1 confiança com o inimigo (${trustBefore} -> ${defender.castleTrust}).`
-      : `Você enviou Tributo e manteve a confiança do inimigo no máximo (${defender.castleTrust}).`;
+      ? `Você enviou Tribute e ganhou 1 confiança com o inimigo (${trustBefore} -> ${defender.castleTrust}).`
+      : `Você enviou Tribute e manteve a confiança do inimigo no máximo (${defender.castleTrust}).`;
   const defenderLine =
     defender.castleTrust > trustBefore
-      ? `O inimigo enviou Tributo e ganhou 1 confiança com você (${trustBefore} -> ${defender.castleTrust}).`
-      : `O inimigo enviou Tributo, mas a sua confiança nele já estava no máximo (${defender.castleTrust}).`;
+      ? `O inimigo enviou Tribute e ganhou 1 confiança com você (${trustBefore} -> ${defender.castleTrust}).`
+      : `O inimigo enviou Tribute, mas a sua confiança nele já estava no máximo (${defender.castleTrust}).`;
 
   setTurnReportLine(state, attackerId, "selfLine", attackerLine);
   setTurnReportLine(state, defenderId, "enemyLine", defenderLine);
@@ -574,19 +574,19 @@ function applyTribute(state, attackerId, defenderId) {
     state,
     attackerId,
     "tribute",
-    "Tributo",
-    `Você enviou um tributo. A confiança do inimigo subiu de ${trustBefore} para ${defender.castleTrust}.`,
+    UE_LABELS.tribute,
+    `Você enviou Tribute. A confiança do inimigo subiu de ${trustBefore} para ${defender.castleTrust}.`,
   );
   pushPublicCard(
     state,
     defenderId,
     "tribute",
-    "Tributo",
-    `Você recebeu um tributo. Sua confiança subiu de ${trustBefore} para ${defender.castleTrust}.`,
+    UE_LABELS.tribute,
+    `Você recebeu Tribute. Sua confiança subiu de ${trustBefore} para ${defender.castleTrust}.`,
   );
   pushLog(
     state,
-    `${attacker.name} enviou Tributo. A confiança de ${defender.name} subiu.`,
+    `${attacker.name} enviou Tribute. A confiança de ${defender.name} subiu.`,
   );
 }
 
@@ -602,27 +602,27 @@ function applyPoisonedTribute(state, attackerId, defenderId) {
       state,
       attackerId,
       "selfLine",
-      "Você enviou Tributo Envenenado e pegou o Cook inimigo descansando. O King foi envenenado.",
+      "Você enviou Betrayl e pegou o Cook inimigo descansando. O King foi envenenado.",
     );
     setTurnReportLine(
       state,
       defenderId,
       "enemyLine",
-      "O inimigo enviou Tributo Envenenado e pegou seu Cook descansando. O King foi envenenado.",
+      "O inimigo enviou Betrayl e pegou seu Cook descansando. O King foi envenenado.",
     );
     pushPublicCard(
       state,
       attackerId,
       "poisoned_tribute",
       "Betrayl",
-      "Você enviou um tributo envenenado enquanto o Cook inimigo dormia. O King foi envenenado.",
+      "Você enviou Betrayl enquanto o Cook inimigo dormia. O King foi envenenado.",
     );
     pushPublicCard(
       state,
       defenderId,
       "poisoned_tribute",
       "Betrayl",
-      "O inimigo enviou um tributo envenenado enquanto o seu Cook dormia. O King foi envenenado.",
+      "O inimigo enviou Betrayl enquanto o seu Cook dormia. O King foi envenenado.",
     );
     setWinner(
       state,
@@ -638,13 +638,13 @@ function applyPoisonedTribute(state, attackerId, defenderId) {
 
   const poisonBlockReason =
     chefTooTiredToProtect
-      ? "o seu Cook estava cansado demais para proteger o Rei"
+      ? "o seu Cook estava cansado demais para proteger o King"
       : defender.ucs.chef.status === "dead"
       ? "o Cook inimigo já estava morto"
       : "o Cook inimigo não estava descansando";
   const defendBlockReason =
     chefTooTiredToProtect
-      ? "o seu Cook estava cansado demais para proteger o Rei"
+      ? "o seu Cook estava cansado demais para proteger o King"
       : defender.ucs.chef.status === "dead"
       ? "seu Cook já estava morto"
       : "seu Cook não estava descansando";
@@ -653,13 +653,13 @@ function applyPoisonedTribute(state, attackerId, defenderId) {
     state,
     attackerId,
     "selfLine",
-    `Você enviou Tributo Envenenado, mas ${poisonBlockReason}. A confiança caiu de ${trustBefore} para ${defender.castleTrust}.`,
+    `Você enviou Betrayl, mas ${poisonBlockReason}. A confiança caiu de ${trustBefore} para ${defender.castleTrust}.`,
   );
   setTurnReportLine(
     state,
     defenderId,
     "enemyLine",
-    `O inimigo enviou Tributo Envenenado, mas ${defendBlockReason}. Sua confiança caiu de ${trustBefore} para ${defender.castleTrust}.`,
+    `O inimigo enviou Betrayl, mas ${defendBlockReason}. Sua confiança caiu de ${trustBefore} para ${defender.castleTrust}.`,
   );
 
   pushPublicCard(
@@ -667,18 +667,18 @@ function applyPoisonedTribute(state, attackerId, defenderId) {
     attackerId,
     "poisoned_tribute",
     "Betrayl",
-    `Você enviou um tributo envenenado. A confiança do inimigo caiu de ${trustBefore} para ${defender.castleTrust}.`,
+    `Você enviou Betrayl. A confiança do inimigo caiu de ${trustBefore} para ${defender.castleTrust}.`,
   );
   pushPublicCard(
     state,
     defenderId,
     "poisoned_tribute",
     "Betrayl",
-    `O inimigo enviou um tributo envenenado. Sua confiança caiu de ${trustBefore} para ${defender.castleTrust}.`,
+    `O inimigo enviou Betrayl. Sua confiança caiu de ${trustBefore} para ${defender.castleTrust}.`,
   );
   pushLog(
     state,
-    `${attacker.name} derrubou a confiança de ${defender.name} com veneno.`,
+    `${attacker.name} derrubou a confiança de ${defender.name} com Betrayl.`,
   );
 }
 

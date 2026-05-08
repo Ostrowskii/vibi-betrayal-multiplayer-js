@@ -292,13 +292,13 @@ function cardExhaustionWarning(player, card, handType) {
 
   if (normalizedCard === "guard") {
     if (exhaustion >= 5) {
-      return "O Guard esta esgotado. Invasor ja passa direto.";
+      return "O Guard esta esgotado. Invader ja passa direto.";
     }
     if (exhaustion >= 4) {
-      return "O Guard esta muito cansado. Se nao descansar, Invasor passa.";
+      return "O Guard esta muito cansado. Se nao descansar, Invader passa.";
     }
     if (exhaustion >= 3) {
-      return "O Guard esta muito cansado. Invasor ja causa mais dano nele.";
+      return "O Guard esta muito cansado. Invader ja causa mais dano nele.";
     }
     return "";
   }
