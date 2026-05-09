@@ -370,9 +370,29 @@ button {
 }
 
 .surrender-zone {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  justify-content: center;
+  gap: 0.75rem;
+}
+
+.surrender-zone-spacer {
+  min-width: 0;
+}
+
+.surrender-round-indicator {
+  justify-self: center;
+  padding: 0.62rem 1.15rem;
+  border: 1px solid rgba(240, 200, 122, 0.3);
+  border-radius: 999px;
+  color: var(--gold-strong);
+  background: linear-gradient(180deg, rgba(46, 31, 21, 0.86), rgba(23, 15, 10, 0.92));
+  box-shadow: inset 0 0 0 1px rgba(255, 226, 170, 0.06);
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .board-zone {
@@ -1119,6 +1139,7 @@ button {
 }
 
 .surrender-button {
+  justify-self: end;
   width: min(12rem, 36vw);
   min-height: var(--selection-footer-min-height);
   border: 1px solid rgba(141, 174, 210, 0.34);

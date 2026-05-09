@@ -4,6 +4,7 @@ import { ASSETS } from "./assets.js";
 import {
   DEFAULT_LOCALE,
   normalizeUCType,
+  PLAYER_IDS,
   UC_TYPES,
   UE_TYPES,
   getCardLabel,
@@ -324,8 +325,30 @@ function cardExhaustionWarning(player, card, handType) {
   return "";
 }
 
-function getRoundReportWarnings(player) {
-  return UC_TYPES.map((card) => cardExhaustionWarning(player, card, "uc")).filter(Boolean);
+function publicKingExhaustionWarning(player) {
+  if (!player || player.ucs.king.status === "dead") return "";
+
+  const exhaustion = player.ucs.king.exhaustion ?? 0;
+  const playerName = player.name || t("ui.stage.waiting");
+
+  if (exhaustion === 3) {
+    return t("ui.warning.public.king.tired", { player: playerName });
+  }
+  return "";
+}
+
+function getRoundReportWarnings(state, seat) {
+  const player = state.players[seat];
+  const publicWarnings = PLAYER_IDS.map((playerId) =>
+    publicKingExhaustionWarning(state.players[playerId]),
+  ).filter(Boolean);
+  const privateWarnings = UC_TYPES.map((card) => {
+    if (card === "king" && (player.ucs.king.exhaustion ?? 0) === 3) return "";
+    return cardExhaustionWarning(player, card, "uc");
+  })
+    .filter(Boolean);
+
+  return [...publicWarnings, ...privateWarnings];
 }
 
 function visibleAttackCards(player) {
@@ -522,6 +545,7 @@ function handleSelectionKeydown(event) {
 function getCardDisabled(player, card, handType) {
   if (handType === "uc") {
     if (card === "dummy") return false;
+    if (player.ucs.king.exhaustion >= 4) return true;
     return player.ucs[normalizeUCType(card)].status === "dead";
   }
   if (card === "assassin") return player.ues.assassin.status !== "alive";
@@ -701,6 +725,13 @@ function getTurnSummary(state, seat) {
   };
 }
 
+function renderReportLines(lines) {
+  const normalizedLines = Array.isArray(lines) ? lines : lines ? [lines] : [];
+  return normalizedLines
+    .map((line) => `<p>${escapeHtml(text(line))}</p>`)
+    .join("");
+}
+
 function shouldRevealEnemyRestCard(state, self) {
   const snap = state.lastTurnSnapshot;
   if (!snap?.resolvedBySeat?.[self]) return false;
@@ -719,17 +750,17 @@ function shouldRevealEnemyRestCard(state, self) {
 
 function renderRoundReport(state, seat) {
   const summary = getTurnSummary(state, seat);
-  const warnings = getRoundReportWarnings(state.players[seat]);
+  const warnings = getRoundReportWarnings(state, seat);
 
   return `
     <section class="round-report">
       <div class="round-report-kicker">${escapeHtml(t("ui.roundReport.lastRound"))}</div>
       <div class="round-report-list">
         <div class="round-report-item is-enemy">
-          <p>${escapeHtml(text(summary.enemyLine))}</p>
+          ${renderReportLines(summary.enemyLine)}
         </div>
         <div class="round-report-item is-self">
-          <p>${escapeHtml(text(summary.selfLine))}</p>
+          ${renderReportLines(summary.selfLine)}
         </div>
         ${
           warnings.length
@@ -1091,6 +1122,17 @@ function renderSurrenderConfirmOverlay() {
   `;
 }
 
+function renderRoundIndicator(state) {
+  const shownRound = app.viewingTurn ?? state.turnNumber;
+  const round = String(shownRound).padStart(2, "0");
+
+  return `
+    <div class="surrender-round-indicator">
+      ${escapeHtml(t("ui.surrender.round", { round }))}
+    </div>
+  `;
+}
+
 function renderBoardScreen(state) {
   const { self } = perspectiveSeats(state);
   const overlays = [];
@@ -1112,6 +1154,8 @@ function renderBoardScreen(state) {
           showSurrender
             ? `
               <div class="surrender-zone">
+                <div class="surrender-zone-spacer" aria-hidden="true"></div>
+                ${renderRoundIndicator(state)}
                 <button
                   class="surrender-button"
                   data-action="surrender-game"

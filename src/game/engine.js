@@ -657,6 +657,7 @@ function applyPoisonedTribute(state, attackerId, defenderId) {
   const defender = state.players[defenderId];
   const defendingCard = normalizeUCType(defender.selectedUC);
   const trustBefore = defender.castleTrust;
+  const cookDead = defender.ucs.chef.status === "dead";
   const chefTooTiredToProtect = defender.ucs.chef.exhaustion >= 4;
 
   if (defendingCard === "chef" && !chefTooTiredToProtect) {
@@ -685,6 +686,45 @@ function applyPoisonedTribute(state, attackerId, defenderId) {
       "poisoned_tribute",
       cardDescriptor("poisoned_tribute"),
       msg("engine.betrayl.public.enemyKill"),
+    );
+    setWinner(
+      state,
+      attackerId,
+      "assassination",
+      msg("engine.winner.betrayl", {
+        attacker: attacker.name,
+        defender: defender.name,
+      }),
+    );
+    return;
+  }
+
+  if (cookDead) {
+    setTurnReportLine(
+      state,
+      attackerId,
+      "selfLine",
+      msg("engine.betrayl.report.selfExposedKill"),
+    );
+    setTurnReportLine(
+      state,
+      defenderId,
+      "enemyLine",
+      msg("engine.betrayl.report.enemyExposedKill"),
+    );
+    pushPublicCard(
+      state,
+      attackerId,
+      "poisoned_tribute",
+      cardDescriptor("poisoned_tribute"),
+      msg("engine.betrayl.public.selfExposedKill"),
+    );
+    pushPublicCard(
+      state,
+      defenderId,
+      "poisoned_tribute",
+      cardDescriptor("poisoned_tribute"),
+      msg("engine.betrayl.public.enemyExposedKill"),
     );
     setWinner(
       state,

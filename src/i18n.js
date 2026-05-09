@@ -43,6 +43,7 @@ const MESSAGES = {
     "ui.surrender.cancel": "Cancel",
     "ui.surrender.confirm": "Surrender",
     "ui.surrender.button": "Surrender",
+    "ui.surrender.round": ({ round }) => `Round ${round}`,
     "ui.lobby.noPlayers": "No players in this room yet.",
     "ui.lobby.roomTitle": ({ room }) => `Room ${room}`,
     "ui.lobby.syncing": "Syncing with the room server.",
@@ -79,6 +80,8 @@ const MESSAGES = {
       "The King is at the limit. Nobody rests. He falls next.",
     "ui.warning.king.tired":
       "The King is very tired. If he does not rest, nobody rests.",
+    "ui.warning.public.king.tired": ({ player }) =>
+      `${player}'s King is very tired. If he does not rest, nobody rests.`,
     "ui.warning.cook.limitKingFalls":
       "The Cook is at the limit. Betrayal already passes. The King may fall.",
     "ui.warning.cook.limitOnly": "The Cook is at the limit.",
@@ -279,6 +282,14 @@ const MESSAGES = {
       "You sent Betrayal while the enemy Cook was resting. The King was poisoned.",
     "engine.betrayl.public.enemyKill":
       "The enemy sent Betrayal while your Cook was resting. The King was poisoned.",
+    "engine.betrayl.report.selfExposedKill":
+      "You sent Betrayal and found the enemy King exposed. The King was poisoned.",
+    "engine.betrayl.report.enemyExposedKill":
+      "The enemy sent Betrayal and found your King exposed. The King was poisoned.",
+    "engine.betrayl.public.selfExposedKill":
+      "You sent Betrayal while the enemy King was exposed. The King was poisoned.",
+    "engine.betrayl.public.enemyExposedKill":
+      "The enemy sent Betrayal while your King was exposed. The King was poisoned.",
     "engine.winner.betrayl": ({ attacker, defender }) =>
       `${attacker} won with Betrayal over ${defender}.`,
     "engine.betrayl.reason.selfCookTooTired":
@@ -364,6 +375,7 @@ const MESSAGES = {
     "ui.surrender.cancel": "Cancelar",
     "ui.surrender.confirm": "Desistir",
     "ui.surrender.button": "Desistir",
+    "ui.surrender.round": ({ round }) => `Round ${round}`,
     "ui.lobby.noPlayers": "Nenhum jogador na sala ainda.",
     "ui.lobby.roomTitle": ({ room }) => `Sala ${room}`,
     "ui.lobby.syncing": "Sincronizando com o servidor da sala.",
@@ -400,6 +412,8 @@ const MESSAGES = {
       "O King esta no limite. Ninguem descansa. Se seguir assim, ele cai.",
     "ui.warning.king.tired":
       "O King esta muito cansado. Se nao descansar, ninguem descansa.",
+    "ui.warning.public.king.tired": ({ player }) =>
+      `O King de ${player} esta muito cansado. Se nao descansar, ninguem descansa.`,
     "ui.warning.cook.limitKingFalls":
       "O Cook esta no limite. Betrayal ja passa. O King pode cair agora.",
     "ui.warning.cook.limitOnly": "O Cook esta no limite.",
@@ -598,6 +612,14 @@ const MESSAGES = {
       "Voce enviou Betrayal enquanto o Cook inimigo dormia. O King foi envenenado.",
     "engine.betrayl.public.enemyKill":
       "O inimigo enviou Betrayal enquanto o seu Cook dormia. O King foi envenenado.",
+    "engine.betrayl.report.selfExposedKill":
+      "Voce enviou Betrayal e encontrou o King inimigo exposto. O King foi envenenado.",
+    "engine.betrayl.report.enemyExposedKill":
+      "O inimigo enviou Betrayal e encontrou seu King exposto. O King foi envenenado.",
+    "engine.betrayl.public.selfExposedKill":
+      "Voce enviou Betrayal enquanto o King inimigo estava exposto. O King foi envenenado.",
+    "engine.betrayl.public.enemyExposedKill":
+      "O inimigo enviou Betrayal enquanto o seu King estava exposto. O King foi envenenado.",
     "engine.winner.betrayl": ({ attacker, defender }) =>
       `${attacker} venceu com Betrayal sobre ${defender}.`,
     "engine.betrayl.reason.selfCookTooTired":
