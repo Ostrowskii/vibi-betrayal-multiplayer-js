@@ -253,6 +253,9 @@ function buildMetricAnimations(prevState, nextState) {
 }
 
 function cardCountBadge(player, card) {
+  if (card === "assassin") {
+    return `x${player.ues.assassin.status === "alive" ? 1 : 0}`;
+  }
   if (card === "invader") return `x${player.ues.invader.available}`;
   if (card === "tribute") return `x${player.ues.tribute.available}`;
   return "";
@@ -643,7 +646,7 @@ function renderStageChoiceButton({ player, handType, view, ariaLabel }) {
     : view === "rest"
       ? t("ui.choice.rest")
       : t("ui.choice.attack");
-  const badge = "";
+  const badge = selectedCard ? cardCountBadge(player, selectedCard) : "";
   const exhaustionBadge = selectedCard
     ? cardExhaustionBadge(player, selectedCard, handType)
     : "";
@@ -691,14 +694,21 @@ function renderHiddenEnemySlot(handType) {
   `;
 }
 
-function renderRevealSlot(card, handType) {
+function renderRevealSlot(card, handType, { exhaustionBadge = "" } = {}) {
   if (!card) {
     return `<div class="center-slot stage-empty-slot" aria-hidden="true"></div>`;
   }
   const label = getCardLabel(card, app.locale);
   return `
     <div class="center-slot stage-reveal-slot">
-      <img class="stage-slot-art" src="${getCardArt(card, false)}" alt="${escapeHtml(label ?? "")}" />
+      <div class="card-art-shell">
+        <img class="stage-slot-art" src="${getCardArt(card, false)}" alt="${escapeHtml(label ?? "")}" />
+        ${
+          handType === "uc" && exhaustionBadge
+            ? `<span class="card-inline-stack"><img src="${ASSETS.zzz}" alt="" aria-hidden="true" /><span>${escapeHtml(exhaustionBadge)}</span></span>`
+            : ""
+        }
+      </div>
     </div>
   `;
 }
@@ -787,7 +797,11 @@ function renderRevealStage(state, self) {
   const selfPlayer = state.players[self];
   const enemyPlayer = state.players[enemy];
   const enemyRestSlot = shouldRevealEnemyRestCard(state, self)
-    ? renderRevealSlot(enemySnap.selectedUC, "uc")
+    ? renderRevealSlot(enemySnap.selectedUC, "uc", {
+      exhaustionBadge: enemySnap.selectedUCExhaustion
+        ? String(enemySnap.selectedUCExhaustion)
+        : "",
+    })
     : renderHiddenEnemySlot("uc");
 
   return `
@@ -803,7 +817,11 @@ function renderRevealStage(state, self) {
         ${renderStageSidebar(selfPlayer, self, "self")}
         <div class="decision-row stage-board-row is-self">
           ${renderRevealSlot(selfSnap.selectedUE, "ue")}
-          ${renderRevealSlot(selfSnap.selectedUC, "uc")}
+          ${renderRevealSlot(selfSnap.selectedUC, "uc", {
+            exhaustionBadge: selfSnap.selectedUCExhaustion
+              ? String(selfSnap.selectedUCExhaustion)
+              : "",
+          })}
         </div>
       </div>
     </section>

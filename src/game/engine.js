@@ -998,7 +998,24 @@ function applyExhaustion(state) {
   pushLog(state, msg("engine.log.exhaustionUpdated"));
 }
 
-function captureTurnSnapshot(state, resolvedAttackers = []) {
+function selectedUCSnapshotExhaustion(player) {
+  const selected = normalizeUCType(player.selectedUC);
+  if (!selected || selected === "dummy") return null;
+  return player.ucs[selected]?.exhaustion ?? null;
+}
+
+function createSelectionSnapshot(state) {
+  return {
+    C1: {
+      selectedUCExhaustion: selectedUCSnapshotExhaustion(state.players.C1),
+    },
+    C2: {
+      selectedUCExhaustion: selectedUCSnapshotExhaustion(state.players.C2),
+    },
+  };
+}
+
+function captureTurnSnapshot(state, resolvedAttackers = [], selectionSnapshot = null) {
   const resolvedSet = new Set(resolvedAttackers);
   state.lastTurnSnapshot = {
     turnNumber: state.turnNumber,
@@ -1006,10 +1023,16 @@ function captureTurnSnapshot(state, resolvedAttackers = []) {
       C1: {
         selectedUC: state.players.C1.selectedUC,
         selectedUE: state.players.C1.selectedUE,
+        selectedUCExhaustion:
+          selectionSnapshot?.C1?.selectedUCExhaustion ??
+          selectedUCSnapshotExhaustion(state.players.C1),
       },
       C2: {
         selectedUC: state.players.C2.selectedUC,
         selectedUE: state.players.C2.selectedUE,
+        selectedUCExhaustion:
+          selectionSnapshot?.C2?.selectedUCExhaustion ??
+          selectedUCSnapshotExhaustion(state.players.C2),
       },
     },
     turnView: structuredClone(state.turnView),
@@ -1028,6 +1051,7 @@ function resolveTurn(state) {
   state.turnReport = createTurnReport();
   clearBoard(state);
   state.lastResolvedTurn = state.turnNumber;
+  const selectionSnapshot = createSelectionSnapshot(state);
   const resolvedAttackers = [];
 
   resolveInteraction(state, "C1", "C2");
@@ -1044,7 +1068,7 @@ function resolveTurn(state) {
       finalizeTurnReport(state, resolvedAttackers);
       updatePoisonAvailability(state);
       pushLog(state, msg("engine.log.resultsReady"));
-      captureTurnSnapshot(state, resolvedAttackers);
+      captureTurnSnapshot(state, resolvedAttackers, selectionSnapshot);
       state.turnNumber += 1;
       startTurn(state, {
         preserveTurnView: true,
@@ -1055,7 +1079,7 @@ function resolveTurn(state) {
   }
 
   finalizeTurnReport(state, resolvedAttackers);
-  captureTurnSnapshot(state, resolvedAttackers);
+  captureTurnSnapshot(state, resolvedAttackers, selectionSnapshot);
   setPhaseResults(state);
   pushLog(state, msg("engine.log.turnEndedWithVictory"));
 }

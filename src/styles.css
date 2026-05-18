@@ -1291,6 +1291,16 @@ button {
   border: 0;
 }
 
+.stage-reveal-slot .card-art-shell {
+  --card-caption-offset: 0.16rem;
+  width: 100%;
+  height: 100%;
+}
+
+.stage-reveal-slot .card-inline-stack {
+  font-size: clamp(1.05rem, 2.2dvh, 1.32rem);
+}
+
 .stage-slot-art {
   width: 100%;
   height: 100%;
